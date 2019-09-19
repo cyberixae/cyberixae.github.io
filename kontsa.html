@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>kontsa</title>
+    <style>
+body {
+  font-family: monospace;
+  font-size: 30px;
+  white-space: nowrap;
+}
+    </style>
+    <script>
+const history = {};
+let steps = [];
+
+const random = () => Math.floor(2*Math.random());
+
+const SET = (x) => (old) => old.map((o, i) => i === x ? 1 : o);
+const NOT = (x) => (old) => old.map((o, i) => i === x ? ((o + 1) % 2) : o);
+const RND = (x) => (old) => old.map((o, i) => i === x ? random() : o);
+
+const NOP = (old) => old;
+const SHL = ([b0,b1,b2,b3,b4,b5,b6,b7]) => [b1,b2,b3,b4,b5,b6,b7, 0];
+const SHR = ([b0,b1,b2,b3,b4,b5,b6,b7]) => [ 0,b0,b1,b2,b3,b4,b5,b6];
+const ROL = ([b0,b1,b2,b3,b4,b5,b6,b7]) => [b1,b2,b3,b4,b5,b6,b7,b0];
+const ROR = ([b0,b1,b2,b3,b4,b5,b6,b7]) => [b7,b0,b1,b2,b3,b4,b5,b6];
+
+const code = [
+  'SET 1',
+  'SHL',
+  'RND 3',
+  'ROL',
+  'RND 4',
+  'SHL',
+  'RND 1',
+  'SET 6',
+  'SHL',
+  'SHL',
+  'ROL',
+  'SHL',
+];
+function updateHistory() {
+  steps.forEach((x,i) => {
+    const binary = x.join('');
+    const dec = parseInt(binary, 2);
+    h = history[i] || {};
+    h[dec] = h[dec] || 0;
+    h[dec] += 1;
+    history[i] = h;
+  });
+}
+function renderHistory(body, i) {
+  const h = Object.entries(history[i]);
+  const runs = h.map(([v, p]) => p).reduce((p1, p2) => p1 + p2, 0);
+  const perc = (p) => Math.floor((p / runs) * 100)
+  const sorted = h.sort(([v1, p1], [v2, p2]) => p2 - p1);
+  body.innerHTML += '\xa0\xa0' + sorted.map(([v, p]) => `<span style="font-size: ${10 + p*20/runs}px;">` + String(v).padStart(3, '\xa0') + ' (' + String(perc(p))+ '%)</span>').join(' ');
+
+}
+function render() {
+  const [body] = document.getElementsByTagName('body');
+  body.innerHTML = '';
+  steps.forEach((x, i) => {
+    const binary = x.join('');
+    const dec = parseInt(binary, 2);
+    const padded = String(dec).padStart(3, '\xa0');
+    const op = (code[i-1]||'').padEnd(7, '\xa0').padStart(8, '\xa0');
+    body.innerHTML += op;
+    body.innerHTML += binary;
+    //body.innerHTML += ' (' + padded + ')';
+    renderHistory(body, i);
+    body.innerHTML += '<br />';
+  });
+}
+function run() {
+  steps = [[0,0,0,0,0,0,0,0]];
+  code.forEach((op) => {
+    const [state] = steps;
+    const [opName, ...opArgs] = op.split(' ');
+    const jsParts = []
+    jsParts.push(opName);
+    if (opArgs.length > 0) {
+      jsParts.push('(');
+      jsParts.push(opArgs.join(','));
+      jsParts.push(')');
+    }
+    const js = jsParts.join('');
+    steps.unshift(eval(js)(state));
+  });
+  steps.reverse();
+}
+
+function update() {
+  run();
+  updateHistory();
+  render();
+}
+
+window.addEventListener('DOMContentLoaded', (event) => {
+  update();
+  setInterval(update, 100)
+});
+    </script>
+  </head>
+  <body>
+  </body>
+</html>
