@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>kontsa</title>
+    <style>
+body {
+  font-family: monospace;
+  font-size: 30px;
+  white-space: nowrap;
+}
+    </style>
+    <script>
+const history = {};
+let steps = [];
+let pc = 0;
+
+const random = () => Math.floor(2*Math.random());
+const not = (b) => ((b + 1) % 2);
+const setPC = (t) => {
+  pc = t;
+  return true;
+}
+const C = (op) => (c, t) => (old) => old[c] === 1 ? op(t)(old) : old;
+
+const NOP = () => (old) => old;
+const SHL = () => ([b0,b1,b2,b3,b4,b5,b6,b7]) => [b1,b2,b3,b4,b5,b6,b7, 0];
+const SHR = () => ([b0,b1,b2,b3,b4,b5,b6,b7]) => [ 0,b0,b1,b2,b3,b4,b5,b6];
+const ROL = () => ([b0,b1,b2,b3,b4,b5,b6,b7]) => [b1,b2,b3,b4,b5,b6,b7,b0];
+const ROR = () => ([b0,b1,b2,b3,b4,b5,b6,b7]) => [b7,b0,b1,b2,b3,b4,b5,b6];
+
+const SET = (x=null) => (old) => old.map((o, i) => x === null | i === x ? 1 : o);
+const NOT = (x=null) => (old) => old.map((o, i) => x === null | i === x ? not(o) : o);
+const RND = (x=null) => (old) => old.map((o, i) => x === null | i === x ? random() : o);
+
+const CSET = C(SET); 
+const CNOT = C(NOT); 
+const CRND = C(RND); 
+
+const SUM = ([b0,b1,b2,b3,b4,b5,b6,b7]) => (parseInt([b0,b1,b2,b3].join(''),2) + parseInt([b4,b5,b6,b7].join(''),2)).toString(2).padStart(8, '0').slice(-8).split('').map((x) => parseInt(x,2));
+
+const CJMP = (c, t) => (old) => old[c] === 1 ? setPC && old : old;
+
+const code = [
+  'RND 7',
+  'SET 2',
+  'SET 5',
+  'SET 6',
+  'CRND 7 0',
+  'CRND 7 1',
+  'CRND 7 2',
+  'CRND 7 3',
+  'NOT',
+  'NOP',
+  'NOP',
+  'NOP',
+  'NOP',
+];
+
+function updateHistory() {
+  steps.forEach((x,i) => {
+    const binary = x.join('');
+    const dec = parseInt(binary, 2);
+    h = history[i] || {};
+    h[dec] = h[dec] || 0;
+    h[dec] += 1;
+    history[i] = h;
+  });
+}
+function renderHistory(body, i) {
+  const h = Object.entries(history[i]);
+  const runs = h.map(([v, p]) => p).reduce((p1, p2) => p1 + p2, 0);
+  const perc = (p) => Math.floor((p / runs) * 100)
+  const sorted = h.sort(([v1, p1], [v2, p2]) => p2 - p1);
+  body.innerHTML += '\xa0\xa0' + sorted.map(([v, p]) => `<span style="font-size: ${10 + p*20/runs}px;">` + String(v).padStart(3, '\xa0') + ' (' + String(perc(p))+ '%)</span>').join(' ');
+
+}
+function render() {
+  const [body] = document.getElementsByTagName('body');
+  body.innerHTML = '';
+  steps.forEach((x, i) => {
+    const binary = x.join('');
+    const dec = parseInt(binary, 2);
+    const padded = String(dec).padStart(3, '\xa0');
+    const op = (code[i-1]||'').padEnd(7, '\xa0').padStart(9, '\xa0');
+    body.innerHTML += op;
+    body.innerHTML += ' : ';
+    body.innerHTML += binary;
+    //body.innerHTML += ' (' + padded + ')';
+    renderHistory(body, i);
+    body.innerHTML += '<br />';
+  });
+}
+function run() {
+  steps = [[0,0,0,0,0,0,0,0]];
+  pc = 0;
+  while(pc < code.length) {
+    op = code[pc];
+    const [state] = steps;
+    const [opName, ...opArgs] = op.split(' ');
+    const jsParts = []
+    jsParts.push(opName);
+    jsParts.push('(');
+    jsParts.push(opArgs.join(','));
+    jsParts.push(')');
+    const js = jsParts.join('');
+    steps.unshift(eval(js)(state));
+    pc += 1;
+  }
+  steps.reverse();
+}
+
+function update() {
+  run();
+  updateHistory();
+  render();
+}
+
+window.addEventListener('DOMContentLoaded', (event) => {
+  update();
+  setInterval(update, 100)
+});
+    </script>
+  </head>
+  <body>
+  </body>
+</html>
