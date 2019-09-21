@@ -4,41 +4,108 @@
     <title>kontsa</title>
     <style>
 body {
+  margin: 0;
+  font-size: 24px;
+  display: grid;
+  overflow: hidden;
+}
+.logo {
+  font-family: sans-serif;
+  margin: 0;
+  padding: 0;
+}
+.name {
+  font-family: sans-serif;
+  font-size: 20px;
+  margin: 0;
+}
+.stat {
+  width: 25px;
+}
+.main {
   font-family: monospace;
-  font-size: 30px;
+  display: flex;
+}
+.box {
+  margin: 1ch;
+}
+.grow {
+  flex-grow: 1;
+}
+textarea {
+  font-size: 24px;
+  overflow: hidden;
+}
+.history {
   white-space: nowrap;
+}
+.err {
+  color: #a00;
 }
     </style>
     <script>
-const history = {};
+
+let code = [
+  'SET 0',
+  'SET 2',
+  'ROL',
+  'ROR',
+  'SHL',
+  'SHR',
+  'NOT',
+  'NOT 0',
+  'RND 2',
+  'SET 2',
+  'NOT',
+  'CSET 0 2',
+  'CNOT 0 4',
+  'CRND 0 6',
+  'SET 6',
+  'NOP',
+];
+
+let history = [];
 let steps = [];
+let pc = 0;
 
 const random = () => Math.floor(2*Math.random());
+const not = (b) => ((b + 1) % 2);
+const setPC = (t) => {
+  pc = t;
+  return true;
+}
+const C = (op) => ([c, t]) => (old) => old[c] === 1 ? op([t])(old) : old;
 
-const SET = (x) => (old) => old.map((o, i) => i === x ? 1 : o);
-const NOT = (x) => (old) => old.map((o, i) => i === x ? ((o + 1) % 2) : o);
-const RND = (x) => (old) => old.map((o, i) => i === x ? random() : o);
+const NOP = () => (old) => old;
+const SHL = () => ([b0,b1,b2,b3,b4,b5,b6,b7]) => [b1,b2,b3,b4,b5,b6,b7, 0];
+const SHR = () => ([b0,b1,b2,b3,b4,b5,b6,b7]) => [ 0,b0,b1,b2,b3,b4,b5,b6];
+const ROL = () => ([b0,b1,b2,b3,b4,b5,b6,b7]) => [b1,b2,b3,b4,b5,b6,b7,b0];
+const ROR = () => ([b0,b1,b2,b3,b4,b5,b6,b7]) => [b7,b0,b1,b2,b3,b4,b5,b6];
 
-const NOP = (old) => old;
-const SHL = ([b0,b1,b2,b3,b4,b5,b6,b7]) => [b1,b2,b3,b4,b5,b6,b7, 0];
-const SHR = ([b0,b1,b2,b3,b4,b5,b6,b7]) => [ 0,b0,b1,b2,b3,b4,b5,b6];
-const ROL = ([b0,b1,b2,b3,b4,b5,b6,b7]) => [b1,b2,b3,b4,b5,b6,b7,b0];
-const ROR = ([b0,b1,b2,b3,b4,b5,b6,b7]) => [b7,b0,b1,b2,b3,b4,b5,b6];
+const SET = ([x]) => (old) => old.map((o, i) => typeof x === 'undefined' | i === x ? 1 : o);
+const NOT = ([x]) => (old) => old.map((o, i) => typeof x === 'undefined' | i === x ? not(o) : o);
+const RND = ([x]) => (old) => old.map((o, i) => typeof x === 'undefined' | i === x ? random() : o);
 
-const code = [
-  'SET 1',
-  'SHL',
-  'RND 3',
-  'ROL',
-  'RND 4',
-  'SHL',
-  'RND 1',
-  'SET 6',
-  'SHL',
-  'SHL',
-  'ROL',
-  'SHL',
-];
+const CSET = C(SET);
+const CNOT = C(NOT);
+const CRND = C(RND);
+
+const ops = {
+  NOP,
+  SHL,
+  SHR,
+  ROL,
+  ROR,
+  
+  SET,
+  NOT,
+  RND,
+  
+  CSET,
+  CNOT,
+  CRND,
+};
+
 function updateHistory() {
   steps.forEach((x,i) => {
     const binary = x.join('');
@@ -49,59 +116,125 @@ function updateHistory() {
     history[i] = h;
   });
 }
-function renderHistory(body, i) {
-  const h = Object.entries(history[i]);
-  const runs = h.map(([v, p]) => p).reduce((p1, p2) => p1 + p2, 0);
-  const perc = (p) => Math.floor((p / runs) * 100)
-  const sorted = h.sort(([v1, p1], [v2, p2]) => p2 - p1);
-  body.innerHTML += '\xa0\xa0' + sorted.map(([v, p]) => `<span style="font-size: ${10 + p*20/runs}px;">` + String(v).padStart(3, '\xa0') + ' (' + String(perc(p))+ '%)</span>').join(' ');
-
+function renderHistory() {
+  const [div] = document.getElementsByClassName('js-history');
+  div.innerHTML = '';
+  steps.forEach((x, i) => {
+    const h = Object.entries(history[i]);
+    const runs = h.map(([v, p]) => p).reduce((p1, p2) => p1 + p2, 0);
+    const perc = (p) => Math.floor((p / runs) * 100)
+    const sorted = h.sort(([v1, p1], [v2, p2]) => p2 - p1);
+    div.innerHTML += sorted.map(([v, p]) => {
+      const percent = perc(p);
+      let span = `<span class="stat" style="font-size: ${10 + p*14/runs}px;">`
+      span += String(v)
+      if (percent < 100) {
+        span += ' (' + String(percent) + '%)';
+      }
+      span += '</span>';
+      return span;
+    }).join(' ');
+    div.innerHTML += '<br />';
+  });
 }
-function render() {
-  const [body] = document.getElementsByTagName('body');
-  body.innerHTML = '';
+function renderCurrent() {
+  const [div] = document.getElementsByClassName('js-current');
+  div.innerHTML = '';
   steps.forEach((x, i) => {
     const binary = x.join('');
     const dec = parseInt(binary, 2);
     const padded = String(dec).padStart(3, '\xa0');
-    const op = (code[i-1]||'').padEnd(7, '\xa0').padStart(8, '\xa0');
-    body.innerHTML += op;
-    body.innerHTML += binary;
-    //body.innerHTML += ' (' + padded + ')';
-    renderHistory(body, i);
-    body.innerHTML += '<br />';
+    div.innerHTML += binary;
+    div.innerHTML += '<br />';
   });
 }
 function run() {
+  const [errdiv] = document.getElementsByClassName('js-err');
   steps = [[0,0,0,0,0,0,0,0]];
-  code.forEach((op) => {
-    const [state] = steps;
-    const [opName, ...opArgs] = op.split(' ');
-    const jsParts = []
-    jsParts.push(opName);
-    if (opArgs.length > 0) {
-      jsParts.push('(');
-      jsParts.push(opArgs.join(','));
-      jsParts.push(')');
+  pc = 0;
+  try {
+    while(pc < code.length) {
+      line = code[pc];
+      const [state] = steps;
+      const [opName, ...opArgs] = line.split(' ');
+      if (ops.hasOwnProperty(opName) === false) {
+        throw new Error(opName);
+      }
+      const args = opArgs.map(str => {
+        const arg = parseInt(str, 10);
+        if (isNaN(arg) || arg < 0 || arg > 7) {
+          throw new Error(line)
+        }
+        return arg;
+      })
+      const op = ops[opName](args);
+      const result = op(state);
+      steps.unshift(result);
+      pc += 1;
     }
-    const js = jsParts.join('');
-    steps.unshift(eval(js)(state));
-  });
+    errdiv.innerHTML = '\xa0'; 
+  } catch(e) {
+    errdiv.innerHTML = `Err: "${e.message}"`;
+  }
   steps.reverse();
 }
 
+function readCode() {
+  const [textarea] = document.getElementsByClassName('js-code');
+  const newCode = textarea.value.trimEnd().split('\n');
+  newCode.forEach((newLine, i) => {
+    const oldLine = code[i];
+    if (newLine !== oldLine) {
+      history = history.slice(0, i + 1)
+    }
+  });
+  history = history.slice(0, newCode.length + 1)
+  code = newCode;
+}
+
+
 function update() {
+  readCode();
   run();
   updateHistory();
-  render();
+  renderCurrent();
+  renderHistory() 
+  //renderCode() 
+}
+
+function init() {
+  const [textarea] = document.getElementsByClassName('js-code');
+  code.forEach(line => textarea.value += line + '\n');
 }
 
 window.addEventListener('DOMContentLoaded', (event) => {
+  init();
   update();
   setInterval(update, 100)
 });
     </script>
   </head>
   <body>
+    <div class="head">
+      <h1 class="logo">Kontsa</h1>
+    </div>
+    <div class="main">
+      <div class="box">
+        <h2 class="name">operation</h2>
+        <div>&nbsp;</div>
+        <textarea class="js-code" rows="16" cols="9" spellcheck="false"></textarea>
+        <div class="js-err err">&nbsp;</div>
+      </div>
+      <div class="box">
+        <h2 class="name">result</h2>
+        <div class="js-current">
+        </div>
+      </div>
+      <div class="box" class="grow">
+        <h2 class="name">&nbsp;</h2>
+        <div class="history js-history">
+        </div>
+      </div>
+    </div>
   </body>
 </html>
