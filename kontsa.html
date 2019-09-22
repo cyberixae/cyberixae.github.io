@@ -45,7 +45,7 @@ textarea {
     </style>
     <script>
 
-let code = [
+const defaultCode = [
   'SET 0',
   'SET 2',
   'ROL',
@@ -64,7 +64,11 @@ let code = [
   'NOP',
 ];
 
-let history = [];
+let code = [
+  ...defaultCode,
+];
+
+let stats = [];
 let steps = [];
 let pc = 0;
 
@@ -110,17 +114,17 @@ function updateHistory() {
   steps.forEach((x,i) => {
     const binary = x.join('');
     const dec = parseInt(binary, 2);
-    h = history[i] || {};
+    h = stats[i] || {};
     h[dec] = h[dec] || 0;
     h[dec] += 1;
-    history[i] = h;
+    stats[i] = h;
   });
 }
 function renderHistory() {
-  const [div] = document.getElementsByClassName('js-history');
+  const [div] = document.getElementsByClassName('js-stats');
   div.innerHTML = '';
   steps.forEach((x, i) => {
-    const h = Object.entries(history[i]);
+    const h = Object.entries(stats[i]);
     const runs = h.map(([v, p]) => p).reduce((p1, p2) => p1 + p2, 0);
     const perc = (p) => Math.floor((p / runs) * 100)
     const sorted = h.sort(([v1, p1], [v2, p2]) => p2 - p1);
@@ -185,16 +189,26 @@ function readCode() {
   newCode.forEach((newLine, i) => {
     const oldLine = code[i];
     if (newLine !== oldLine) {
-      history = history.slice(0, i + 1)
+      stats = stats.slice(0, i + 1)
     }
   });
-  history = history.slice(0, newCode.length + 1)
+  stats = stats.slice(0, newCode.length + 1)
   code = newCode;
 }
 
+function updateUrl() {
+  const defaultApp = defaultCode.join('$').split(' ').join(',');
+  const userApp = code.join('$').split(' ').join(',');
+  if (userApp === defaultApp) {
+    history.replaceState({}, '', window.location.pathname );
+  } else {
+    history.replaceState({}, '', '?code=' + userApp);
+  }
+}
 
 function update() {
   readCode();
+  updateUrl();
   run();
   updateHistory();
   renderCurrent();
@@ -202,9 +216,23 @@ function update() {
   //renderCode() 
 }
 
-function init() {
+function getInitialCode() {
+  const args = new URLSearchParams(window.location.search);
+  const userCode = args.get('code');
+  if (userCode === null) {
+    return code;
+  }
+  return userCode.split(',').join(' ').split('$');
+}
+
+function initCodeArea() {
   const [textarea] = document.getElementsByClassName('js-code');
-  code.forEach(line => textarea.value += line + '\n');
+  const lines = getInitialCode();
+  textarea.value = lines.join('\n');
+}
+
+function init() {
+  initCodeArea();
 }
 
 window.addEventListener('DOMContentLoaded', (event) => {
@@ -232,7 +260,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
       </div>
       <div class="box" class="grow">
         <h2 class="name">&nbsp;</h2>
-        <div class="history js-history">
+        <div class="stats js-stats">
         </div>
       </div>
     </div>
