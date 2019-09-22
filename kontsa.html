@@ -3,6 +3,12 @@
   <head>
     <title>kontsa</title>
     <style>
+:root {
+  --color-certain: #000;
+  --color-likely: #000;
+  --color-random: #a92;
+  --color-unlikely: #aaa;
+}
 body {
   margin: 0;
   font-size: 24px;
@@ -19,9 +25,6 @@ body {
   font-size: 20px;
   margin: 0;
 }
-.stat {
-  width: 25px;
-}
 .main {
   font-family: monospace;
   display: flex;
@@ -36,11 +39,27 @@ textarea {
   font-size: 24px;
   overflow: hidden;
 }
-.history {
+.stats {
   white-space: nowrap;
 }
 .err {
   color: #a00;
+}
+.cat--certain {
+  color: var(--color-certain);
+  font-size: 24px;
+}
+.cat--likely {
+  color: var(--color-likely);
+  font-size: 24px;
+}
+.cat--random {
+  color: var(--color-random);
+  font-size: 20px;
+}
+.cat--unlikely {
+  color: var(--color-unlikely);
+  font-size: 16px;
 }
     </style>
     <script>
@@ -120,6 +139,19 @@ function updateHistory() {
     stats[i] = h;
   });
 }
+function category(percent) {
+  if (percent === 100) {
+    return 'cat--certain';
+  }
+  if (percent >= 60) {
+    return 'cat--likely';
+  }
+  if (percent >= 40) {
+    return 'cat--random';
+  }
+  return 'cat--unlikely';
+}
+
 function renderHistory() {
   const [div] = document.getElementsByClassName('js-stats');
   div.innerHTML = '';
@@ -128,9 +160,10 @@ function renderHistory() {
     const runs = h.map(([v, p]) => p).reduce((p1, p2) => p1 + p2, 0);
     const perc = (p) => Math.floor((p / runs) * 100)
     const sorted = h.sort(([v1, p1], [v2, p2]) => p2 - p1);
+
     div.innerHTML += sorted.map(([v, p]) => {
       const percent = perc(p);
-      let span = `<span class="stat" style="font-size: ${10 + p*14/runs}px;">`
+      let span = `<span class="${category(percent)}">`
       span += String(v)
       if (percent < 100) {
         span += ' (' + String(percent) + '%)';
