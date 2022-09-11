@@ -60,7 +60,9 @@ function geoFindMe() {
  var mapOptions = {
    center: [lat, lon],
    zoom: 13,
-  zoomControl: false,
+   zoomControl: false,
+   doubleClickZoom: false,
+   dragging: false,
  }
  var map = new L.map('my-map', mapOptions);
  
