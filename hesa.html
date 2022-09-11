@@ -7,7 +7,7 @@
 <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js" integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ==" crossorigin=""></script>
     <script>
 
-function geoFindMe() {
+function init() {
 
   const road       = document.querySelector ( "#road"      )
   const country       = document.querySelector ( "#country"      )
@@ -82,15 +82,10 @@ L.marker([lat, lon]).addTo(map);
     status.textContent = 'Geolocation is not supported by your browser';
   } else {
     //status.textContent = 'Locating…';
-    navigator.geolocation.getCurrentPosition(success, error);
+    navigator.geolocation.watchPosition(success, error);
   }
 
 
-
-}
-
-function init() {
-  geoFindMe();
 
 }
 
