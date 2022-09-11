@@ -17,11 +17,26 @@ function init() {
   const neighbourhood = document.querySelector ( "#neighbourhood") 
   const status = document.querySelector('#status');
 
+
+  var mapOptions = {
+    center: [0, 0],
+    zoom: 13,
+    zoomControl: false,
+    doubleClickZoom: false,
+    dragging: false,
+  }
+  var map = new L.map('my-map', mapOptions);
+ 
+  var layer = new L.TileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+ 
+  map.addLayer(layer);
+
+  const marker = L.marker([0, 0]).addTo(map);
+
   async function success(position) {
 
     const lat = position.coords.latitude;
     const lon = position.coords.longitude;
-
 
     const oso = `https://nominatim.openstreetmap.org/reverse.php?lat=${lat}&lon=${lon}&zoom=14&format=jsonv2`
 
@@ -57,21 +72,9 @@ function init() {
 
     //console.log(yay)
 
- var mapOptions = {
-   center: [lat, lon],
-   zoom: 13,
-   zoomControl: false,
-   doubleClickZoom: false,
-   dragging: false,
- }
- var map = new L.map('my-map', mapOptions);
- 
- var layer = new L.TileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
- 
- // Adding layer to the map
- map.addLayer(layer);
+    map.panTo([lat, lon]);
+    marker.setLatLng([lat, lon]);
 
-L.marker([lat, lon]).addTo(map);
   }
 
   function error() {
