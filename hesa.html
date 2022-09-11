@@ -1,24 +1,74 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>hesa</title>
+<link rel = "stylesheet" href = "http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+<script src = "http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
     <script>
 
 function geoFindMe() {
 
+  const road       = document.querySelector ( "#road"      )
+  const country       = document.querySelector ( "#country"      )
+  const county        = document.querySelector ( "#county"       )
+  const city          = document.querySelector ( "#city"         )
+  const suburb        = document.querySelector ( "#suburb"       )
+  const neighbourhood = document.querySelector ( "#neighbourhood") 
   const status = document.querySelector('#status');
-  const mapLink = document.querySelector('#map-link');
 
-  mapLink.href = '';
-  mapLink.textContent = '';
+  async function success(position) {
 
-  function success(position) {
-    const latitude  = position.coords.latitude;
-    const longitude = position.coords.longitude;
+    const lat = position.coords.latitude;
+    const lon = position.coords.longitude;
 
-    status.textContent = '';
-    mapLink.href = `https://www.openstreetmap.org/#map=18/${latitude}/${longitude}`;
-    mapLink.textContent = `Latitude: ${latitude} °, Longitude: ${longitude} °`;
+
+    const oso = `https://nominatim.openstreetmap.org/reverse.php?lat=${lat}&lon=${lon}&zoom=14&format=jsonv2`
+
+    console.log(lat, lon)
+
+    const bob = await fetch(oso)
+
+    const data = await bob.json()
+    //console.log(data)
+    //console.log(data.osm_id)
+    const { address } = data;
+    //console.log(address)
+    road.textContent =       address.road
+    country.textContent =       address.country
+    county.textContent =       address.county
+    city.textContent =         address.city
+    suburb.textContent =       address.suburb
+    neighbourhood.textContent = address.neighbourhood
+
+    const oso2 = `https://nominatim.openstreetmap.org/search.php?q=${address.suburb}&format=jsonv2`
+    const bob2 = await fetch(oso2)
+    const data2 = await bob2.json()
+    const [first] = data2.filter(({osm_type, type, category}) => osm_type === 'relation' && type === 'administrative' && category === 'boundary')
+
+    const osmId = first.osm_id ?? String()
+
+    const oso3 = `https://www.openstreetmap.org/api/0.6/relation/${osmId}/full.json`
+
+    const bob3 = await fetch(oso3)
+    const data3 = await bob3.json()
+    console.log(data3)
+    const { elements: [yay] } = data3;
+
+    //console.log(yay)
+
+ var mapOptions = {
+   center: [lat, lon],
+   zoom: 13
+ }
+ var map = new L.map('my-map', mapOptions);
+ 
+ var layer = new L.TileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+ 
+ // Adding layer to the map
+ map.addLayer(layer);
+
+L.marker([lat, lon]).addTo(map);
   }
 
   function error() {
@@ -28,20 +78,96 @@ function geoFindMe() {
   if (!navigator.geolocation) {
     status.textContent = 'Geolocation is not supported by your browser';
   } else {
-    status.textContent = 'Locating…';
+    //status.textContent = 'Locating…';
     navigator.geolocation.getCurrentPosition(success, error);
   }
 
+
+
 }
 
-document.querySelector('#find-me').addEventListener('click', geoFindMe);
+function init() {
+  geoFindMe();
 
+}
+
+window.addEventListener('DOMContentLoaded', (event) => {
+  init()
+});
+
+//https://www.openstreetmap.org/#map=18/60.1912348/25.0284377
     </script>
+    <style>
+body {
+  margin: 0;
+  font-family: sans-serif;
+  font-size: 30px;
+  text-align: center;
+  color: #aaa;
+}
+.bar {
+
+  text-align: center;
+}
+
+.heavy {
+/*
+  height: 100px;
+  line-height: 100px;
+*/
+  height: 40px;
+  line-height: 40px;
+  text-transform: uppercase;
+  font-weight: bold;
+  text-align: center;
+}
+.black {
+  background: #222;
+  color: #fff;
+}
+
+.white {
+  background: #fff;
+  color: #222;
+}
+
+
+#neighbourhood {
+}
+
+#suburb {
+}
+
+#city, #county {
+}
+
+.hide {
+  display: none;
+}
+</style>
   </head>
   <body>
-    <p>foo</p>
-    <button id = "find-me">Show my location</button><br/>
-    <p id = "status"></p>
-    <a id = "map-link" target="_blank"></a>
+    <br />
+    <div class="hide" id="road"></div>
+    <div>
+      <span id="neighbourhood"></span>
+    </div>
+    <div class="heavy white">
+      <span id="suburb"></span>
+    </div>
+    <div>
+      <span id="city"></span>
+      <span class="hide" id="county"></span>
+    </div>
+      <span class="hide" id="country"></span>
+    <p id="status"></p>
+<div id ="my-map" style = "width:375px; height:400px;"></div>
+
+<!--
+<iframe width="425" height="350" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="https://www.openstreetmap.org/export/embed.html?bbox=24.938634544459685%2C60.16755360906629%2C25.128663688746794%2C60.235287768480596&amp;layer=mapnik" style="border: 1px solid black"></iframe>
+
+<iframe width="425" height="350" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="https://www.openstreetmap.org/export/embed.html?bbox=25.020589828491214%2C60.169866304516866%2C25.04290580749512%2C60.20336461800571&amp;layer=mapnik" style="border: 1px solid black"></iframe><br/><small><a href="https://www.openstreetmap.org/#map=14/60.1866/25.0317">View Larger Map</a></small>
+    <button id = "find-me">refresh</button><br/>
+-->
   </body>
 </html>
