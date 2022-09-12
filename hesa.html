@@ -74,15 +74,9 @@ function init() {
       row.textContent = address.suburb
       main.append(row)
     }
-    if (address.village) {
-      const row = document.createElement('div');
-      row.setAttribute('class', 'row light')
-      row.textContent = address.village
-      main.append(row)
-    }
 
     approx.innerHTML = String()
-    const omg = ([address.town, address.city, address.county]).filter((x) => Boolean(x))
+    const omg = ([address.village, address.town, address.city, address.county]).filter((x) => Boolean(x))
     omg.forEach((item, i) => {
       if (i > 0) {
         const elem = document.createTextNode(', ');
@@ -223,7 +217,7 @@ body {
 .status-bar {
   position: fixed;
   bottom: 0;
-  font-size: 8px;
+  font-size: 12px;
   height: 20px;
   line-height: 20px;
   text-align: right;
@@ -263,9 +257,14 @@ body {
 }
 .tiny {
   text-transform: uppercase;
-  font-size: 14px;
+  font-size: 18px;
   height: 100px;
+  max-width: 100%;
   line-height: 100px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 0 2ch;
 }
 #updated {
   display: inline-block;
