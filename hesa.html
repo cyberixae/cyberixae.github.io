@@ -6,16 +6,17 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css" integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ==" crossorigin="" />
 <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js" integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ==" crossorigin=""></script>
     <script>
+let previousUpdate = Date.now();
+
 
 function init() {
 
-  const road       = document.querySelector ( "#road"      )
-  const country       = document.querySelector ( "#country"      )
-  const county        = document.querySelector ( "#county"       )
-  const city          = document.querySelector ( "#city"         )
-  const suburb        = document.querySelector ( "#suburb"       )
-  const neighbourhood = document.querySelector ( "#neighbourhood") 
+  const main = document.querySelector ( "#main"      )
+  const approx= document.querySelector ( "#approx"      )
   const status = document.querySelector('#status');
+  const updated =  document.querySelector('#updated');
+  const latE =  document.querySelector('#lat');
+  const lonE =  document.querySelector('#lon');
 
 
   var mapOptions = {
@@ -23,6 +24,7 @@ function init() {
     zoom: 13,
     zoomControl: false,
     doubleClickZoom: false,
+    scrollWheelZoom: false,
     dragging: false,
   }
   var map = new L.map('my-map', mapOptions);
@@ -35,8 +37,16 @@ function init() {
 
   async function success(position) {
 
+    previousUpdate = Date.now()
+
     const lat = position.coords.latitude;
     const lon = position.coords.longitude;
+
+    map.panTo([lat, lon]);
+    marker.setLatLng([lat, lon]);
+
+    latE.textContent = lat
+    lonE.textContent = lon
 
     const oso = `https://nominatim.openstreetmap.org/reverse.php?lat=${lat}&lon=${lon}&zoom=14&format=jsonv2`
 
@@ -48,32 +58,60 @@ function init() {
     //console.log(data)
     //console.log(data.osm_id)
     const { address } = data;
-    //console.log(address)
-    road.textContent =       address.road
-    country.textContent =       address.country
-    county.textContent =       address.county
-    city.textContent =         address.city
-    suburb.textContent =       address.suburb
-    neighbourhood.textContent = address.neighbourhood
+    console.log(address)
+
+    main.innerHTML = String()
+
+    if (address.neighbourhood) {
+      const row = document.createElement('div');
+      row.setAttribute('class', 'row light')
+      row.textContent = address.neighbourhood
+      main.append(row)
+    }
+    if (address.suburb) {
+      const row = document.createElement('div');
+      row.setAttribute('class', 'row heavy white')
+      row.textContent = address.suburb
+      main.append(row)
+    }
+    if (address.village) {
+      const row = document.createElement('div');
+      row.setAttribute('class', 'row light')
+      row.textContent = address.village
+      main.append(row)
+    }
+
+    approx.innerHTML = String()
+    const omg = ([address.town, address.city, address.county]).filter((x) => Boolean(x))
+    omg.forEach((item, i) => {
+      if (i > 0) {
+        const elem = document.createTextNode(', ');
+        approx.append(elem)
+        
+      }
+      const elem = document.createElement('span');
+      elem.textContent = item
+      approx.append(elem)
+      
+    })
 
     const oso2 = `https://nominatim.openstreetmap.org/search.php?q=${address.suburb}&format=jsonv2`
     const bob2 = await fetch(oso2)
     const data2 = await bob2.json()
     const [first] = data2.filter(({osm_type, type, category}) => osm_type === 'relation' && type === 'administrative' && category === 'boundary')
 
-    const osmId = first.osm_id ?? String()
+    const osmId = first?.osm_id ?? null
 
-    const oso3 = `https://www.openstreetmap.org/api/0.6/relation/${osmId}/full.json`
+    if (osmId) {
+      const oso3 = `https://www.openstreetmap.org/api/0.6/relation/${osmId}/full.json`
 
-    const bob3 = await fetch(oso3)
-    const data3 = await bob3.json()
-    console.log(data3)
-    const { elements: [yay] } = data3;
+      const bob3 = await fetch(oso3)
+      const data3 = await bob3.json()
+      console.log(data3)
+      const { elements: [yay] } = data3;
 
-    //console.log(yay)
-
-    map.panTo([lat, lon]);
-    marker.setLatLng([lat, lon]);
+      //console.log(yay)
+    }
 
   }
 
@@ -85,10 +123,55 @@ function init() {
     status.textContent = 'Geolocation is not supported by your browser';
   } else {
     //status.textContent = 'Locating…';
-    navigator.geolocation.watchPosition(success, error);
+    navigator.geolocation.watchPosition(success, error, { enableHighAccuracy: true });
   }
 
 
+  function update() {
+    updated.innerHTML = String()
+    const ms = Date.now() - previousUpdate
+    const s = Math.floor(ms / 1_000)
+      if (s < 60) {
+        String(s).split(String()).forEach((c) => {
+          const elem = document.createElement('span');
+          elem.setAttribute('class', 'numeral')
+          elem.textContent=c
+          updated.append(elem)
+        })
+        const unit = document.createTextNode('s');
+        updated.append(unit)
+        updated.removeAttribute('class')
+        return 
+      }
+      m = Math.floor(s / 60)
+      if (m < 60) {
+        String(m).split(String()).forEach((c) => {
+          const elem = document.createElement('span');
+          elem.setAttribute('class', 'numeral')
+          elem.textContent=c
+          updated.append(elem)
+        })
+        const unit = document.createTextNode('m');
+        updated.append(unit)
+        updated.setAttribute('class', 'warning')
+        return 
+      }
+      h = Math.floor(m / 60)
+      String(h).split(String()).forEach((c) => {
+        const elem = document.createElement('span');
+        elem.setAttribute('class', 'numeral')
+        elem.textContent=c
+        updated.append(elem)
+      })
+      const unit = document.createTextNode('h');
+      updated.append(unit)
+      updated.setAttribute('class', 'error')
+  }
+  function again() {
+    update()
+    window.setTimeout(() => again(), 200)
+  }
+  again()
 
 }
 
@@ -102,7 +185,6 @@ window.addEventListener('DOMContentLoaded', (event) => {
 body {
   margin: 0;
   font-family: sans-serif;
-  font-size: 30px;
   text-align: center;
   color: #aaa;
 }
@@ -110,12 +192,18 @@ body {
 
   text-align: center;
 }
-
+.light {
+  height: 30px;
+  line-height: 30px;
+  text-transform: uppercase;
+  font-size: 22px;
+}
 .heavy {
 /*
   height: 100px;
   line-height: 100px;
 */
+  font-size: 30px;
   height: 40px;
   line-height: 40px;
   text-transform: uppercase;
@@ -132,40 +220,74 @@ body {
   color: #222;
 }
 
+.status-bar {
+  position: fixed;
+  bottom: 0;
+  font-size: 8px;
+  height: 20px;
+  line-height: 20px;
+  text-align: right;
+  left: 0;
+  right: 0;
+  padding: 1ch 2ch;
+}
+
 #my-map {
   margin: 0 auto;
 }
 
-#neighbourhood {
+.numeral {
+  display: inline-block;
+  width: 1ch;
 }
 
-#suburb {
-}
-
-#city, #county {
+.space {
+  display: inline-block;
+  width: 4px;
 }
 
 .hide {
   display: none;
 }
+.top-bar {
+  height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.warning {
+  color: #fa0;
+}
+.error {
+  color: #a00;
+}
+.tiny {
+  text-transform: uppercase;
+  font-size: 14px;
+  height: 100px;
+  line-height: 100px;
+}
+#updated {
+  display: inline-block;
+  text-align: right;
+  min-width: 4ch;
+}
 </style>
   </head>
   <body>
-    <br />
-    <div class="hide" id="road"></div>
-    <div>
-      <span id="neighbourhood"></span>
+    <div id="main" class="top-bar">
     </div>
-    <div class="heavy white">
-      <span id="suburb"></span>
+    <div id ="my-map" style = "width:375px; height:400px;"></div>
+    <div id="approx" class="tiny">
     </div>
-    <div>
-      <span class="hide" id="city"></span>
-      <span class="hide" id="county"></span>
+      <p id="status"></p>
+    <div class="status-bar">
+      <span class="hide" id="lat"></span>
+      <span class="hide space"> </span>
+      <span class="hide" id="lon"></span>
+      <span id="updated"></span>
+      since last update
     </div>
-      <span class="hide" id="country"></span>
-    <p id="status"></p>
-<div id ="my-map" style = "width:375px; height:400px;"></div>
 
 <!--
 <iframe width="425" height="350" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="https://www.openstreetmap.org/export/embed.html?bbox=24.938634544459685%2C60.16755360906629%2C25.128663688746794%2C60.235287768480596&amp;layer=mapnik" style="border: 1px solid black"></iframe>
