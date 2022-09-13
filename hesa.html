@@ -13,6 +13,7 @@ function init() {
   let locationUpdate = Date.now();
 
   let firstUpdate = true;
+  let firstPan = true;
 
   const main = document.querySelector ( "#main"      )
   const approx= document.querySelector ( "#approx"      )
@@ -32,17 +33,26 @@ function init() {
   }
   var map = new L.map('my-map', mapOptions);
 
-  var layer = new L.TileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+  var layer = new L.TileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors'
+  });
 
   map.addLayer(layer);
 
-  const marker = L.marker([0, 0]).addTo(map);
+  const marker = L.marker([0, 0], {
+    icon: L.icon({
+      iconUrl: './simple.png',
+      iconRetinaUrl: './simple2x.png',
+      iconSize: [25, 35],
+      iconAnchor: [12, 34],
+    }),
+  }).addTo(map);
 
   async function updateInfo(latLon) {
 
     const [lat, lon] = latLon;
 
-    const oso = `https://nominatim.openstreetmap.org/reverse.php?lat=${lat}&lon=${lon}&zoom=14&format=jsonv2`
+    const oso = `https://nominatim.openstreetmap.org/reverse.php?lat=${lat}&lon=${lon}&zoom=14&polygon_geojson=1&format=jsonv2`
 
     console.log(lat, lon)
 
@@ -51,7 +61,7 @@ function init() {
     const data = await bob.json()
     //console.log(data)
     //console.log(data.osm_id)
-    const { address } = data;
+    const { address, geojson } = data;
     console.log(address)
 
     main.innerHTML = String()
@@ -59,6 +69,7 @@ function init() {
     if (address.neighbourhood) {
       const row = document.createElement('div');
       row.setAttribute('class', 'row light')
+      row.setAttribute('style', 'color: #4b0082; opacity: 0.8')
       row.textContent = address.neighbourhood
       main.append(row)
     }
@@ -83,6 +94,65 @@ function init() {
 
     })
 
+    if (address.neighbourhood) {
+      L.geoJSON(geojson, {
+        style: {
+          color: '#4b0082',
+          fillOpacity: 0.2,
+          strokeWidth: '3px',
+        }
+      }).addTo(map);
+    }
+
+    if (address.suburb) {
+      const [_tooSmall, ...parts] = data.display_name.split(address.suburb)
+      const query = [String(), ...parts].join(address.suburb)
+
+      const q = encodeURIComponent(query)
+
+      oso4 = `https://nominatim.openstreetmap.org/search.php?q=${q}&polygon_geojson=1&format=jsonv2`
+      const bob4 = await fetch(oso4)
+      const data4 = await bob4.json()
+      console.log('muumi')
+      console.log(data4)
+      const hitit = data4.filter(({category, type}) => category === 'boundary' && type === 'administrative' )
+      console.log(hitit)
+      const [hitti] = hitit
+      if (typeof hitti !== 'undefined') {
+        console.log(hitti.lat)
+        console.log(hitti.lon)
+
+
+        const [la1, la2, lo1, lo2] = hitti.boundingbox
+        map.fitBounds([[la1, lo1], [la2, lo2]])
+
+        console.log(hitti)
+        L.geoJSON(hitti.geojson, {
+          style: {
+            color: '#222',
+            fillOpacity: 0,
+            strokeWidth: '3px',
+          }
+        }).addTo(map);
+      }
+    }
+
+/*
+
+
+function drawCountyBoundary(county, state)
+{
+    url = `https://nominatim.openstreetmap.org/search.php?county=${county}&state=${state}&polygon_geojson=1&format=jsonv2`
+    fetch(url).then(function(response) {
+    return response.json();
+  })
+  .then(function(json) {
+    geojsonFeature = json[0].geojson;
+    L.geoJSON(geojsonFeature).addTo(map);
+  });
+}
+
+
     const oso2 = `https://nominatim.openstreetmap.org/search.php?q=${address.suburb}&format=jsonv2`
     const bob2 = await fetch(oso2)
     const data2 = await bob2.json()
@@ -100,6 +170,7 @@ function init() {
 
       //console.log(yay)
     }
+*/
 
   }
 
@@ -110,7 +181,11 @@ function init() {
     const lat = position.coords.latitude;
     const lon = position.coords.longitude;
 
-    map.panTo([lat, lon]);
+    if (firstPan) {
+      map.panTo([lat, lon]);
+      firstPan = false;
+    }
+
     marker.setLatLng([lat, lon]);
 
     latE.textContent = lat
@@ -195,6 +270,7 @@ body {
   margin: 0;
   font-family: sans-serif;
   text-align: center;
+  background: #fffefd;
   color: #aaa;
 }
 .bar {
