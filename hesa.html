@@ -6,10 +6,13 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css" integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ==" crossorigin="" />
 <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js" integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ==" crossorigin=""></script>
     <script>
-let previousUpdate = Date.now();
-
 
 function init() {
+
+  let pageLoad = Date.now();
+  let locationUpdate = Date.now();
+
+  let firstUpdate = true;
 
   const main = document.querySelector ( "#main"      )
   const approx= document.querySelector ( "#approx"      )
@@ -28,25 +31,16 @@ function init() {
     dragging: false,
   }
   var map = new L.map('my-map', mapOptions);
- 
+
   var layer = new L.TileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
- 
+
   map.addLayer(layer);
 
   const marker = L.marker([0, 0]).addTo(map);
 
-  async function success(position) {
+  async function updateInfo(latLon) {
 
-    previousUpdate = Date.now()
-
-    const lat = position.coords.latitude;
-    const lon = position.coords.longitude;
-
-    map.panTo([lat, lon]);
-    marker.setLatLng([lat, lon]);
-
-    latE.textContent = lat
-    lonE.textContent = lon
+    const [lat, lon] = latLon;
 
     const oso = `https://nominatim.openstreetmap.org/reverse.php?lat=${lat}&lon=${lon}&zoom=14&format=jsonv2`
 
@@ -81,12 +75,12 @@ function init() {
       if (i > 0) {
         const elem = document.createTextNode(', ');
         approx.append(elem)
-        
+
       }
       const elem = document.createElement('span');
       elem.textContent = item
       approx.append(elem)
-      
+
     })
 
     const oso2 = `https://nominatim.openstreetmap.org/search.php?q=${address.suburb}&format=jsonv2`
@@ -109,6 +103,27 @@ function init() {
 
   }
 
+  async function success(position) {
+
+    locationUpdate = Date.now()
+
+    const lat = position.coords.latitude;
+    const lon = position.coords.longitude;
+
+    map.panTo([lat, lon]);
+    marker.setLatLng([lat, lon]);
+
+    latE.textContent = lat
+    lonE.textContent = lon
+
+    if (firstUpdate) {
+      updateInfo([lat, lon])
+
+      firstUpdate = false;
+    }
+
+  }
+
   function error() {
     status.textContent = 'Unable to retrieve your location';
   }
@@ -123,7 +138,7 @@ function init() {
 
   function update() {
     updated.innerHTML = String()
-    const ms = Date.now() - previousUpdate
+    const ms = Date.now() - locationUpdate
     const s = Math.floor(ms / 1_000)
       if (s < 60) {
         String(s).split(String()).forEach((c) => {
@@ -135,7 +150,7 @@ function init() {
         const unit = document.createTextNode('s');
         updated.append(unit)
         updated.removeAttribute('class')
-        return 
+        return
       }
       m = Math.floor(s / 60)
       if (m < 60) {
@@ -148,7 +163,7 @@ function init() {
         const unit = document.createTextNode('m');
         updated.append(unit)
         updated.setAttribute('class', 'warning')
-        return 
+        return
       }
       h = Math.floor(m / 60)
       String(h).split(String()).forEach((c) => {
