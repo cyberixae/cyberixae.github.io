@@ -41,12 +41,17 @@ function init() {
 
   const marker = L.marker([0, 0], {
     icon: L.icon({
-      iconUrl: './simple.png',
-      iconRetinaUrl: './simple2x.png',
-      iconSize: [25, 35],
-      iconAnchor: [12, 34],
+      iconUrl: './round1x.png',
+      iconRetinaUrl: './round2x.png',
+      iconSize: [15, 15],
     }),
   }).addTo(map);
+
+  const accuracy = L.circle([0,0]).setStyle({
+    weight: 0,
+    color: '#9600c5',
+    opacity: 0.5,
+  }).addTo(map)
 
   async function updateInfo(latLon) {
 
@@ -99,7 +104,7 @@ function init() {
         style: {
           color: '#4b0082',
           fillOpacity: 0.2,
-          strokeWidth: '3px',
+          weight: 3,
         }
       }).addTo(map);
     }
@@ -113,8 +118,7 @@ function init() {
       oso4 = `https://nominatim.openstreetmap.org/search.php?q=${q}&polygon_geojson=1&format=jsonv2`
       const bob4 = await fetch(oso4)
       const data4 = await bob4.json()
-      console.log('muumi')
-      console.log(data4)
+      //console.log(data4)
       const hitit = data4.filter(({category, type}) => category === 'boundary' && type === 'administrative' )
       console.log(hitit)
       const [hitti] = hitit
@@ -131,12 +135,14 @@ function init() {
           style: {
             color: '#222',
             fillOpacity: 0,
-            strokeWidth: '3px',
+            weight: 4,
           }
         }).addTo(map);
       }
     }
 
+    //accuracy.bringToFront()
+    //marker.bringToFront()
 /*
 
 
@@ -174,12 +180,13 @@ function drawCountyBoundary(county, state)
 
   }
 
-  async function success(position) {
+  function updatePosition(coords) {
 
     locationUpdate = Date.now()
 
-    const lat = position.coords.latitude;
-    const lon = position.coords.longitude;
+    const lat = coords.latitude;
+    const lon = coords.longitude;
+    const acc = coords.accuracy;
 
     if (firstPan) {
       map.panTo([lat, lon]);
@@ -187,11 +194,21 @@ function drawCountyBoundary(county, state)
     }
 
     marker.setLatLng([lat, lon]);
+    accuracy.setLatLng([lat, lon]);
+    accuracy.setRadius(acc)
 
     latE.textContent = lat
     lonE.textContent = lon
 
+
+  }
+
+  function success(position) {
+    updatePosition(position.coords)
+
     if (firstUpdate) {
+      const lat = position.coords.latitude;
+      const lon = position.coords.longitude;
       updateInfo([lat, lon])
 
       firstUpdate = false;
@@ -203,11 +220,17 @@ function drawCountyBoundary(county, state)
     status.textContent = 'Unable to retrieve your location';
   }
 
+  function lousyPosition(position) {
+    updatePosition(position.coords)
+    navigator.geolocation.watchPosition(success, error, { enableHighAccuracy: true });
+  }
+
+
   if (!navigator.geolocation) {
     status.textContent = 'Geolocation is not supported by your browser';
   } else {
     //status.textContent = 'Locating…';
-    navigator.geolocation.watchPosition(success, error, { enableHighAccuracy: true });
+    navigator.geolocation.getCurrentPosition(lousyPosition, error);
   }
 
 
