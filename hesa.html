@@ -53,6 +53,31 @@ function init() {
     opacity: 0.5,
   }).addTo(map)
 
+
+  function updateSuburb(suburb) {
+    const [la1, la2, lo1, lo2] = suburb.boundingbox
+    map.fitBounds([[la1, lo1], [la2, lo2]])
+
+    console.log('upsating suburb', suburb)
+    L.geoJSON(suburb.geojson, {
+      style: {
+        color: '#222',
+        fillOpacity: 0,
+        weight: 4,
+      }
+    }).addTo(map);
+  }
+
+  function updateHood(hood) {
+      L.geoJSON(hood.geojson, {
+        style: {
+          color: '#4b0082',
+          fillOpacity: 0.2,
+          weight: 3,
+        }
+      }).addTo(map);
+  }
+
   async function updateInfo(latLon) {
 
     const [lat, lon] = latLon;
@@ -66,7 +91,7 @@ function init() {
     const data = await bob.json()
     //console.log(data)
     //console.log(data.osm_id)
-    const { address, geojson } = data;
+    const { address } = data;
     console.log(address)
 
     main.innerHTML = String()
@@ -99,45 +124,31 @@ function init() {
 
     })
 
-    if (address.neighbourhood) {
-      L.geoJSON(geojson, {
-        style: {
-          color: '#4b0082',
-          fillOpacity: 0.2,
-          weight: 3,
-        }
-      }).addTo(map);
+    if (data.addresstype === 'suburb') {
+      updateSuburb(data)
+      return;
     }
+    if (data.addresstype === 'neighbourhood') {
+      updateHood(data)
+      if (address.suburb) {
 
-    if (address.suburb) {
+        const query = [address.suburb, address.city_district, address.city, address.municipality, address.county, address.state_district, address.region, address.country].filter((x) => x).join(',')
 
-      const query = [address.suburb, address.city_district, address.city, address.municipality, address.county, address.state_district, address.region, address.country].filter((x) => x).join(',')
+        const q = encodeURIComponent(query)
 
-      const q = encodeURIComponent(query)
+        oso4 = `https://nominatim.openstreetmap.org/search.php?q=${q}&polygon_geojson=1&format=jsonv2`
+        const bob4 = await fetch(oso4)
+        const data4 = await bob4.json()
+        //console.log(data4)
+        const hitit = data4.filter(({category, type}) => category === 'boundary' && type === 'administrative' )
+        console.log(hitit)
+        const [hitti] = hitit
+        if (typeof hitti !== 'undefined') {
+          console.log(hitti.lat)
+          console.log(hitti.lon)
 
-      oso4 = `https://nominatim.openstreetmap.org/search.php?q=${q}&polygon_geojson=1&format=jsonv2`
-      const bob4 = await fetch(oso4)
-      const data4 = await bob4.json()
-      //console.log(data4)
-      const hitit = data4.filter(({category, type}) => category === 'boundary' && type === 'administrative' )
-      console.log(hitit)
-      const [hitti] = hitit
-      if (typeof hitti !== 'undefined') {
-        console.log(hitti.lat)
-        console.log(hitti.lon)
-
-
-        const [la1, la2, lo1, lo2] = hitti.boundingbox
-        map.fitBounds([[la1, lo1], [la2, lo2]])
-
-        console.log(hitti)
-        L.geoJSON(hitti.geojson, {
-          style: {
-            color: '#222',
-            fillOpacity: 0,
-            weight: 4,
-          }
-        }).addTo(map);
+          updateSuburb(hitti)
+        }
       }
     }
 
