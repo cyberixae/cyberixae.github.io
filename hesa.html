@@ -110,8 +110,8 @@ function init() {
     }
 
     if (address.suburb) {
-      const [_tooSmall, ...parts] = data.display_name.split(address.suburb)
-      const query = [String(), ...parts].join(address.suburb)
+
+      const query = [address.suburb, address.city_district, address.city, address.municipality, address.county, address.state_district, address.region, address.country].filter((x) => x).join(',')
 
       const q = encodeURIComponent(query)
 
