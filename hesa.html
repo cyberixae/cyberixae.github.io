@@ -15,12 +15,15 @@ function init() {
   let firstUpdate = true;
   let firstPan = true;
 
+  const accurate = 250;
+
   const main = document.querySelector ( "#main"      )
   const approx= document.querySelector ( "#approx"      )
   const status = document.querySelector('#status');
   const updated =  document.querySelector('#updated');
   const latE =  document.querySelector('#lat');
   const lonE =  document.querySelector('#lon');
+  const accE =  document.querySelector('#acc');
 
 
   var mapOptions = {
@@ -39,12 +42,15 @@ function init() {
 
   map.addLayer(layer);
 
-  const marker = L.marker([0, 0], {
-    icon: L.icon({
-      iconUrl: './round1x.png',
-      iconRetinaUrl: './round2x.png',
-      iconSize: [15, 15],
-    }),
+  const nullIsland = L.latLng(0, 0)
+
+  const marker = L.circleMarker(nullIsland, {
+    radius: 7,
+    weight: 1,
+    color: '#260147',
+    opacity: 1,
+    fillColor: '#9600c5',
+    fillOpacity: 1,
   }).addTo(map);
 
   const accuracy = L.circle([0,0]).setStyle({
@@ -53,34 +59,48 @@ function init() {
     opacity: 0.5,
   }).addTo(map)
 
-
   function updateSuburb(suburb) {
-    const [la1, la2, lo1, lo2] = suburb.boundingbox
-    map.fitBounds([[la1, lo1], [la2, lo2]])
 
-    console.log('upsating suburb', suburb)
-    L.geoJSON(suburb.geojson, {
-      style: {
-        color: '#222',
-        fillOpacity: 0,
-        weight: 4,
-      }
-    }).addTo(map);
+    console.log('updating suburb', suburb)
+
+    const suburbGeo = L.geoJSON(suburb.geojson, {
+        style: {
+          color: '#222',
+          fillOpacity: 0,
+          weight: 3,
+        }
+   })
+
+   const suburbBounds = suburbGeo.getBounds()
+   const accBounds = accuracy.getBounds()
+   const bounds = suburbBounds.extend(accBounds)
+
+   suburbGeo.addTo(map);
+   map.fitBounds(bounds)
+
   }
 
   function updateHood(hood) {
+
+    console.log('updating hood', hood)
+
       L.geoJSON(hood.geojson, {
         style: {
           color: '#4b0082',
           fillOpacity: 0.2,
-          weight: 3,
+          weight: 1,
+/*
+          lineCap: 'butt',
+          dashArray: 2,
+*/
         }
       }).addTo(map);
   }
 
-  async function updateInfo(latLon) {
+  async function updateInfo(coords) {
 
-    const [lat, lon] = latLon;
+    const lat = coords.latitude;
+    const lon = coords.longitude;
 
     const oso = `https://nominatim.openstreetmap.org/reverse.php?lat=${lat}&lon=${lon}&zoom=14&polygon_geojson=1&format=jsonv2`
 
@@ -146,6 +166,7 @@ function init() {
         if (typeof hitti !== 'undefined') {
           console.log(hitti.lat)
           console.log(hitti.lon)
+          console.log(hitti)
 
           updateSuburb(hitti)
         }
@@ -191,9 +212,11 @@ function drawCountyBoundary(county, state)
 
   }
 
-  function updatePosition(coords) {
+  function updatePosition(position) {
 
-    locationUpdate = Date.now()
+    coords = position.coords
+
+    locationUpdate = position.timestamp
 
     const lat = coords.latitude;
     const lon = coords.longitude;
@@ -211,18 +234,33 @@ function drawCountyBoundary(county, state)
     latE.textContent = lat
     lonE.textContent = lon
 
+    const accH = document.createElement('span');
+    if (acc > accurate) {
+      accH.setAttribute('class','warning')
+    }
+    if (acc > 2 * accurate) {
+      accH.setAttribute('class','error')
+    }
+    accH.textContent = String(Math.ceil(acc)).concat('m')
+    accE.innerHTML = String()
+    accE.append(accH)
 
   }
 
   function success(position) {
-    updatePosition(position.coords)
+    updatePosition(position)
 
     if (firstUpdate) {
-      const lat = position.coords.latitude;
-      const lon = position.coords.longitude;
-      updateInfo([lat, lon])
+      const acc = position.coords.accuracy;
 
-      firstUpdate = false;
+      if (acc > accurate) {
+        approx.textContent = 'stabilizing location'
+        const accBounds = accuracy.getBounds()
+        map.fitBounds(accBounds)
+      } else {
+        updateInfo(position.coords)
+        firstUpdate = false;
+      }
     }
 
   }
@@ -232,16 +270,19 @@ function drawCountyBoundary(county, state)
   }
 
   function lousyPosition(position) {
-    updatePosition(position.coords)
+    updatePosition(position)
     navigator.geolocation.watchPosition(success, error, { enableHighAccuracy: true });
   }
 
 
   if (!navigator.geolocation) {
-    status.textContent = 'Geolocation is not supported by your browser';
+
+    approx.textContent ='use a modern browser';
   } else {
-    //status.textContent = 'Locating…';
-    navigator.geolocation.getCurrentPosition(lousyPosition, error);
+    approx.textContent ='just a moment';
+    navigator.geolocation.getCurrentPosition(lousyPosition, error, {
+      maximumAge: 60 * 60 * 1000
+    });
   }
 
 
@@ -410,7 +451,9 @@ body {
       <span class="hide space"> </span>
       <span class="hide" id="lon"></span>
       <span id="updated"></span>
-      since last update
+      age
+      <span id="acc"></span>
+      accuracy
     </div>
 
 <!--
