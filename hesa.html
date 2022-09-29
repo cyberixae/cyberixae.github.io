@@ -116,11 +116,13 @@ function init() {
 
     main.innerHTML = String()
 
-    if (address.neighbourhood) {
+    const hood = ([address.quarter, address.neighbourhood]).filter((x) => Boolean(x))
+
+    if (hood.length > 0) {
       const row = document.createElement('div');
       row.setAttribute('class', 'row light')
       row.setAttribute('style', 'color: #4b0082; opacity: 0.8')
-      row.textContent = address.neighbourhood
+      row.textContent = hood.join(', ')
       main.append(row)
     }
     if (address.suburb) {
