@@ -49,14 +49,14 @@ function init() {
     weight: 1,
     color: '#fff',
     opacity: 1,
-    fillColor: '#9600c5',
+    fillColor: '#f4f',
     fillOpacity: 1,
   }).addTo(map);
 
   const accuracy = L.circle([0,0]).setStyle({
-    weight: 0,
-    color: '#9600c5',
-    opacity: 0.5,
+    weight: 2,
+    color: '#f7e',
+    fillOpacity: 0.2,
   }).addTo(map)
 
   function updateSuburb(suburb) {
@@ -78,6 +78,9 @@ function init() {
    suburbGeo.addTo(map);
    map.fitBounds(bounds)
 
+   accuracy.bringToFront()
+   marker.bringToFront()
+
   }
 
   function updateHood(hood) {
@@ -95,6 +98,10 @@ function init() {
 */
         }
       }).addTo(map);
+
+
+      accuracy.bringToFront()
+      marker.bringToFront()
   }
 
   async function updateInfo(coords) {
@@ -174,9 +181,6 @@ function init() {
         }
       }
     }
-
-    //accuracy.bringToFront()
-    //marker.bringToFront()
 /*
 
 
