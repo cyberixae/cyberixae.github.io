@@ -271,20 +271,33 @@ function drawCountyBoundary(county, state)
     status.textContent = 'Unable to retrieve your location';
   }
 
-  function lousyPosition(position) {
-    updatePosition(position)
+  function realAttempt() {
     navigator.geolocation.watchPosition(success, error, { enableHighAccuracy: true });
   }
 
+  function lousyPosition(position) {
+    updatePosition(position)
+    realAttempt()
+  }
+
+  function lousyError() {
+    approx.textContent = 'just a moment...';
+    realAttempt()
+  }
+
+  function lousyAttempt() {
+    navigator.geolocation.getCurrentPosition(lousyPosition, lousyError, {
+      maximumAge: 60 * 60 * 1000,
+      timeout: 500,
+    });
+  }
 
   if (!navigator.geolocation) {
 
-    approx.textContent ='use a modern browser';
+    approx.textContent = 'use a modern browser';
   } else {
-    approx.textContent ='just a moment';
-    navigator.geolocation.getCurrentPosition(lousyPosition, error, {
-      maximumAge: 60 * 60 * 1000
-    });
+    approx.textContent = 'just a moment';
+    lousyAttempt()
   }
 
 
