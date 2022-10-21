@@ -205,40 +205,6 @@ function init() {
         }
       }
     }
-/*
-
-
-function drawCountyBoundary(county, state)
-{
-    url = `https://nominatim.openstreetmap.org/search.php?county=${county}&state=${state}&polygon_geojson=1&format=jsonv2`
-    fetch(url).then(function(response) {
-    return response.json();
-  })
-  .then(function(json) {
-    geojsonFeature = json[0].geojson;
-    L.geoJSON(geojsonFeature).addTo(map);
-  });
-}
-
-
-    const oso2 = `https://nominatim.openstreetmap.org/search.php?q=${address.district}&format=jsonv2`
-    const bob2 = await fetch(oso2)
-    const data2 = await bob2.json()
-    const [first] = data2.filter(({osm_type, type, category}) => osm_type === 'relation' && type === 'administrative' && category === 'boundary')
-
-    const osmId = first?.osm_id ?? null
-
-    if (osmId) {
-      const oso3 = `https://www.openstreetmap.org/api/0.6/relation/${osmId}/full.json`
-
-      const bob3 = await fetch(oso3)
-      const data3 = await bob3.json()
-      console.log(data3)
-      const { elements: [yay] } = data3;
-
-      //console.log(yay)
-    }
-*/
 
   }
 
