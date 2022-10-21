@@ -63,7 +63,7 @@ function init() {
 
     console.log('updating suburb', suburb)
 
-    const suburbGeo = L.geoJSON(suburb.geojson, {
+    const suburbGeo = L.geoJSON(suburb.geometry, {
         style: {
           color: '#222',
           fillOpacity: 0,
@@ -87,7 +87,7 @@ function init() {
 
     console.log('updating hood', hood)
 
-      L.geoJSON(hood.geojson, {
+      L.geoJSON(hood.geometry, {
         style: {
           color: '#4b0082',
           fillOpacity: 0.2,
@@ -109,7 +109,7 @@ function init() {
     const lat = coords.latitude;
     const lon = coords.longitude;
 
-    const oso = `https://nominatim.openstreetmap.org/reverse.php?lat=${lat}&lon=${lon}&zoom=14&polygon_geojson=1&format=jsonv2`
+    const oso = `https://nominatim.openstreetmap.org/reverse.php?lat=${lat}&lon=${lon}&zoom=14&polygon_geojson=1&format=geocodejson`
 
     console.log(lat, lon)
 
@@ -118,25 +118,48 @@ function init() {
     const data = await bob.json()
     //console.log(data)
     //console.log(data.osm_id)
-    const { address } = data;
+    const [mainFeature] = data?.features ?? [];
+    const address = mainFeature?.properties?.geocoding
     console.log(address)
 
     main.innerHTML = String()
 
-    const hood = ([address.quarter, address.neighbourhood]).filter((x) => Boolean(x))
-
-    if (hood.length > 0) {
+    function setHoodName(name) {
       const row = document.createElement('div');
       row.setAttribute('class', 'row light')
       row.setAttribute('style', 'color: #4b0082; opacity: 0.8')
-      row.textContent = hood.join(', ')
+      row.textContent = name
       main.append(row)
     }
-    if (address.suburb) {
+    function setSuburbName(name) {
       const row = document.createElement('div');
       row.setAttribute('class', 'row heavy white')
-      row.textContent = address.suburb
+      row.textContent = name
       main.append(row)
+    }
+    function parseNames(address) {
+      if (address.type === 'district') {
+        if (address.hasOwnProperty('district')) {
+          return {
+            hood: address.name,
+            suburb: address.district,
+          }
+        }
+        return {
+          hood: undefined,
+          suburb: address.name,
+        }
+      }
+      return {
+        hood: address.name,
+        suburb: address.district,
+      }
+    }
+    const names = parseNames(address)
+
+    setHoodName(names.hood)
+    if (names.suburb) {
+      setSuburbName(names.suburb)
     }
 
     approx.innerHTML = String()
@@ -153,23 +176,24 @@ function init() {
 
     })
 
-    if (data.addresstype === 'suburb') {
-      updateSuburb(data)
+    if (address.type === 'district') {
+      updateSuburb(mainFeature)
       return;
     }
-    if (data.addresstype === 'neighbourhood') {
-      updateHood(data)
-      if (address.suburb) {
+    if (address.type === 'locality') {
+      updateHood(mainFeature)
+      if (address.district) {
 
-        const query = [address.suburb, address.city_district, address.city, address.municipality, address.county, address.state_district, address.region, address.country].filter((x) => x).join(',')
+        const query = [address.district, address.city, address.county, address.country].filter((x) => x).join(',')
 
         const q = encodeURIComponent(query)
 
-        oso4 = `https://nominatim.openstreetmap.org/search.php?q=${q}&polygon_geojson=1&format=jsonv2`
+        oso4 = `https://nominatim.openstreetmap.org/search.php?q=${q}&polygon_geojson=1&format=geocodejson`
         const bob4 = await fetch(oso4)
         const data4 = await bob4.json()
+        //console.log('data4')
         //console.log(data4)
-        const hitit = data4.filter(({category, type}) => category === 'boundary' && type === 'administrative' )
+        const hitit = data4.features.filter(({ properties: { geocoding: { type } } }) => type === 'district' )
         console.log(hitit)
         const [hitti] = hitit
         if (typeof hitti !== 'undefined') {
@@ -197,7 +221,7 @@ function drawCountyBoundary(county, state)
 }
 
 
-    const oso2 = `https://nominatim.openstreetmap.org/search.php?q=${address.suburb}&format=jsonv2`
+    const oso2 = `https://nominatim.openstreetmap.org/search.php?q=${address.district}&format=jsonv2`
     const bob2 = await fetch(oso2)
     const data2 = await bob2.json()
     const [first] = data2.filter(({osm_type, type, category}) => osm_type === 'relation' && type === 'administrative' && category === 'boundary')
