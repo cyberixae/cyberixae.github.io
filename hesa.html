@@ -138,21 +138,21 @@ function init() {
       main.append(row)
     }
     function parseNames(address) {
-      if (address.type === 'district') {
-        if (address.hasOwnProperty('district')) {
-          return {
-            hood: address.name,
-            suburb: address.district,
-          }
-        }
+      if (address.type === 'locality') {
         return {
-          hood: undefined,
-          suburb: address.name,
+          hood: address.name,
+          suburb: address.district,
+        }
+      }
+      if (address.hasOwnProperty('district')) {
+        return {
+          hood: address.name,
+          suburb: address.district,
         }
       }
       return {
-        hood: address.name,
-        suburb: address.district,
+        hood: undefined,
+        suburb: address.name,
       }
     }
     const names = parseNames(address)
@@ -176,33 +176,34 @@ function init() {
 
     })
 
-    if (address.type === 'district') {
+    const noHood = address.type !== 'locality' && address.hasOwnProperty('district') === false
+
+    if (noHood) {
       updateSuburb(mainFeature)
       return;
     }
-    if (address.type === 'locality') {
-      updateHood(mainFeature)
-      if (address.district) {
 
-        const query = [address.district, address.city, address.county, address.country].filter((x) => x).join(',')
+    updateHood(mainFeature)
+    if (address.district) {
 
-        const q = encodeURIComponent(query)
+      const query = [address.district, address.city, address.county, address.country].filter((x) => x).join(',')
 
-        oso4 = `https://nominatim.openstreetmap.org/search.php?q=${q}&polygon_geojson=1&format=geocodejson`
-        const bob4 = await fetch(oso4)
-        const data4 = await bob4.json()
-        //console.log('data4')
-        //console.log(data4)
-        const hitit = data4.features.filter(({ properties: { geocoding: { type } } }) => type === 'district' )
-        console.log(hitit)
-        const [hitti] = hitit
-        if (typeof hitti !== 'undefined') {
-          console.log(hitti.lat)
-          console.log(hitti.lon)
-          console.log(hitti)
+      const q = encodeURIComponent(query)
 
-          updateSuburb(hitti)
-        }
+      oso4 = `https://nominatim.openstreetmap.org/search.php?q=${q}&polygon_geojson=1&format=geocodejson`
+      const bob4 = await fetch(oso4)
+      const data4 = await bob4.json()
+      //console.log('data4')
+      //console.log(data4)
+      const hitit = data4.features.filter(({ properties: { geocoding: { type } } }) => type === 'district' )
+      console.log(hitit)
+      const [hitti] = hitit
+      if (typeof hitti !== 'undefined') {
+        console.log(hitti.lat)
+        console.log(hitti.lon)
+        console.log(hitti)
+
+        updateSuburb(hitti)
       }
     }
 
