@@ -59,6 +59,24 @@ function init() {
     fillOpacity: 0.2,
   }).addTo(map)
 
+  function colorMarker(latlng, color) {
+
+    return L.marker(latlng, {
+      icon: L.icon({
+        iconSize: [30, 45],
+        iconUrl: 'data:image/svg+xml;base64,'.concat(btoa(`
+<svg xmlns="http://www.w3.org/2000/svg" height="140" width="100">
+  <g fill="${color}" opacity="0.7">
+    <circle cx="50" cy="50" r="40" />
+    <polygon points="13,64 50,130 87,64" />
+    <circle cx="50" cy="50" r="15" fill="#fffefd"/>
+  </g>
+</svg>`)),
+      })
+    })
+
+  }
+
   function updateSuburb(suburb) {
 
     console.log('updating suburb', suburb)
@@ -68,7 +86,10 @@ function init() {
           color: '#222',
           fillOpacity: 0,
           weight: 3,
-        }
+        },
+        pointToLayer: function(geoJsonPoint, latlng) {
+          return colorMarker(latlng, '#222');
+        },
    })
 
    const suburbBounds = suburbGeo.getBounds()
@@ -96,7 +117,10 @@ function init() {
           lineCap: 'butt',
           dashArray: 2,
 */
-        }
+        },
+        pointToLayer: function(geoJsonPoint, latlng) {
+          return colorMarker(latlng, '#4b0082');
+        },
       }).addTo(map);
 
 
