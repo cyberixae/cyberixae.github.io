@@ -128,6 +128,34 @@ function init() {
       marker.bringToFront()
   }
 
+  function updateMystery(mystery) {
+
+    console.log('updating mystery', mystery)
+
+    const mysteryGeo = L.geoJSON(mystery.geometry, {
+        style: {
+          color: '#888',
+          opacity: 0.8,
+          fillOpacity: 0,
+          weight: 3,
+        },
+        pointToLayer: function(geoJsonPoint, latlng) {
+          return colorMarker(latlng, '#888');
+        },
+   })
+
+   const mysteryBounds = mysteryGeo.getBounds()
+   const accBounds = accuracy.getBounds()
+   const bounds = mysteryBounds.extend(accBounds)
+
+   mysteryGeo.addTo(map);
+   map.fitBounds(bounds)
+
+   accuracy.bringToFront()
+   marker.bringToFront()
+
+  }
+
   async function updateInfo(coords) {
 
     const lat = coords.latitude;
@@ -161,33 +189,36 @@ function init() {
       row.textContent = name
       main.append(row)
     }
+    function setMysteryName(name) {
+      const row = document.createElement('div');
+      row.setAttribute('class', 'row heavy white')
+      row.setAttribute('style', 'color: #888')
+      row.textContent = name
+      main.append(row)
+    }
     function parseNames(address) {
-      if (address.type === 'locality') {
-        return {
-          hood: address.name,
-          suburb: address.district,
-        }
-      }
-      if (address.hasOwnProperty('district')) {
-        return {
-          hood: address.name,
-          suburb: address.district,
-        }
-      }
+
       return {
-        hood: undefined,
-        suburb: address.name,
+        hood: address?.['admin']?.['level11'] ?? null,
+        suburb: address?.['admin']?.['level10'] ?? null,
       }
     }
     const names = parseNames(address)
 
-    setHoodName(names.hood)
+    if (names.hood) {
+      setHoodName(names.hood)
+    }
     if (names.suburb) {
       setSuburbName(names.suburb)
     }
 
+    const mystery = Boolean(names.hood) === false && Boolean(names.suburb) === false
+    if (mystery) {
+      setMysteryName(address.name)
+    }
+
     approx.innerHTML = String()
-    const omg = ([address.village, address.town, address.city, address.county]).filter((x) => Boolean(x))
+    const omg = ([address.city, address.county]).filter((x) => Boolean(x))
     omg.forEach((item, i) => {
       if (i > 0) {
         const elem = document.createTextNode(', ');
@@ -200,7 +231,12 @@ function init() {
 
     })
 
-    const noHood = address.type !== 'locality' && address.hasOwnProperty('district') === false
+    if (mystery) {
+      updateMystery(mainFeature)
+      return;
+    }
+
+    const noHood = address.name !== names.hood
 
     if (noHood) {
       updateSuburb(mainFeature)
