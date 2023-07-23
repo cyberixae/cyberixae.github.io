@@ -20,6 +20,7 @@ function init() {
   const main = document.querySelector ( "#main"      )
   const approx= document.querySelector ( "#approx"      )
   const status = document.querySelector('#status');
+  const bar = document.querySelector('#bar');
   const updated =  document.querySelector('#updated');
   const latE =  document.querySelector('#lat');
   const lonE =  document.querySelector('#lon');
@@ -75,6 +76,10 @@ function init() {
       })
     })
 
+  }
+
+  function revealStatusBar() {
+    bar.classList.remove('hide')
   }
 
   function updateSuburb(suburb) {
@@ -302,6 +307,7 @@ function init() {
     accE.innerHTML = String()
     accE.append(accH)
 
+    revealStatusBar();
   }
 
   function success(position) {
@@ -516,7 +522,7 @@ body {
     <div id="approx" class="tiny">
     </div>
       <p id="status"></p>
-    <div class="status-bar">
+    <div id="bar" class="status-bar hide">
       <span class="hide" id="lat"></span>
       <span class="hide space"> </span>
       <span class="hide" id="lon"></span>
