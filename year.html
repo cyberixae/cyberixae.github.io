@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#fea" />
+    <title>Year</title>
+    <style>
+.reset {
+  margin: 0;
+}
+body {
+  background: #fea;
+  padding: 3em 0;
+}
+#canvas {
+  display: flex;
+  gap: 0;
+  flex-direction: column;
+  align-items: center;
+}
+.year {
+  position: relative;
+  font-family: sans-serif;
+  width: 80%;
+  max-width: 600px;
+
+  border: 4px solid #766;
+  border-radius: 15px;
+  text-align: center;
+  font-weight: bold;
+  overflow: hidden;
+  margin: 3em 1em;
+  padding: 0.5em 0 2em 0;
+  background: #fafafa;
+  opacity: 0.9;
+}
+  .fade {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 10px;
+    background-image: linear-gradient(to right, #0003, #0000);
+  }
+  .title {
+  letter-spacing: 0.1em;
+  font-size: 5em;
+  font-weight: bold;
+  line-height: 64px;
+  margin: 0.4em;
+  color: #322;
+  }
+  .cal {
+
+  }
+
+  .barbox {
+  position: relative;
+   height: 40px;
+  }
+  .bar {
+	  font-size: 1.6em;
+    white-space: nowrap;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%)
+  }
+
+  .segment {
+  font-weight: normal;
+  padding: 0 0.8em;
+  text-align: left;
+  background: #aaaa;
+  background-image: linear-gradient(to bottom, #888a, #aaaa 5px);
+  color: #544;
+  display: inline-block;
+    position: relative; 
+   box-sizing: border-box;
+   height: 40px;
+   line-height: 40px;
+  border: 2px solid #0000; 
+  border-color: #0000 #eee;
+  }
+
+  .pad {
+	  display: inline-block; 
+  background: #a00;
+  }
+    </style>
+    <script>
+const calendars = [
+  'gregory',
+  'buddhist',
+  'japanese',
+  'roc',
+  'persian',
+  //'chinese',
+  //'coptic',
+  //'dangi',
+  //'ethioaa',
+  //'ethiopic',
+  //'hebrew',
+  //'indian',
+  //'islamic',
+  //'islamic-civil',
+  //'islamic-rgsa',
+  //'islamic-tbla',
+  //'islamic-umalqura',
+  //'iso8601',
+]
+const locs = {
+  buddhist: ['th'],
+  chinese: ['zh'],
+  coptic: ['ar'],
+  dangi: ['ko'],
+  ethioaa: ['am'],
+  ethiopic: ['am'],
+  gregory: ['af','am','ar','bn','bs','bg','ca','cs','zh','da','de','nl','et','el','en','fa','fil','fi','fr','gu','he','hi','hr','hu','id','it','ja','kn','ko','lv','lt','ml','mr','ms','ro','nb','no','pl','pt','ru','sr','sk','sl','es','sw','sv','ta','te','th','tr','uk','ur','vi'],
+  hebrew: ['he'],
+  indian: ['gu','hi','kn','ml','mr','ta','te'],
+  islamic: ['ar','bn','fa','he','id','ms','ur'],
+  'islamic-civil': ['ar','bn','fa','he','id','ms','tr','ur'],
+  'islamic-tbla': ['ar','bn','fa','he','id','ms','tr','ur'],
+  japanese: ['ja'],
+  persian: ['fa'],
+  roc: ['zh'],
+}
+
+
+const locale = (l, c) => {
+  const code = l.slice(0,2)
+  const bob = locs[c]??[]
+  if (bob.length < 1 || bob.includes(code)) {
+    return l + '-u-ca-' + c
+  }
+  return locs[c][0] + '-u-ca-' + c
+}
+
+const lang = navigator.language
+//const lang = 'fi-FI'
+const def = (new Intl.Locale(lang)).getCalendars()
+const now = Date.now()
+const year = (t, l, c) => (new Intl.DateTimeFormat(locale(l, c), { year: 'numeric' })).format(t)
+
+const findPrev = (t1, t2, l, c) => {
+  if (t2 - t1 === 1) {
+    return [t1, t2]
+  }
+  const s1 = year(t1, l, c)
+  const s2 = year(t2, l, c)
+  const t3 = t1 + Math.floor((t2 - t1) / 2)
+  const s3 = year(t3, l, c)
+  if (s3 === s2) {
+          return findPrev (t1, t3, l, c)
+  }
+  return findPrev (t3, t2, l, c)
+
+}
+
+const findNext = (t1, t2, l, c) => {
+  if (t2 - t1 === 1) {
+    return [t1, t2]
+  }
+  const s1 = year(t1, l, c)
+  const s2 = year(t2, l, c)
+  const t3 = t1 + Math.floor((t2 - t1) / 2)
+  const s3 = year(t3, l, c)
+  if (s3 === s1) {
+          return findNext(t3, t2, l, c)
+  }
+  return findNext(t1, t3, l, c)
+
+}
+const prev = (t, l, c) => findPrev(t/2, t, l, c)
+const next = (t, l, c) => findNext(t, 2*t, l, c)
+const years = calendars.map((cal) => {
+  const [preE, curS] = prev(now, lang, cal)
+  const [curE, nexS] = next(now, lang, cal)
+  const [_ppS, preS] = prev(preE, lang, cal)
+  const [nexE, _nnS] = next(nexS, lang, cal)
+  return [cal, [preS, preE], [curS, curE], [nexS, nexE]]
+})
+//years.sort(([,,[,a]],[,,[,b]])=> a > b ? 1 : a < b ? -1 : 0)
+addEventListener("DOMContentLoaded", (event) => {
+  const canvas = document.getElementById('canvas')
+  years.forEach(([c, [prevStart, prevEnd], [curStart, curEnd], [nextStart, nextEnd]]) => {
+
+    const calE = document.createElement('div')
+    calE.setAttribute('class', 'cal')
+    const calT = document.createTextNode(locale(lang, c))
+    calE.appendChild(calT)
+
+    const titleE = document.createElement('div')
+    const title = document.createTextNode(year(curStart, lang, c))
+    titleE.setAttribute('class', 'title')
+    titleE.appendChild(title)
+    titleE.setAttribute('title', c)
+
+    const prev = (prevEnd - prevStart)
+    const next = (nextEnd - nextStart)
+    const before = (now - curStart)
+    const after = (curEnd - now)
+
+    const leftSide = prev + before
+    const rightSide = after + next
+
+    const leftPad = Math.max(0, rightSide - leftSide)
+    const rightPad = Math.max(0, leftSide - rightSide)
+
+    const scale = 100_000_000
+
+
+    const pad1E = document.createElement('div')
+    const pad1T = document.createTextNode('\xa0')
+    pad1E.appendChild(pad1T)
+    pad1E.setAttribute('class', 'pad')
+    pad1E.setAttribute('style', 'width: ' + leftPad/scale + 'px')
+
+    const pad2E = document.createElement('div')
+    const pad2T = document.createTextNode('\xa0')
+    pad2E.appendChild(pad2T)
+    pad2E.setAttribute('class', 'pad')
+    pad2E.setAttribute('style', 'width: ' + rightPad/scale + 'px')
+
+    const prevE = document.createElement('div')
+    const prevT = document.createTextNode(year(prevStart, lang, c))
+    prevE.appendChild(prevT)
+    prevE.setAttribute('class', 'segment')
+    prevE.setAttribute('style', 'z-index: 4; width: ' + (prev/scale) + 'px;')
+
+    const leftE = document.createElement('div')
+    const leftT = document.createTextNode(year(curStart, lang, c))
+    leftE.appendChild(leftT)
+    leftE.setAttribute('class', 'segment')
+    leftE.setAttribute('style', 'z-index: 3; width: ' + before/scale + 'px; border-right-color: #322A; overflow: visible;' )
+    const rightE = document.createElement('div')
+    const rightT = document.createTextNode('\xa0')
+    rightE.appendChild(rightT)
+    rightE.setAttribute('class', 'segment')
+    rightE.setAttribute('style', 'z-index: 2; width: ' + after/scale + 'px; border-left-color: #322A;')
+
+    const nextE = document.createElement('div')
+    const nextT = document.createTextNode(year(nextStart, lang, c))
+    nextE.appendChild(nextT)
+    nextE.setAttribute('class', 'segment')
+    nextE.setAttribute('style', 'z-index: 1; width: ' + (next/scale) + 'px')
+
+    const barE = document.createElement('div')
+    barE.setAttribute('class', 'bar')
+    barE.appendChild(pad1E)
+    barE.appendChild(prevE)
+    barE.appendChild(leftE)
+    barE.appendChild(rightE)
+    barE.appendChild(nextE)
+    barE.appendChild(pad2E)
+
+    const barboxE = document.createElement('div')
+    barboxE.setAttribute('class', 'barbox')
+    barboxE.appendChild(barE)
+
+    const fadeE = document.createElement('div')
+    fadeE.setAttribute('class', 'fade')
+
+    const yearE = document.createElement('div')
+    yearE.setAttribute('class', 'year')
+    yearE.appendChild(fadeE)
+    yearE.appendChild(titleE)
+    yearE.appendChild(barboxE)
+    //yearE.appendChild(calE)
+
+    canvas.appendChild(yearE)
+  })
+})
+console.log(years)
+console.log(def)
+    </script>
+  </head>
+  <body class="reset">
+    <div id="canvas"></div>
+  </body>
+</html>
