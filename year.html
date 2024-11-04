@@ -88,9 +88,7 @@ body {
   }
     </style>
     <script>
-const args = new URLSearchParams(window.location.search)
-const argCal = args.getAll('cal')
-const valid = [
+const validCals = [
   'gregory',
   'buddhist',
   'japanese',
@@ -110,14 +108,18 @@ const valid = [
   'islamic-umalqura',
   'iso8601',
 ]
-const defCal = [
-  'gregory',
-  'buddhist',
-  'japanese',
-  'indian',
-  'persian',
-]
-const selected = (argCal.length > 0 ? argCal : defCal).filter((c) => valid.includes(c))
+const args = new URLSearchParams(window.location.search)
+const argAll = args.getAll('all')
+if (argAll.length > 0) {
+  const all = new URLSearchParams(validCals.map((c) => ['cal',c]))
+  window.location.href = '?' + all.toString();
+}
+const now = Date.now()
+const lang = navigator.language
+//const lang = 'fi-FI'
+const defCal = (new Intl.Locale(lang)).getCalendars()
+const argCal = args.getAll('cal').filter((c) => validCals.includes(c))
+const selected = (argCal.length > 0 ? argCal : defCal)
 
 const locs = {
   buddhist: ['th'],
@@ -147,10 +149,6 @@ const locale = (l, c) => {
   return locs[c][0] + '-u-ca-' + c
 }
 
-const lang = navigator.language
-//const lang = 'fi-FI'
-const def = (new Intl.Locale(lang)).getCalendars()
-const now = Date.now()
 const year = (t, l, c) => (new Intl.DateTimeFormat(locale(l, c), { year: 'numeric' })).format(t)
 
 const findPrev = (t1, t2, l, c) => {
@@ -282,8 +280,6 @@ addEventListener("DOMContentLoaded", (event) => {
     canvas.appendChild(yearE)
   })
 })
-console.log(years)
-console.log(def)
     </script>
   </head>
   <body class="reset">
