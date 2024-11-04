@@ -88,26 +88,37 @@ body {
   }
     </style>
     <script>
-const calendars = [
+const args = new URLSearchParams(window.location.search)
+const argCal = args.getAll('cal')
+const valid = [
   'gregory',
   'buddhist',
   'japanese',
   'indian',
   'persian',
-  //'roc',
-  //'chinese',
-  //'coptic',
-  //'dangi',
-  //'ethioaa',
-  //'ethiopic',
-  //'hebrew',
-  //'islamic',
-  //'islamic-civil',
-  //'islamic-rgsa',
-  //'islamic-tbla',
-  //'islamic-umalqura',
-  //'iso8601',
+  'roc',
+  'chinese',
+  'coptic',
+  'dangi',
+  'ethioaa',
+  'ethiopic',
+  'hebrew',
+  'islamic',
+  'islamic-civil',
+  'islamic-rgsa',
+  'islamic-tbla',
+  'islamic-umalqura',
+  'iso8601',
 ]
+const defCal = [
+  'gregory',
+  'buddhist',
+  'japanese',
+  'indian',
+  'persian',
+]
+const selected = (argCal.length > 0 ? argCal : defCal).filter((c) => valid.includes(c))
+
 const locs = {
   buddhist: ['th'],
   chinese: ['zh'],
@@ -173,7 +184,7 @@ const findNext = (t1, t2, l, c) => {
 }
 const prev = (t, l, c) => findPrev(t/2, t, l, c)
 const next = (t, l, c) => findNext(t, 2*t, l, c)
-const years = calendars.map((cal) => {
+const years = selected.map((cal) => {
   const [preE, curS] = prev(now, lang, cal)
   const [curE, nexS] = next(now, lang, cal)
   const [_ppS, preS] = prev(preE, lang, cal)
