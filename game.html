@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Game</title>
+    <style>
+body {
+  margin: 0;
+  font-family: 'sans-serif';
+  font-size: 1.4em;
+}
+a {
+  text-decoration: none;
+}
+
+.room {
+  grid-area: room;
+}
+.inventory {
+  grid-area: inventory;
+}
+.actions {
+  grid-area: actions;
+}
+.game {
+  display: grid;
+  grid-template-areas: 
+    ". room actions ."
+    ". inventory actions .";
+}
+    </style>
+    <script>
+
+const room = {
+  inventory: {
+    door: {
+      props: {
+        canvas: true,
+        locked: true,
+        target: true,
+        soft: true,
+      },
+    },
+    chair: {
+      props: {
+        canvas: true,
+        target: true,
+        soft: true,
+      },
+    },
+    table: {
+      props: {
+        canvas: true,
+        target: true,
+        soft: true,
+      },
+    },
+    drawer: {
+      props: {
+        canvas: true,
+        locked: true,
+        target: true,
+        soft: true,
+      },
+    },
+    window: {
+      props: {
+        canvas: true,
+        target: true,
+      },
+    },
+  },
+}
+
+const player = {
+  inventory: {
+    crayon: {
+      verbs: {
+        draw: 'canvas',
+      },
+    },
+    knife: {
+      props: {
+        canvas: true,
+      },
+      verbs: {
+        cut: 'soft',
+        throw: 'target',
+      },
+    },
+    key: {
+      props: {
+        canvas: true,
+      },
+      verbs: {
+        unlock: 'locked',
+        throw: 'target',
+      },
+    },
+  },
+}
+
+const game = {
+  room,
+  player,
+}
+
+const sent = (verb, a, b) => {
+  switch (verb) {
+    case 'examine':
+      return 'examine ' + a
+    case 'unlock':
+      return 'unlock the ' + b + ' with the ' + a 
+    case 'throw':
+      return 'throw the ' + a + ' at the ' + b
+    case 'cut':
+      return 'cut the ' + b + ' with the ' + a
+    case 'draw':
+      return 'draw on the ' + b + ' with the ' + a
+  }
+}
+
+const render = (state) => {
+  const everything = Object.fromEntries([
+    ...Object.entries(state.room.inventory),
+    ...Object.entries(state.player.inventory),
+  ])
+  const actions = [
+    //...Object.keys(everything).map((item) => sent('examine', item)),
+    ...Object.entries(state.player.inventory).flatMap(([item, itemSpec]) =>
+      Object.entries(itemSpec.verbs).flatMap(([verb, property]) =>
+        Object.entries(everything).flatMap(([target, targetSpec]) =>
+          !(targetSpec?.props ?? {})[property] ? [] : sent(verb, item, target)
+        ),
+      ),
+    ),
+  ]
+  return {
+    room: Object.keys(room.inventory).map((x) => '<li>' + x + '</li>').join('\n'),
+    inventory: Object.keys(player.inventory).map((x) => '<li>' + x + '</li>').join('\n'),
+    actions: actions.sort().map((x) => '<li><a href=#"' + '' + '">' + x + '</a></li>').join('\n'),
+  }
+}
+
+const screenify = ([k, v]) => {
+  [...document.getElementsByClassName('js-' + k)].map((element) => element.innerHTML = v)
+}
+
+const init = () => {
+  Object.entries(render(game)).map(screenify)
+}
+
+document.addEventListener('DOMContentLoaded', init)
+    </script>
+  </head>
+  <body>
+    <div class="game">
+      <div class="room">
+        <h2>Room</h2>
+        <ul class="js-room"></ul>
+      </div>
+      <div class="inventory">
+        <h2>Inventory</h2>
+        <ul class="js-inventory"></ul>
+      </div>
+      <div class="actions">
+        <h2>Actions</h2>
+        <ul class="js-actions"></ul>
+      </div>
+    </div>
+  </body>
+</html>
