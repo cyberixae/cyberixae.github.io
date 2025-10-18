@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Mystery Sets 2</title>
+    <style>
+body {
+  font-family: sans-serif;
+  font-size: 1.4em;
+  margin: 1em;
+}
+h1 {
+  font-size: 1em;
+  text-align: center;
+}
+pre {
+  line-height: 16px;
+}
+    </style>
+    <script>
+
+const ELLIPSIS = '...'
+const MAX = 2 ** 10
+const WIDTH = 8
+const COLS = 10
+
+function fromGen(g) {
+  const xs = []
+  for (x of g()) {
+    xs.push(x)
+  }
+  return xs
+}
+
+const toString = (g, d = ', ') => {
+  let str = ''
+  for (x of g()) {
+    str += d + x
+  }
+  return str.slice(d.length)
+}
+
+const log = (g) => console.log(toString(g))
+
+function* ints() {
+  let i = 0
+  while(true) {
+    yield i
+    i += 1
+  }
+}
+
+const fromArray = (xs) => function* () {
+  for (x in xs) {
+    yield x
+  }
+}
+
+const empty = function* () {}
+
+const of = (x) => function* () { yield x }
+
+const concat = (...gs) => function* () {
+  for (const g of gs) {
+    for (const x of g()) {
+      yield x
+    }
+  }
+}
+
+const map = (g, f) => function* () {
+  for (const x of g()) {
+    yield f(x)
+  }
+}
+
+const flatten = (gs) => function* () {
+  for (const g of gs()) {
+    for (const x of g()) {
+      yield x
+    }
+  }
+}
+
+const flatMap = (g, f) => flatten(map(g, f))
+
+const filter = (g, f) => function* () {
+  for (const x of g()) {
+    if (f(x)) {
+      yield x
+    }
+  }
+}
+
+const takeWhile = (g, f) => function* () {
+  for (const x of g()) {
+    if (!f(x)) {
+      return
+    }
+    yield x
+  }
+}
+
+const take = (g, c) => function* () {
+  let i = 0
+  for (const x of g()) {
+    if (i >= c) {
+      return
+    }
+    yield x
+    i += 1
+  }
+}
+
+const drop = (g, c) => function* () {
+  let i = 0
+  for (const x of g()) {
+    if (i >= c) {
+      yield x
+    }
+    i += 1
+  }
+}
+
+const zip = (g1, g2) => function* () {
+  const i1 = g1()
+  const i2 = g2()
+  while (true) {
+    const r1 = i1.next()
+    const r2 = i2.next()
+    if (r1.done || r2.done) {
+      return
+    }
+    yield [r1.value, r2.value]
+  }
+}
+
+const pairs = (g) => zip(g, drop(g, 1))
+
+const pow2s = map(ints, (x) => 2 ** x)
+
+const half = ([a, b]) => {
+  const r = a + Math.floor((b - a) / 2)
+  return (r === a || r === b) ? empty : of(r)
+}
+
+const both = ([a, b]) => concat(of(a), half([a, b]))
+const boths = (g) => flatMap(pairs(g), both)
+
+const fulls = (g, i = 1) => i < 1 ? g : fulls(boths(g), i - 1)
+const halfs = (g) => flatMap(pairs(g), half)
+
+const distance = (i) => {
+  if (i < 1) {
+    return pow2s
+  }
+  return halfs(fulls(pow2s, i - 1))
+}
+
+const sample = (i) => map(takeWhile(distance(i), (x) => x <= MAX), (x) => [x, i])
+
+const toSubscript = (i) => String.fromCharCode(0x2080 + i)
+
+const makeTitle = (i) => `D${toSubscript(i)}`
+
+const renderExamples = (elem) => {
+  const title = fromGen(map(take(ints, COLS), (i) => (makeTitle(i)).padStart(WIDTH))).join('') + ELLIPSIS.padStart(WIDTH)
+  const text = fromGen(flatMap(take(ints, COLS), sample)).sort(([a], [b]) => (a - b)).map(([a, b]) => String(a).padStart((b + 1) * WIDTH)).join('\n')
+  const p = document.createElement('pre')
+  p.innerHTML = title + '\n\n' + text + '\n\n' + ELLIPSIS
+  elem.appendChild(p)
+}
+
+const init = () => {
+  [...document.getElementsByClassName('examples')].forEach(renderExamples)
+}
+
+addEventListener('DOMContentLoaded', init)
+
+    </script>
+  </head>
+  <body>
+    <h1>Mystery Sets 2</h1>
+    <div class="examples"></div>
+  </body>
+</html>
