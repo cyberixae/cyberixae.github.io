@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Mystery Sets 3</title>
+    <style>
+body {
+  font-family: sans-serif;
+  font-size: 1.4em;
+  margin: 1em;
+}
+h1 {
+  font-size: 1em;
+  text-align: center;
+}
+pre {
+  line-height: 16px;
+}
+    </style>
+    <script>
+
+const lowerLimit = (x) => Math.pow(2, Math.floor(Math.log2(x)))
+const upperLimit = (x) => Math.pow(2, Math.ceil(Math.log2(x)))
+
+const ELLIPSIS = '...'
+const SELECTED = 44
+const MIN = lowerLimit(SELECTED)
+const MAX = upperLimit(SELECTED)
+const WIDTH = 6
+const COLS = 8
+
+
+function fromGen(g) {
+  const xs = []
+  for (x of g()) {
+    xs.push(x)
+  }
+  return xs
+}
+
+const toString = (g, d = ', ') => {
+  let str = ''
+  for (x of g()) {
+    str += d + x
+  }
+  return str.slice(d.length)
+}
+
+const log = (g) => console.log(toString(g))
+
+function* ints() {
+  let i = 0
+  while(true) {
+    yield i
+    i += 1
+  }
+}
+
+const fromArray = (xs) => function* () {
+  for (x in xs) {
+    yield x
+  }
+}
+
+const empty = function* () {}
+
+const of = (x) => function* () { yield x }
+
+const concat = (...gs) => function* () {
+  for (const g of gs) {
+    for (const x of g()) {
+      yield x
+    }
+  }
+}
+
+const map = (g, f) => function* () {
+  for (const x of g()) {
+    yield f(x)
+  }
+}
+
+const flatten = (gs) => function* () {
+  for (const g of gs()) {
+    for (const x of g()) {
+      yield x
+    }
+  }
+}
+
+const flatMap = (g, f) => flatten(map(g, f))
+
+const filter = (g, f) => function* () {
+  for (const x of g()) {
+    if (f(x)) {
+      yield x
+    }
+  }
+}
+
+const takeWhile = (g, f) => function* () {
+  for (const x of g()) {
+    if (!f(x)) {
+      return
+    }
+    yield x
+  }
+}
+
+const take = (g, c) => function* () {
+  let i = 0
+  for (const x of g()) {
+    if (i >= c) {
+      return
+    }
+    yield x
+    i += 1
+  }
+}
+
+const drop = (g, c) => function* () {
+  let i = 0
+  for (const x of g()) {
+    if (i >= c) {
+      yield x
+    }
+    i += 1
+  }
+}
+
+const dropWhile = (g, f) => function* () {
+  let done = false
+  for (const x of g()) {
+    if (!done) {
+      done = !f(x)
+    }
+    if (done) {
+      yield x
+    }
+  }
+}
+
+const zip = (g1, g2) => function* () {
+  const i1 = g1()
+  const i2 = g2()
+  while (true) {
+    const r1 = i1.next()
+    const r2 = i2.next()
+    if (r1.done || r2.done) {
+      return
+    }
+    yield [r1.value, r2.value]
+  }
+}
+
+const pairs = (g) => zip(g, drop(g, 1))
+
+const pow2s = map(ints, (x) => 2 ** x)
+
+const half = ([a, b]) => {
+  const r = a + Math.floor((b - a) / 2)
+  return (r === a || r === b) ? empty : of(r)
+}
+
+const both = ([a, b]) => concat(of(a), half([a, b]))
+const boths = (g) => flatMap(pairs(g), both)
+
+const fulls = (g, i = 1) => i < 1 ? g : fulls(boths(g), i - 1)
+const halfs = (g) => flatMap(pairs(g), half)
+
+const distance = (i) => {
+  if (i < 1) {
+    return pow2s
+  }
+  return halfs(fulls(pow2s, i - 1))
+}
+
+const sample = (i) => map(takeWhile(dropWhile(distance(i), (y) => y < MIN + 1), (x) => x <= MAX - 1), (x) => [x, i])
+
+const toSubscript = (i) => String.fromCharCode(0x2080 + i)
+
+const makeTitle = (i) => `D${toSubscript(i)}`
+const leftSpaces = (str) => str.length - str.trimStart().length
+
+const renderExamples = (elem) => {
+  const lines = fromGen(flatMap(take(ints, COLS), sample)).sort(([a], [b]) => (a - b)).map(([a, b]) => ((a === SELECTED ? '_' : '') + String(a)).padStart((b + 1) * WIDTH) + (a === SELECTED ? '_' : ''))
+  const leftMargin = Math.min(...lines.map(leftSpaces))
+  const noMargin = lines.map((line) => line.slice(leftMargin))
+  const rightMargin = Math.max(...lines.map((line) => line.length))
+  const title = fromGen(map(take(ints, COLS), (i) => (makeTitle(i)).padStart(WIDTH))).join('').slice(leftMargin, rightMargin)
+  const parts = compo(SELECTED)
+  const sel = SELECTED + ' \u2208 ' + makeTitle(parts.length - 1)
+  const p = document.createElement('pre')
+  p.innerHTML = sel + '\n\n' + parts.flat().join(' ') + '\n\n\n' + steps(MIN) + '\n\n' + title + '\n\n' + noMargin.join('\n') + '\n\n' + title + '\n\n' + steps(MAX)
+  elem.appendChild(p)
+}
+
+const fooo = (current, goal, step) => {
+  if (current > goal) {
+    return [['-', step], ...fooo(current - step, goal, step / 2)]
+  }
+  if (current < goal) {
+    return [['+', step], ...fooo(current + step, goal, step / 2)]
+  }
+  return []
+}
+const compo = (x) => {
+  const lower = lowerLimit(x)
+  if (lower === x) {
+    return [x]
+  }
+  return [lower, ...fooo(lower, x, lower / 2)]
+}
+
+const steps = (x) => x + ' \u2208 ' + makeTitle(compo(x).length - 1)
+
+const init = () => {
+  [...document.getElementsByClassName('examples')].forEach(renderExamples)
+}
+
+addEventListener('DOMContentLoaded', init)
+
+    </script>
+  </head>
+  <body>
+    <div class="examples"></div>
+  </body>
+</html>
