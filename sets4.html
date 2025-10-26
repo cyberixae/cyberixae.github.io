@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sets 4</title>
+    <style>
+body {
+  font-family: sans-serif;
+  font-size: 1.4em;
+  margin: 1em;
+}
+h1 {
+  font-size: 1em;
+  text-align: center;
+}
+pre {
+  line-height: 16px;
+}
+.page {
+  display: inline-block;
+  text-align: center;
+  font-size: 0.6em;
+  width: 4em;
+}
+    </style>
+    <script>
+
+const lowerLimit = (x) => Math.pow(2, Math.floor(Math.log2(x)))
+const upperLimit = (x) => Math.pow(2, Math.ceil(Math.log2(x)))
+
+const MIN = 2 ** 12
+const MAX = 2 ** 13
+const WIDTH = 6
+const COLS = 6
+
+
+function fromGen(g) {
+  const xs = []
+  for (x of g()) {
+    xs.push(x)
+  }
+  return xs
+}
+
+const toString = (g, d = ', ') => {
+  let str = ''
+  for (x of g()) {
+    str += d + x
+  }
+  return str.slice(d.length)
+}
+
+const log = (g) => console.log(toString(g))
+
+function* ints() {
+  let i = 0
+  while(true) {
+    yield i
+    i += 1
+  }
+}
+
+const fromArray = (xs) => function* () {
+  for (x in xs) {
+    yield x
+  }
+}
+
+const empty = function* () {}
+
+const of = (x) => function* () { yield x }
+
+const concat = (...gs) => function* () {
+  for (const g of gs) {
+    for (const x of g()) {
+      yield x
+    }
+  }
+}
+
+const map = (g, f) => function* () {
+  for (const x of g()) {
+    yield f(x)
+  }
+}
+
+const flatten = (gs) => function* () {
+  for (const g of gs()) {
+    for (const x of g()) {
+      yield x
+    }
+  }
+}
+
+const flatMap = (g, f) => flatten(map(g, f))
+
+const filter = (g, f) => function* () {
+  for (const x of g()) {
+    if (f(x)) {
+      yield x
+    }
+  }
+}
+
+const takeWhile = (g, f) => function* () {
+  for (const x of g()) {
+    if (!f(x)) {
+      return
+    }
+    yield x
+  }
+}
+
+const take = (g, c) => function* () {
+  let i = 0
+  for (const x of g()) {
+    if (i >= c) {
+      return
+    }
+    yield x
+    i += 1
+  }
+}
+
+const drop = (g, c) => function* () {
+  let i = 0
+  for (const x of g()) {
+    if (i >= c) {
+      yield x
+    }
+    i += 1
+  }
+}
+
+const dropWhile = (g, f) => function* () {
+  let done = false
+  for (const x of g()) {
+    if (!done) {
+      done = !f(x)
+    }
+    if (done) {
+      yield x
+    }
+  }
+}
+
+const zip = (g1, g2) => function* () {
+  const i1 = g1()
+  const i2 = g2()
+  while (true) {
+    const r1 = i1.next()
+    const r2 = i2.next()
+    if (r1.done || r2.done) {
+      return
+    }
+    yield [r1.value, r2.value]
+  }
+}
+
+const pairs = (g) => zip(g, drop(g, 1))
+
+const pow2s = map(ints, (x) => 2 ** x)
+
+const half = ([a, b]) => {
+  const r = a + Math.floor((b - a) / 2)
+  return (r === a || r === b) ? empty : of(r)
+}
+
+const both = ([a, b]) => concat(of(a), half([a, b]))
+const boths = (g) => flatMap(pairs(g), both)
+
+const fulls = (g, i = 1) => i < 1 ? g : fulls(boths(g), i - 1)
+const halfs = (g) => flatMap(pairs(g), half)
+
+const distance = (i) => {
+  if (i < 1) {
+    return pow2s
+  }
+  return halfs(fulls(pow2s, i - 1))
+}
+
+const stringify = (x) => x.toLocaleString('en-US').split(',').join('')
+
+const sample = (min, max) => (i) => map(takeWhile(dropWhile(distance(i), (y) => y < min), (x) => x <= max), (x) => [x, i])
+
+const subDigits = [0x2080, 0x2081, 0x2082, 0x2083, 0x2084, 0x2085, 0x2086, 0x2087, 0x2088, 0x2089].map((c) => String.fromCharCode(c))
+
+const superDigits = [0x2070, 0x00B9, 0x00B2, 0x00B3, 0x2074, 0x2075, 0x2076, 0x2077, 0x2078, 0x2079].map((c) => String.fromCharCode(c))
+
+const toSubscript = (int) => int.toString().split('').map((d) => subDigits[d]).join('')
+const toSuperscript = (int) => int.toString().split('').map((d) => superDigits[d]).join('')
+
+const makeTitle = (i) => `D${toSubscript(i)}`
+const leftSpaces = (str) => str.length - str.trimStart().length
+
+const info = (x) => {
+  const parts = path(x)
+  return stringify(x) + ' \u2208 ' + makeTitle(parts.length - 1) + '\n\n' + parts.map(stringify).join(' \u2192 ') + '\n\n' + components(x).map(([s, n]) => ` ${s} 2${toSuperscript(n)}`).join('').slice(3)
+}
+
+const renderExamples = (min, max) => (elem) => {
+  const lines = fromGen(flatMap(take(ints, COLS), sample(min, max))).sort(([a], [b]) => (a - b)).map(([a, b]) => (stringify(a)).padStart((b + 1) * WIDTH))
+  const leftMargin = Math.min(...lines.map(leftSpaces))
+  const noMargin = lines.map((line) => line.slice(leftMargin))
+  const rightMargin = Math.max(...lines.map((line) => line.length))
+  const title = fromGen(map(take(ints, COLS), (i) => (makeTitle(i)).padStart(WIDTH))).join('').slice(leftMargin, rightMargin)
+  const p = document.createElement('pre')
+  p.innerHTML = title + '\n\n' + noMargin.join('\n') + '\n\n' + title
+  elem.replaceChildren(p)
+}
+
+const _components = (current, goal, step) => {
+  if (current > goal) {
+    return [['-', Math.log2(step)], ..._components(current - step, goal, step / 2)]
+  }
+  if (current < goal) {
+    return [['+', Math.log2(step)], ..._components(current + step, goal, step / 2)]
+  }
+  return []
+}
+const components = (x) => {
+  const lower = lowerLimit(x)
+  if (lower === x) {
+    return [Math.log2(x)]
+  }
+  return [['+', Math.log2(lower)], ..._components(lower, x, lower / 2)]
+}
+const _path = (current, goal, step) => {
+  if (current > goal) {
+    return [[current - step], ..._path(current - step, goal, step / 2)]
+  }
+  if (current < goal) {
+    return [[current + step], ..._path(current + step, goal, step / 2)]
+  }
+  return []
+}
+const path = (x) => {
+  const lower = lowerLimit(x)
+  if (lower === x) {
+    return [x]
+  }
+  return [lower, ..._path(lower, x, lower / 2)]
+}
+
+const steps = (x) => path(x).map(stringify).join(' \u2192 ') + ' \u2208 ' + makeTitle(components(x).length - 1)
+
+const state = {
+  page: 1
+}
+
+const renderPageNumber = (elem) => {
+  const t = document.createTextNode(`page ${stringify(state.page + 1)}`)
+  elem.replaceChildren(t)
+}
+
+const renderPage = () => {
+  const { page } = state
+  const min = 2 ** (page === 0 ? 0 : page + 4)
+  const max = 2 ** (page === 0 ? 5 : page + 5)
+  Array.from(document.getElementsByClassName('examples')).forEach(renderExamples(min, max))
+  Array.from(document.getElementsByClassName('page')).forEach(renderPageNumber)
+}
+
+const render = () => {
+  renderPage()
+}
+
+const modifyPage = (x) => {
+  state.page += x
+  if (state.page < 0) {
+    state.page = 0
+  }
+  render()
+}
+
+const next = () => {
+  modifyPage(1)
+}
+
+const prev = () => {
+  modifyPage(-1)
+}
+
+let grab = 0
+const setGrab = (y) => {
+  grab = y
+}
+
+let speed = 0
+const setSpeed = (s) => {
+  speed = s
+}
+
+const initKeyHandler = () => {
+  addEventListener('keydown', (event) => {
+    if (['PageUp', 'KeyK'].includes(event.code)) { prev() }
+    if (['PageDown', 'KeyJ'].includes(event.code)) { next() }
+  })
+}
+
+let scollcumulate = 0
+
+const initTouchHandler = () => {
+  addEventListener('touchstart', (event) => {
+    Array.from(event.targetTouches).forEach(({ pageY }) => setGrab(pageY))
+  })
+  addEventListener('touchmove', (event) => {
+    Array.from(event.targetTouches).forEach(({ pageY }) => setSpeed(grab - pageY))
+  })
+  addEventListener('touchend', (event) => {
+    setSpeed(0)
+    scollcumulate = 0
+  })
+}
+
+const INERTIA = 1000
+const scroll = () => {
+  scollcumulate += speed
+  if (Math.abs(scollcumulate) > INERTIA ) {
+    const pages = Math.floor(scollcumulate / INERTIA )
+    modifyPage(pages)
+    scollcumulate = scollcumulate % INERTIA 
+  }
+  window.setTimeout(scroll, 100)
+}
+
+const initClickHandlers = () => {
+  Array.from(document.getElementsByClassName('prev')).forEach((element) => {
+    element.addEventListener('click', () => prev())
+  })
+  Array.from(document.getElementsByClassName('next')).forEach((element) => {
+    element.addEventListener('click', () => next())
+  })
+}
+
+const initScroller = () => {
+  scroll()
+}
+
+const init = () => {
+  initKeyHandler()
+  initTouchHandler()
+  initClickHandlers()
+  initScroller()
+  render()
+}
+
+addEventListener('DOMContentLoaded', init)
+
+    </script>
+  </head>
+  <body>
+    <div style="text-align: right">
+      <button class="prev">prev</button>
+      <span class="page"></span>
+      <button class="next">next</button>
+    </div>
+    <div class="examples"></div>
+  </body>
+</html>
