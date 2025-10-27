@@ -5,6 +5,7 @@
     <title>Sets 4</title>
     <style>
 body {
+  background: #222;
   font-family: sans-serif;
   font-size: 1.4em;
   margin: 1em;
@@ -13,15 +14,56 @@ h1 {
   font-size: 1em;
   text-align: center;
 }
-pre {
-  line-height: 16px;
+.examples {
+  margin: 1em;
+}
+.navigation {
+  display: flex;
+  flex-direction: row-reverse;
+}
+.page-controls {
+  display: inline-flex;
+  flex-direction: column;
+  width: 2.4em;
+}
+.page-controls button {
+  height: 3em;
+}
+.page-controls * {
+  margin: 0.1em;
 }
 .page {
   display: inline-block;
   text-align: center;
-  font-size: 0.6em;
-  width: 4em;
+  width: 100%;
 }
+.row {
+  line-height: 20px;
+  font-size: 0.8em;
+  text-align: right;
+  padding: 0 0.4em;
+}
+.c0 { text-align: left; }
+.c1 { width: 4em }
+.c2 { width: 6em }
+.c3 { width: 8em }
+.c4 { width: 12em }
+.c5 { width: 17em }
+.c6 { width: 20em }
+/*
+.d0 { background: #fac }
+.d1 { background: #fca }
+.d2 { background: #afc }
+.d3 { background: #cfa }
+.d4 { background: #acf }
+.d5 { background: #edf }
+*/
+.d0 { color: #fac }
+.d1 { color: #fca }
+.d2 { color: #afc }
+.d3 { color: #cfa }
+.d4 { color: #acf }
+.d5 { color: #edf }
     </style>
     <script>
 
@@ -179,7 +221,7 @@ const distance = (i) => {
   return halfs(fulls(pow2s, i - 1))
 }
 
-const stringify = (x) => x.toLocaleString('en-US').split(',').join('')
+const stringify = (x) => x.toLocaleString('en-US').split(',').join('\u202f')
 
 const sample = (min, max) => (i) => map(takeWhile(dropWhile(distance(i), (y) => y < min), (x) => x <= max), (x) => [x, i])
 
@@ -199,14 +241,17 @@ const info = (x) => {
 }
 
 const renderExamples = (min, max) => (elem) => {
-  const lines = fromGen(flatMap(take(ints, COLS), sample(min, max))).sort(([a], [b]) => (a - b)).map(([a, b]) => (stringify(a)).padStart((b + 1) * WIDTH))
-  const leftMargin = Math.min(...lines.map(leftSpaces))
-  const noMargin = lines.map((line) => line.slice(leftMargin))
-  const rightMargin = Math.max(...lines.map((line) => line.length))
-  const title = fromGen(map(take(ints, COLS), (i) => (makeTitle(i)).padStart(WIDTH))).join('').slice(leftMargin, rightMargin)
-  const p = document.createElement('pre')
-  p.innerHTML = title + '\n\n' + noMargin.join('\n') + '\n\n' + title
-  elem.replaceChildren(p)
+  const lines = fromGen(flatMap(take(ints, COLS), sample(min, max))).sort(([a], [b]) => (a - b)).map(([a, b]) => {
+    const line = document.createElement('div')
+    line.setAttribute('class', 'row c' + b + ' d' + b)
+    line.innerHTML = stringify(a)
+    return line
+  })
+  //const title = fromGen(map(take(ints, COLS), (i) => (makeTitle(i)).padStart(WIDTH))).join('')
+  const body = document.createElement('div')
+  //p.innerHTML = title + '\n\n' + lines.join('\n') + '\n\n' + title
+  lines.forEach((line) => body.appendChild(line))
+  elem.replaceChildren(body)
 }
 
 const _components = (current, goal, step) => {
@@ -245,7 +290,8 @@ const path = (x) => {
 const steps = (x) => path(x).map(stringify).join(' \u2192 ') + ' \u2208 ' + makeTitle(components(x).length - 1)
 
 const state = {
-  page: 1
+  page: 1,
+  selected: null,
 }
 
 const renderPageNumber = (elem) => {
@@ -350,11 +396,13 @@ addEventListener('DOMContentLoaded', init)
     </script>
   </head>
   <body>
-    <div style="text-align: right">
-      <button class="prev">prev</button>
-      <span class="page"></span>
-      <button class="next">next</button>
+    <div class="navigation">
+      <div class="page-controls">
+        <button class="prev">PgUp</button>
+        <button class="next">PgDn</button>
+      </div>
     </div>
     <div class="examples"></div>
+    <!--<span class="page"></span>-->
   </body>
 </html>
