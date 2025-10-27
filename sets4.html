@@ -14,6 +14,10 @@ h1 {
   font-size: 1em;
   text-align: center;
 }
+a {
+  color: inherit;
+  text-decoration: none;
+}
 .examples {
   margin: 1em;
 }
@@ -43,6 +47,59 @@ h1 {
   text-align: right;
   padding: 0 0.4em;
 }
+.row a {
+  padding: 0.5em;
+}
+.selected a {
+  font-weight: bold;
+  border: thin solid #fff8;
+  background: #fff1;
+}
+
+.info {
+  border: 2px solid #fff4;
+  border-width: 2px 0 0 0;
+  background: #000d;
+  color: #fffe;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 40%;
+  border-radius: 40px 40px 0 0;
+  text-align: center;
+}
+
+.info .close {
+  color: #fffa;
+  position: absolute;
+  top: 0.6em;
+  right: 1.2em;
+  font-size: 1.2em;
+}
+
+.info .close:hover {
+  color: #fffd;
+}
+
+.info .title {
+  font-weight: bold;
+  font-size: 1.8em;
+  padding: 0.6em 0 0.4em 0;
+}
+.info hr {
+  width: 90%
+}
+
+.info .vector {
+  line-height: 1.8em;
+  padding: 1em 3em;
+}
+
+.info .compo {
+  padding: 0 0 1em 0 ;
+}
+
 .c0 { text-align: left; }
 .c1 { width: 4em }
 .c2 { width: 6em }
@@ -235,16 +292,23 @@ const toSuperscript = (int) => int.toString().split('').map((d) => superDigits[d
 const makeTitle = (i) => `D${toSubscript(i)}`
 const leftSpaces = (str) => str.length - str.trimStart().length
 
-const info = (x) => {
-  const parts = path(x)
-  return stringify(x) + ' \u2208 ' + makeTitle(parts.length - 1) + '\n\n' + parts.map(stringify).join(' \u2192 ') + '\n\n' + components(x).map(([s, n]) => ` ${s} 2${toSuperscript(n)}`).join('').slice(3)
+const navigate = (s) => {
+  Object.entries(s).forEach(([k, v]) => {
+    state[k] = v
+  })
+  console.log(state)
+  render()
 }
 
 const renderExamples = (min, max) => (elem) => {
   const lines = fromGen(flatMap(take(ints, COLS), sample(min, max))).sort(([a], [b]) => (a - b)).map(([a, b]) => {
     const line = document.createElement('div')
-    line.setAttribute('class', 'row c' + b + ' d' + b)
-    line.innerHTML = stringify(a)
+    line.setAttribute('class', 'row c' + b + ' d' + b + (state.selected === a ? ' selected' : ''))
+    const link = document.createElement('a')
+    line.appendChild(link)
+    link.setAttribute('href', '#')
+    link.addEventListener('click', () => navigate({ selected: a }))
+    link.innerHTML = stringify(a)
     return line
   })
   //const title = fromGen(map(take(ints, COLS), (i) => (makeTitle(i)).padStart(WIDTH))).join('')
@@ -290,8 +354,8 @@ const path = (x) => {
 const steps = (x) => path(x).map(stringify).join(' \u2192 ') + ' \u2208 ' + makeTitle(components(x).length - 1)
 
 const state = {
-  page: 1,
-  selected: null,
+  page: 8,
+  selected: 5888,
 }
 
 const renderPageNumber = (elem) => {
@@ -299,11 +363,54 @@ const renderPageNumber = (elem) => {
   elem.replaceChildren(t)
 }
 
+const renderInfo = (selected) => (elem) => {
+  const body = document.createElement('div')
+  if (selected === null) {
+    elem.replaceChildren(body)
+    return
+  }
+  body.setAttribute('class', 'info')
+  const parts = path(selected)
+
+  const close = document.createElement('a')
+  close.setAttribute('class', 'close')
+  close.setAttribute('href', '#')
+  close.addEventListener('click', () => navigate({ selected: null }))
+  close.innerHTML = '\u{1f5d9}'
+  body.appendChild(close)
+
+  const title = document.createElement('div')
+  title.setAttribute('class', 'title')
+  title.innerHTML = stringify(selected)
+  body.appendChild(title)
+  const hr = document.createElement('hr')
+  body.appendChild(hr)
+  const vector = document.createElement('div')
+  vector.setAttribute('class', 'vector')
+  parts.map(stringify).forEach((x, i) => {
+    if (i > 0) {
+    const arrow = document.createTextNode(' \u2192 ')
+    vector.appendChild(arrow)
+    }
+    const part = document.createElement('span')
+    part.innerHTML = x
+    part.setAttribute('class', 'd' + i)
+    vector.appendChild(part)
+  })
+  body.appendChild(vector)
+  const compo = document.createElement('div')
+  compo.setAttribute('class', 'compo')
+  compo.innerHTML = components(selected).map(([s, n]) => ` ${s} 2${toSuperscript(n)}`).join('').slice(3)
+  //body.appendChild(compo)
+  elem.replaceChildren(body)
+}
+
 const renderPage = () => {
-  const { page } = state
+  const { page, selected } = state
   const min = 2 ** (page === 0 ? 0 : page + 4)
   const max = 2 ** (page === 0 ? 5 : page + 5)
   Array.from(document.getElementsByClassName('examples')).forEach(renderExamples(min, max))
+  Array.from(document.getElementsByClassName('js-info')).forEach(renderInfo(selected))
   Array.from(document.getElementsByClassName('page')).forEach(renderPageNumber)
 }
 
@@ -403,6 +510,7 @@ addEventListener('DOMContentLoaded', init)
       </div>
     </div>
     <div class="examples"></div>
+    <div class="js-info"></div>
     <!--<span class="page"></span>-->
   </body>
 </html>
