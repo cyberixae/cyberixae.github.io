@@ -23,14 +23,16 @@ a {
 }
 .navigation {
   display: flex;
-  flex-direction: row-reverse;
+  flex-direction: row;
+  justify-content: space-between;
 }
 .page-controls {
   display: inline-flex;
   flex-direction: column;
   width: 2.4em;
+  gap: 0.4em;
 }
-.page-controls button {
+button {
   height: 3em;
 }
 .page-controls * {
@@ -426,6 +428,12 @@ const modifyPage = (x) => {
   render()
 }
 
+const home = () => {
+  state.page = 0
+  state.selected = null
+  render()
+}
+
 const next = () => {
   modifyPage(1)
 }
@@ -484,6 +492,9 @@ const initClickHandlers = () => {
   Array.from(document.getElementsByClassName('next')).forEach((element) => {
     element.addEventListener('click', () => next())
   })
+  Array.from(document.getElementsByClassName('home')).forEach((element) => {
+    element.addEventListener('click', () => home())
+  })
 }
 
 const initScroller = () => {
@@ -504,6 +515,9 @@ addEventListener('DOMContentLoaded', init)
   </head>
   <body>
     <div class="navigation">
+      <div>
+        <button class="home">Home</button>
+      </div>
       <div class="page-controls">
         <button class="prev">PgUp</button>
         <button class="next">PgDn</button>
