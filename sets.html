@@ -52,7 +52,8 @@ button {
   padding: 0 0.4em;
 }
 .row a {
-  padding: 0.5em;
+  padding: 0.3em;
+  border: thin solid #fff0;
   border-radius: 0.4em;
 }
 .selected a {
@@ -71,6 +72,7 @@ button {
   bottom: 0;
   left: 0;
   min-height: 40%;
+  max-height: 95%;
   border-radius: 40px 40px 0 0;
   text-align: center;
 }
@@ -180,6 +182,18 @@ const fromArray = (xs) => function* () {
 const empty = function* () {}
 
 const of = (x) => function* () { yield x }
+
+const chunkify = (g, c) => function* () {
+  let xs = []
+  for (x of g()) {
+    if (xs.length >= x) {
+      yield xs
+      xs = []
+    }
+    xs.push(x)
+  }
+  yield xs
+}
 
 const concat = (...gs) => function* () {
   for (const g of gs) {
@@ -312,10 +326,20 @@ const navigate = (s) => {
   render()
 }
 
+const isPrime = (x) => {
+  const upper = Math.sqrt(x)
+  const divs = fromGen(filter(takeWhile(drop(ints, 2), (i) => i <= upper), (d) => x % d === 0))
+  return divs.length < 1
+}
+
+const divisors = (x) => filter(takeWhile(drop(ints, 1), (i) => i <= x), (d) => x % d === 0)
+
+const divPairs = (x) => map(divisors(x), (d) => [d, x / d])
+
 const renderExamples = (min, max) => (elem) => {
   const lines = fromGen(flatMap(take(ints, COLS), sample(min, max))).sort(([a], [b]) => (a - b)).map(([a, b]) => {
     const line = document.createElement('div')
-    line.setAttribute('class', 'row c' + b + ' d' + b + (state.selected === a ? ' selected' : ''))
+    line.setAttribute('class', 'row c' + b + ' d' + b + (state.selected === a ? ' selected' : '' ))
     const link = document.createElement('a')
     line.appendChild(link)
     link.setAttribute('href', '#')
@@ -370,9 +394,36 @@ const state = {
   selected: null,
 }
 
+const strMult = (a, b) => a + '\xa0\u00d7\xa0' + b
+
 const renderPageNumber = (elem) => {
   const t = document.createTextNode(`page ${stringify(state.page + 1)}`)
   elem.replaceChildren(t)
+}
+
+const uniq = (xs) => Array.from(new Set(xs))
+
+const _timed = (it, u) => {
+  const ret = it.next()
+  if (ret.done) {
+    u([])
+    return
+  }
+  u([ret.value])
+  setTimeout(() => _timed(it, u), 100)
+}
+
+const timed = (g, u) => {
+  const it = g()
+  _timed(it, u)
+}
+
+const renderMults = (elem, dp) => {
+  const buf = new Set()
+  timed(dp, (chunk) => {
+    chunk.forEach(([a, b]) => { buf.add(a < b ? strMult(a, b) : strMult(b, a)) })
+    elem.innerHTML = Array.from(buf).reverse().join(', ') + (chunk.length < 1 ? '' : ', ...')
+  })
 }
 
 const renderInfo = (selected) => (elem) => {
@@ -412,11 +463,13 @@ const renderInfo = (selected) => (elem) => {
   body.appendChild(vector)
   const compo = document.createElement('div')
   compo.setAttribute('class', 'compo')
-  const bob = components(selected)
-  console.log(bob)
-  compo.innerHTML = bob.map(([s, n]) => ` ${s === '-' ? '\u2212' : s} 2${toSuperscript(n)}`).join('').slice(3)
+  compo.innerHTML = components(selected).map(([s, n]) => ` ${s === '-' ? '\u2212' : s} 2${toSuperscript(n)}`).join('').slice(3)
   body.appendChild(compo)
+  //const mults = document.createElement('div')
+  //mults.setAttribute('class', 'compo')
+  //body.appendChild(mults)
   elem.replaceChildren(body)
+  //renderMults(mults, divPairs(selected))
 }
 
 const renderPage = () => {
