@@ -21,11 +21,9 @@ a {
   text-decoration: none;
 }
 .examples {
-  height: 60%;
-  overflow: hidden;
+  margin: 0 0 1em 0;
 }
 .navigation {
-  margin: 0 0 1em 0;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -93,7 +91,10 @@ button {
   text-align: left;
   font-weight: bold;
   font-size: 1.2em;
+  max-width: 75%;
   padding: 0.6em 1em 0.2em 1em;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .info hr {
   margin: 0.2em 5% 0.2em 5%;
@@ -101,11 +102,14 @@ button {
 
 .info .vector {
   line-height: 1.4em;
-  padding: 0.6em 3em 0 3em;
+  margin: 1em;
+  overflow: auto;
 }
 
 .info .compo {
-  padding: 0 0 1em 0 ;
+  font-weight: normal;
+  margin: 1em;
+  color: #fffa;
 }
 
 .c0 { text-align: left; }
@@ -338,7 +342,7 @@ const _components = (current, goal, step) => {
 const components = (x) => {
   const lower = lowerLimit(x)
   if (lower === x) {
-    return [Math.log2(x)]
+    return [['+', Math.log2(x)]]
   }
   return [['+', Math.log2(lower)], ..._components(lower, x, lower / 2)]
 }
@@ -408,8 +412,10 @@ const renderInfo = (selected) => (elem) => {
   body.appendChild(vector)
   const compo = document.createElement('div')
   compo.setAttribute('class', 'compo')
-  compo.innerHTML = components(selected).map(([s, n]) => ` ${s} 2${toSuperscript(n)}`).join('').slice(3)
-  //body.appendChild(compo)
+  const bob = components(selected)
+  console.log(bob)
+  compo.innerHTML = bob.map(([s, n]) => ` ${s === '-' ? '\u2212' : s} 2${toSuperscript(n)}`).join('').slice(3)
+  body.appendChild(compo)
   elem.replaceChildren(body)
 }
 
