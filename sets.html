@@ -5,6 +5,8 @@
     <title>Sets</title>
     <style>
 body {
+  display: flex;
+  flex-direction: column; 
   background: #222;
   font-family: sans-serif;
   font-size: 1.4em;
@@ -19,9 +21,11 @@ a {
   text-decoration: none;
 }
 .examples {
-  margin: 1em;
+  height: 60%;
+  overflow: hidden;
 }
 .navigation {
+  margin: 0 0 1em 0;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -44,13 +48,14 @@ button {
   width: 100%;
 }
 .row {
-  line-height: 20px;
+  line-height: 15px;
   font-size: 0.8em;
   text-align: right;
   padding: 0 0.4em;
 }
 .row a {
   padding: 0.5em;
+  border-radius: 0.4em;
 }
 .selected a {
   font-weight: bold;
@@ -63,11 +68,11 @@ button {
   border-width: 2px 0 0 0;
   background: #000d;
   color: #fffe;
-  position: absolute;
+  position: fixed;
   right: 0;
   bottom: 0;
   left: 0;
-  height: 40%;
+  min-height: 40%;
   border-radius: 40px 40px 0 0;
   text-align: center;
 }
@@ -75,8 +80,8 @@ button {
 .info .close {
   color: #fffa;
   position: absolute;
-  top: 0.6em;
-  right: 1.2em;
+  top: 0.3em;
+  right: 1em;
   font-size: 1.2em;
 }
 
@@ -85,17 +90,18 @@ button {
 }
 
 .info .title {
+  text-align: left;
   font-weight: bold;
-  font-size: 1.8em;
-  padding: 0.6em 0 0.4em 0;
+  font-size: 1.2em;
+  padding: 0.6em 1em 0.2em 1em;
 }
 .info hr {
-  width: 90%
+  margin: 0.2em 5% 0.2em 5%;
 }
 
 .info .vector {
-  line-height: 1.8em;
-  padding: 1em 3em;
+  line-height: 1.4em;
+  padding: 0.6em 3em 0 3em;
 }
 
 .info .compo {
@@ -391,7 +397,7 @@ const renderInfo = (selected) => (elem) => {
   vector.setAttribute('class', 'vector')
   parts.map(stringify).forEach((x, i) => {
     if (i > 0) {
-    const arrow = document.createTextNode(' \u2192 ')
+    const arrow = document.createTextNode('\xa0\u2192 ')
     vector.appendChild(arrow)
     }
     const part = document.createElement('span')
