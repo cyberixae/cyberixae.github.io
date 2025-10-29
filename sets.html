@@ -146,7 +146,6 @@ const MAX = 2 ** 13
 const WIDTH = 6
 const COLS = 6
 
-
 function fromGen(g) {
   const xs = []
   for (x of g()) {
@@ -319,6 +318,17 @@ const makeTitle = (i) => `D${toSubscript(i)}`
 const leftSpaces = (str) => str.length - str.trimStart().length
 
 const navigate = (s) => {
+  if (s.selected !== state.selected) {
+    if (worker) {
+      worker.terminate()
+    }
+    worker = multWorker()
+    worker.onmessage = ({ data }) => {
+      state.mults = data
+      Array.from(document.getElementsByClassName('js-mults')).forEach(renderMults(data))
+    }
+    worker.postMessage(s.selected)
+  }
   Object.entries(s).forEach(([k, v]) => {
     state[k] = v
   })
@@ -392,6 +402,7 @@ const steps = (x) => path(x).map(stringify).join(' \u2192 ') + ' \u2208 ' + make
 const state = {
   page: 0,
   selected: null,
+  mults: '',
 }
 
 const strMult = (a, b) => a + '\xa0\u00d7\xa0' + b
@@ -403,28 +414,47 @@ const renderPageNumber = (elem) => {
 
 const uniq = (xs) => Array.from(new Set(xs))
 
-const _timed = (it, u) => {
-  const ret = it.next()
-  if (ret.done) {
-    u([])
-    return
-  }
-  u([ret.value])
-  setTimeout(() => _timed(it, u), 100)
-}
+const makeWorker = (code) =>
+  new Worker(URL.createObjectURL(new Blob([code], { type: 'application/javascript' })))
 
-const timed = (g, u) => {
-  const it = g()
-  _timed(it, u)
-}
+const multWorker = () => makeWorker(`
 
-const renderMults = (elem, dp) => {
-  const buf = new Set()
-  timed(dp, (chunk) => {
-    chunk.forEach(([a, b]) => { buf.add(a < b ? strMult(a, b) : strMult(b, a)) })
-    elem.innerHTML = Array.from(buf).reverse().join(', ') + (chunk.length < 1 ? '' : ', ...')
-  })
-}
+  const divPairs = ${divPairs}
+  const divisors = ${divisors}
+  const drop = ${drop}
+  const filter = ${filter}
+  const fromGen = ${fromGen}
+  const ints = ${ints}
+  const map = ${map}
+  const strMult = ${strMult}
+  const takeWhile = ${takeWhile}
+  const zip = ${zip}
+
+  const render = (buf) => Array.from(buf).join(', ')
+
+  self.onmessage = function({ data: x }) {
+    let cache = ''
+    let prev = ''
+    const buf = new Set()
+    const limit = Math.ceil(Math.sqrt(x))
+    const g = takeWhile(drop(ints, 1), (i) => i <= limit)
+    for (const a of g()) {
+      if (x % a === 0) {
+        const b = x / a
+        buf.add(a < b ? strMult(a, b) : strMult(b, a))
+        cache = render(buf)
+      }
+      const update = cache + ', ...\xa0' + ((a / limit) * 100).toPrecision(3) + '%'
+      if (update !== prev) {
+        self.postMessage(update)
+        prev = update
+      }
+    }
+    self.postMessage(render(buf))
+  };
+`)
+
+let worker = null;
 
 const renderInfo = (selected) => (elem) => {
   const body = document.createElement('div')
@@ -465,11 +495,15 @@ const renderInfo = (selected) => (elem) => {
   compo.setAttribute('class', 'compo')
   compo.innerHTML = components(selected).map(([s, n]) => ` ${s === '-' ? '\u2212' : s} 2${toSuperscript(n)}`).join('').slice(3)
   body.appendChild(compo)
-  //const mults = document.createElement('div')
-  //mults.setAttribute('class', 'compo')
-  //body.appendChild(mults)
+  const mults = document.createElement('div')
+  mults.setAttribute('class', 'compo js-mults')
+  renderMults(state.mults)(mults)
+  body.appendChild(mults)
   elem.replaceChildren(body)
-  //renderMults(mults, divPairs(selected))
+}
+
+const renderMults = (mults) => (elem) => {
+  elem.innerHTML = mults
 }
 
 const renderPage = () => {
