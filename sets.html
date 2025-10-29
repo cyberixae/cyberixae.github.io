@@ -114,6 +114,14 @@ button {
   color: #fffa;
 }
 
+.info .mults {
+  font-weight: normal;
+  margin: 1em;
+  color: #fffa;
+  height: 16em;
+  overflow: auto;
+}
+
 .c0 { text-align: left; }
 .c1 { width: 4em }
 .c2 { width: 6em }
@@ -496,7 +504,7 @@ const renderInfo = (selected) => (elem) => {
   compo.innerHTML = components(selected).map(([s, n]) => ` ${s === '-' ? '\u2212' : s} 2${toSuperscript(n)}`).join('').slice(3)
   body.appendChild(compo)
   const mults = document.createElement('div')
-  mults.setAttribute('class', 'compo js-mults')
+  mults.setAttribute('class', 'mults js-mults')
   renderMults(state.mults)(mults)
   body.appendChild(mults)
   elem.replaceChildren(body)
