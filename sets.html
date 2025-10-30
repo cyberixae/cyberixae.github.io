@@ -181,6 +181,12 @@ const MAX = 2 ** 13
 const WIDTH = 6
 const COLS = 6
 
+const chars = {
+  dot: '\u22c5',
+  mul: '\u00d7',
+
+}
+
 function fromGen(g) {
   const xs = []
   for (x of g()) {
@@ -492,7 +498,7 @@ const multWorker = () => makeWorker(`
     for (const xs of group(buf)) {
       tmp.push(String(xs.at(0)) + (xs.length < 2 ? '' : toSuperscript(xs.length)))
     }
-    return tmp.join(' * ')
+    return tmp.join(' \u00d7 ')
   }
 
   self.onmessage = function({ data: x }) {
