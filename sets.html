@@ -602,6 +602,20 @@ const renderPage = () => {
 
 const render = () => {
   renderPage()
+  Array.from(document.getElementsByClassName('home')).forEach((element) => {
+    if (state.page === 0) {
+      element.setAttribute('disabled',  'disabled')
+    } else {
+      element.removeAttribute('disabled')
+    }
+  })
+  Array.from(document.getElementsByClassName('prev')).forEach((element) => {
+    if (state.page === 0) {
+      element.setAttribute('disabled',  'disabled')
+    } else {
+      element.removeAttribute('disabled')
+    }
+  })
 }
 
 const modifyPage = (x) => {
