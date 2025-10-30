@@ -461,32 +461,64 @@ const multWorker = () => makeWorker(`
   const divisors = ${divisors}
   const drop = ${drop}
   const filter = ${filter}
+  const fromArray = ${fromArray}
   const fromGen = ${fromGen}
   const ints = ${ints}
   const map = ${map}
   const strMult = ${strMult}
   const takeWhile = ${takeWhile}
+
+  const superDigits = [0x2070, 0x00B9, 0x00B2, 0x00B3, 0x2074, 0x2075, 0x2076, 0x2077, 0x2078, 0x2079].map((c) => String.fromCharCode(c))
+  const toSuperscript = ${toSuperscript}
   const zip = ${zip}
 
-  const render = (buf) => Array.from(buf).join(', ')
+  function* group(buf) {
+    let xs = []
+    for (const x of buf) {
+      if (xs.length < 1 || x === xs.at(-1)) {
+        xs.push(x)
+      } else {
+        yield xs
+        xs = [x]
+      }
+    }
+    if (xs.length > 0) {
+      yield xs
+    }
+  }
+
+  const render = (buf) => {
+    const tmp = []
+    for (const xs of group(buf)) {
+      tmp.push(String(xs.at(0)) + (xs.length < 2 ? '' : toSuperscript(xs.length)))
+    }
+    return tmp.join(' * ')
+  }
 
   self.onmessage = function({ data: x }) {
     let cache = ''
     let prev = ''
-    const buf = new Set()
+    let tmp = x
+    const buf = []
     const limit = Math.ceil(Math.sqrt(x))
-    const g = takeWhile(drop(ints, 1), (i) => i <= limit)
+    const g = takeWhile(drop(ints, 2), (i) => i <= limit)
     for (const a of g()) {
-      if (x % a === 0) {
-        const b = x / a
-        buf.add(a < b ? strMult(a, b) : strMult(b, a))
+      while (tmp % a === 0) {
+        buf.push(a)
+        tmp /= a
         cache = render(buf)
       }
-      const update = cache + ', ...\xa0' + ((a / limit) * 100).toPrecision(3) + '%'
+      if (tmp === 1) {
+        break
+      }
+      const update = cache + ', ...\xa0' + tmp + '\xa0' + ((a / limit) * 100).toPrecision(3) + '%'
       if (update !== prev) {
         self.postMessage(update)
         prev = update
       }
+    }
+    if (tmp > 1) {
+      buf.push(tmp)
     }
     self.postMessage(render(buf))
   };
