@@ -63,7 +63,7 @@ button {
 }
 
 .info {
-  border: 2px solid #fff4;
+  border: 2px solid #fff0;
   border-width: 2px 0 0 0;
   background: #000d;
   color: #fffe;
@@ -71,10 +71,16 @@ button {
   right: 0;
   bottom: 0;
   left: 0;
-  min-height: 40%;
-  max-height: 95%;
+  min-height: 0;
+  max-height: 0;
   border-radius: 40px 40px 0 0;
   text-align: center;
+}
+
+.open {
+  border: 2px solid #fff4;
+  min-height: 40%;
+  max-height: 95%;
 }
 
 .info .close {
@@ -94,7 +100,7 @@ button {
   font-weight: bold;
   font-size: 1.2em;
   max-width: 75%;
-  padding: 0.6em 1em 0.2em 1em;
+  padding: 0.6em 1em 0.2em 5%;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -120,6 +126,27 @@ button {
   color: #fffa;
   height: 16em;
   overflow: auto;
+}
+
+@media screen and (min-width: 800px) {
+  .info {
+    top: 1em;
+    right: 0;
+    bottom: auto;
+    min-height: 40%;
+    max-height: 95%;
+    background: #0004;
+    border-width: 2px 0 2px 2px;
+    border-radius: 40px 0 0 40px;
+    left: 22em;
+  }
+  .close {
+    display: none;
+  }
+}
+
+.main {
+  max-width: 20em;
 }
 
 .c0 { text-align: left; }
@@ -467,10 +494,11 @@ let worker = null;
 const renderInfo = (selected) => (elem) => {
   const body = document.createElement('div')
   if (selected === null) {
+    body.setAttribute('class', 'info')
     elem.replaceChildren(body)
     return
   }
-  body.setAttribute('class', 'info')
+  body.setAttribute('class', 'info open')
   const parts = path(selected)
 
   const close = document.createElement('a')
@@ -621,16 +649,18 @@ addEventListener('DOMContentLoaded', init)
     </script>
   </head>
   <body>
-    <div class="navigation">
-      <div>
-        <button class="home">Home</button>
+    <div class="main">
+      <div class="navigation">
+        <div>
+          <button class="home">Home</button>
+        </div>
+        <div class="page-controls">
+          <button class="prev">PgUp</button>
+          <button class="next">PgDn</button>
+        </div>
       </div>
-      <div class="page-controls">
-        <button class="prev">PgUp</button>
-        <button class="next">PgDn</button>
-      </div>
+      <div class="examples"></div>
     </div>
-    <div class="examples"></div>
     <div class="js-info"></div>
     <!--<span class="page"></span>-->
   </body>
