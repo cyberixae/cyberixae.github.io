@@ -388,7 +388,10 @@ const renderExamples = (min, max) => (elem) => {
     const link = document.createElement('a')
     line.appendChild(link)
     link.setAttribute('href', '#')
-    link.addEventListener('click', () => navigate({ selected: a }))
+    link.addEventListener('click', (event) => {
+      event.preventDefault()
+      navigate({ selected: a })
+    })
     link.innerHTML = stringify(a)
     return line
   })
@@ -504,7 +507,10 @@ const renderInfo = (selected) => (elem) => {
   const close = document.createElement('a')
   close.setAttribute('class', 'close')
   close.setAttribute('href', '#')
-  close.addEventListener('click', () => navigate({ selected: null }))
+  close.addEventListener('click', (event) => {
+    event.preventDefault()
+    navigate({ selected: null })
+  })
   close.innerHTML = '\u{1f5d9}'
   body.appendChild(close)
 
@@ -622,13 +628,22 @@ const scroll = () => {
 
 const initClickHandlers = () => {
   Array.from(document.getElementsByClassName('prev')).forEach((element) => {
-    element.addEventListener('click', () => prev())
+    element.addEventListener('click', (event) => {
+      event.preventDefault()
+      prev()
+    })
   })
   Array.from(document.getElementsByClassName('next')).forEach((element) => {
-    element.addEventListener('click', () => next())
+    element.addEventListener('click', (event) => {
+      event.preventDefault()
+      next()
+    })
   })
   Array.from(document.getElementsByClassName('home')).forEach((element) => {
-    element.addEventListener('click', () => home())
+    element.addEventListener('click', (event) => {
+      event.preventDefault()
+      home()
+    })
   })
 }
 
