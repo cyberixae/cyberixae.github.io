@@ -171,12 +171,12 @@ button {
 .d4 { background: #acf }
 .d5 { background: #edf }
 */
+.d { color: #edf }
 .d0 { color: #fac }
 .d1 { color: #fca }
 .d2 { color: #afc }
 .d3 { color: #cfa }
 .d4 { color: #acf }
-.d5 { color: #edf }
     </style>
     <script>
 
@@ -409,7 +409,7 @@ const divPairs = (x) => map(divisors(x), (d) => [d, x / d])
 const renderExamples = (min, max) => (elem) => {
   const lines = fromGen(flatMap(take(ints, COLS), sample(min, max))).sort(([a], [b]) => (a - b)).map(([a, b]) => {
     const line = document.createElement('div')
-    line.setAttribute('class', 'row c' + b + ' d' + b + (state.selected === a ? ' selected' : '' ))
+    line.setAttribute('class', 'row c' + b + ' d d' + b + (state.selected === a ? ' selected' : '' ))
     const link = document.createElement('a')
     line.appendChild(link)
     link.setAttribute('href', '#')
@@ -575,7 +575,7 @@ const renderInfo = (selected) => (elem) => {
 
   const title = document.createElement('div')
   title.setAttribute('class', 'title')
-  title.innerHTML = stringify(selected)
+  title.innerHTML = stringify(selected) + ' \u220a \u2192' + toSubscript(parts.length - 1)
   body.appendChild(title)
   const hr = document.createElement('hr')
   body.appendChild(hr)
@@ -588,7 +588,7 @@ const renderInfo = (selected) => (elem) => {
     }
     const part = document.createElement('span')
     part.innerHTML = x
-    part.setAttribute('class', 'd' + i)
+    part.setAttribute('class', 'd d' + i)
     vector.appendChild(part)
   })
   body.appendChild(vector)
@@ -730,7 +730,7 @@ const init = () => {
   initTouchHandler()
   initClickHandlers()
   initScroller()
-  render()
+  navigate({ selected: null })
 }
 
 addEventListener('DOMContentLoaded', init)
