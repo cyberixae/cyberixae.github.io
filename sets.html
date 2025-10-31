@@ -654,6 +654,7 @@ const setSpeed = (s) => {
 
 const initKeyHandler = () => {
   addEventListener('keydown', (event) => {
+    if (['Home'].includes(event.code)) { home() }
     if (['PageUp', 'KeyK'].includes(event.code)) { prev() }
     if (['PageDown', 'KeyJ'].includes(event.code)) { next() }
   })
