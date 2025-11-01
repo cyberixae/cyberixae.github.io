@@ -43,6 +43,10 @@ a {
 button {
   height: 3em;
 }
+.presentation {
+  height: 3em
+}
+
 .page-controls * {
   margin: 0.1em;
 }
@@ -142,7 +146,6 @@ button {
     bottom: auto;
     min-height: 40%;
     max-height: 95%;
-    background: #0004;
     border-width: 2px 0 2px 2px;
     border-radius: 40px 0 0 40px;
     left: 22em;
@@ -355,25 +358,43 @@ const distance = (i) => {
 
 const stringify = (x, p) => {
   const repeat = (str, x) => fromGen(map(take(ints, x), () => str))
-  const unary = (x) => '(' + repeat('\u{1f34e}\ufe0e', x).join('\u202f') + ')'
-  const binary = (x) => x.toString(2).split('0').join('\u25cb').split('1').join('\u25cf')
-  const octal = (x) => '0' + x.toString(8)
-  const decimal = (x) => x.toLocaleString('en-US').split(',').join('\u202f')
-  const hexdecimal = (x) => x.toString(16)
+  const apples = (x) => '(' + repeat('\u{1f34e}\ufe0e', x).join('\u202f') + ')'
+  const base2 = (x) => x.toString(2)
+  const leds = (x) => x.toString(2).split('0').join('\u25cb').split('1').join('\u25cf')
+  const base8 = (x) => x.toString(8)
+  const trigrams = (x) => x.toString(8).split('').map((c) => {
+    switch(c) {
+      case '0': return '\u2637'
+      case '1': return '\u2636'
+      case '2': return '\u2635'
+      case '3': return '\u2634'
+      case '4': return '\u2633'
+      case '5': return '\u2632'
+      case '6': return '\u2631'
+      case '7': return '\u2630'
+    }
+    return c
+  }).join('')
+  const tally10 = (x) => x.toLocaleString('en-US').split(',').join('\u202f')
+  const tally16 = (x) => x.toString(16).toUpperCase()
   const fence = (x) => '(' + [...repeat('\u{1d378}', Math.floor(x / 5)), ...repeat('\u{1d377}', x % 5)].join('\u202f') + ')'
   switch (p) {
-    case 'unary':
-      return unary(x)
-    case 'binary':
-      return binary(x)
-    case 'octal':
-      return octal(x)
-    case 'hexdecimal':
-      return hexdecimal(x)
+    case 'apples':
+      return apples(x)
+    case 'base2':
+      return base2(x)
+    case 'leds':
+      return leds(x)
+    case 'base8':
+      return base8(x)
+    case 'trigrams':
+      return trigrams(x)
+    case 'tally16':
+      return tally16(x)
     case 'fence':
       return fence(x)
   }
-  return decimal(x)
+  return tally10(x)
 }
 
 const sample = (min, max) => (i) => map(takeWhile(dropWhile(distance(i), (y) => y < min), (x) => x <= max), (x) => [x, i])
@@ -502,7 +523,7 @@ const state = {
   page: 0,
   selected: null,
   mults: '',
-  presentation: 'binary',
+  presentation: 'tally10',
 }
 
 const strMult = (a, b) => a + '\xa0\u00d7\xa0' + b
@@ -569,7 +590,7 @@ const renderInfo = (selected) => (elem) => {
 
   const title = document.createElement('div')
   title.setAttribute('class', 'title')
-  title.innerHTML = stringify(selected, state.presentation) + ' \u220a \u2192' + toSubscript(parts.length - 1)
+  title.innerHTML = stringify(selected, state.presentation) + ' \u220a\xa0\u2192' + toSubscript(parts.length - 1)
   body.appendChild(title)
   const hr = document.createElement('hr')
   body.appendChild(hr)
@@ -713,6 +734,12 @@ const initClickHandlers = () => {
       home()
     })
   })
+  Array.from(document.getElementsByClassName('js-presentation')).forEach((element) => {
+    element.addEventListener('change', (event) => {
+      event.preventDefault()
+      navigate({ presentation: event.target.value })
+    })
+  })
 }
 
 const initScroller = () => {
@@ -737,6 +764,16 @@ addEventListener('DOMContentLoaded', init)
         <div>
           <button class="home">Home</button>
         </div>
+        <select class="presentation js-presentation">
+          <option value="base2">Base 2</option>
+          <option value="leds">Base 2, Leds</option>
+          <option value="base8">Base 8</option>
+          <option value="trigrams">Base 8, Trigrams</option>
+          <option value="tally10" selected>Base 10</option>
+          <option value="tally16">Base 16</option>
+          <option value="apples">Tally 1, Apples</option>
+          <option value="fence">Tally 5, Fence</option>
+        </select>
         <div class="page-controls">
           <button class="prev">PgUp</button>
           <button class="next">PgDn</button>
