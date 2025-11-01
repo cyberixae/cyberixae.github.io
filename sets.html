@@ -378,6 +378,14 @@ const stringify = (x, p) => {
   const tally10 = (x) => x.toLocaleString('en-US').split(',').join('\u202f')
   const tally16 = (x) => x.toString(16).toUpperCase()
   const fence = (x) => '(' + [...repeat('\u{1d378}', Math.floor(x / 5)), ...repeat('\u{1d377}', x % 5)].join('\u202f') + ')'
+  const zheng = (x) => '(' + [...repeat('\u{1d376}', Math.floor(x / 5)), (() => {
+    switch(x % 5) {
+      case 1: return '\u{1d372}'
+      case 2: return '\u{1d373}'
+      case 3: return '\u{1d374}'
+      case 4: return '\u{1d375}'
+    }
+  })()].join('\u202f') + ')'
   switch (p) {
     case 'apples':
       return apples(x)
@@ -393,6 +401,8 @@ const stringify = (x, p) => {
       return tally16(x)
     case 'fence':
       return fence(x)
+    case 'zheng':
+      return zheng(x)
   }
   return tally10(x)
 }
@@ -772,7 +782,10 @@ addEventListener('DOMContentLoaded', init)
           <option value="tally10" selected>Base 10</option>
           <option value="tally16">Base 16</option>
           <option value="apples">Tally 1, Apples</option>
+<!--
           <option value="fence">Tally 5, Fence</option>
+          <option value="zheng">Tally 5, Zhèng</option>
+-->
         </select>
         <div class="page-controls">
           <button class="prev">PgUp</button>
