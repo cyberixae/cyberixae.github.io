@@ -386,6 +386,77 @@ const stringify = (x, p) => {
       case 4: return '\u{1d375}'
     }
   })()].join('\u202f') + ')'
+
+  const hieroglyphs = (x) => [
+    ...repeat('\u{13068}', Math.floor(x / 1_000_000)),
+    ...repeat('\u{13190}', Math.floor((x % 1_000_000) / 100_000)),
+    ...(() => { switch(Math.floor((x % 100_000) / 10_000)) {
+      case 0: return []
+      case 1: return ['\u{130ad}']
+      case 2: return ['\u{130ae}']
+      case 3: return ['\u{130af}']
+      case 4: return ['\u{130b0}']
+      case 5: return ['\u{130b1}']
+      case 6: return ['\u{130b2}']
+      case 7: return ['\u{130b3}']
+      case 8: return ['\u{130b4}']
+      case 9: return ['\u{130b5}']
+
+    } })(),
+    ...(() => { switch(Math.floor((x % 10_000) / 1_000)) {
+      case 0: return []
+      case 1: return ['\u{131bc}']
+      case 2: return ['\u{131bd}']
+      case 3: return ['\u{131be}']
+      case 4: return ['\u{131bf}']
+      case 5: return ['\u{131c0}']
+      case 6: return ['\u{131c1}']
+      case 7: return ['\u{131c2}']
+      case 8: return ['\u{131c3}']
+      case 9: return ['\u{131c4}']
+
+    } })(),
+    ...(() => { switch(Math.floor((x % 1_000) / 100)) {
+      case 0: return []
+      case 1: return ['\u{13362}']
+      case 2: return ['\u{13363}']
+      case 3: return ['\u{13364}']
+      case 4: return ['\u{13365}']
+      case 5: return ['\u{13366}']
+      case 6: return ['\u{13367}']
+      case 7: return ['\u{13368}']
+      case 8: return ['\u{13369}']
+      case 9: return ['\u{1336a}']
+
+    } })(),
+    ...(() => { switch(Math.floor((x % 100) / 10)) {
+      case 0: return []
+      case 1: return ['\u{13386}']
+      case 2: return ['\u{13387}']
+      case 3: return ['\u{13388}']
+      case 4: return ['\u{13389}']
+      case 5: return ['\u{1338a}']
+      case 6: return ['\u{1338b}']
+      case 7: return ['\u{1338c}']
+      case 8: return ['\u{1338d}']
+      case 9: return ['\u{1338e}']
+
+    } })(),
+    ...(() => { switch(x % 10) {
+      case 0: return []
+      case 1: return ['\u{133fa}']
+      case 2: return ['\u{133fb}']
+      case 3: return ['\u{133fc}']
+      case 4: return ['\u{133fd}']
+      case 5: return ['\u{133fe}']
+      case 6: return ['\u{133ff}']
+      case 7: return ['\u{13400}']
+      case 8: return ['\u{13401}']
+      case 9: return ['\u{13402}']
+
+    } })(),
+  ].join('\u202f')
+
   switch (p) {
     case 'apples':
       return apples(x)
@@ -403,6 +474,8 @@ const stringify = (x, p) => {
       return fence(x)
     case 'zheng':
       return zheng(x)
+    case 'hieroglyphs':
+      return hieroglyphs(x)
   }
   return tally10(x)
 }
@@ -765,7 +838,6 @@ const init = () => {
 }
 
 addEventListener('DOMContentLoaded', init)
-
     </script>
   </head>
   <body>
@@ -781,7 +853,8 @@ addEventListener('DOMContentLoaded', init)
           <option value="trigrams">Base 8, Trigrams</option>
           <option value="tally10" selected>Base 10</option>
           <option value="tally16">Base 16</option>
-          <option value="apples">Tally 1, Apples</option>
+          <option value="apples">Apples</option>
+          <option value="hieroglyphs">Hieroglyphs</option>
 <!--
           <option value="fence">Tally 5, Fence</option>
           <option value="zheng">Tally 5, Zhèng</option>
