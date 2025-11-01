@@ -210,7 +210,9 @@ const toString = (g, d = ', ') => {
   return str.slice(d.length)
 }
 
-const log = (g) => console.log(toString(g))
+const logG = (g) => console.log(toString(g))
+
+const log = (x) => { console.log(x); return x }
 
 function* ints() {
   let i = 0
@@ -351,7 +353,17 @@ const distance = (i) => {
   return halfs(fulls(pow2s, i - 1))
 }
 
-const stringify = (x) => x.toLocaleString('en-US').split(',').join('\u202f')
+const stringify = (x) => {
+  const repeat = (str, x) => fromGen(map(take(ints, x), () => str))
+  const unary = (x) => '(' + repeat('\u{1f34e}\ufe0e', x).join('\u202f') + ')'
+  const binary = (x) => x.toString(2).split('0').join('\u25cb').split('1').join('\u25cf')
+  const octal = (x) => '0' + x.toString(8)
+  const decimal = (x) => x.toLocaleString('en-US').split(',').join('\u202f')
+  const hexdecimal = (x) => x.toString(16)
+  const fence = (x) => '(' + [...repeat('\u{1d378}', Math.floor(x / 5)), ...repeat('\u{1d377}', x % 5)].join('\u202f') + ')'
+
+  return decimal(x)
+}
 
 const sample = (min, max) => (i) => map(takeWhile(dropWhile(distance(i), (y) => y < min), (x) => x <= max), (x) => [x, i])
 
@@ -445,7 +457,7 @@ const path = (x) => {
   if (lower === x) {
     return [x]
   }
-  return [lower, ..._path(lower, x, lower / 2)]
+  return [lower, ..._path(lower, x, lower / 2)].flat()
 }
 
 const steps = (x) => path(x).map(stringify).join(' \u2192 ') + ' \u2208 ' + makeTitle(components(x).length - 1)
@@ -479,6 +491,8 @@ const multWorker = () => makeWorker(`
   const ints = ${ints}
   const map = ${map}
   const strMult = ${strMult}
+  const take = ${take}
+  const stringify = ${stringify}
   const takeWhile = ${takeWhile}
 
   const superDigits = [0x2070, 0x00B9, 0x00B2, 0x00B3, 0x2074, 0x2075, 0x2076, 0x2077, 0x2078, 0x2079].map((c) => String.fromCharCode(c))
@@ -503,7 +517,7 @@ const multWorker = () => makeWorker(`
   const render = (buf) => {
     const tmp = []
     for (const xs of group(buf)) {
-      tmp.push(String(xs.at(0)) + (xs.length < 2 ? '' : toSuperscript(xs.length)))
+      tmp.push(stringify(xs.at(0)) + (xs.length < 2 ? '' : toSuperscript(xs.length)))
     }
     return tmp.join(' \u00d7 ')
   }
@@ -569,8 +583,8 @@ const renderInfo = (selected) => (elem) => {
   vector.setAttribute('class', 'vector')
   parts.map(stringify).forEach((x, i) => {
     if (i > 0) {
-    const arrow = document.createTextNode('\xa0\u2192 ')
-    vector.appendChild(arrow)
+      const arrow = document.createTextNode('\xa0\u2192 ')
+      vector.appendChild(arrow)
     }
     const part = document.createElement('span')
     part.innerHTML = x
@@ -580,7 +594,7 @@ const renderInfo = (selected) => (elem) => {
   body.appendChild(vector)
   const compo = document.createElement('div')
   compo.setAttribute('class', 'compo')
-  compo.innerHTML = components(selected).map(([s, n]) => ` ${s === '-' ? '\u2212' : s} 2${toSuperscript(n)}`).join('').slice(3)
+  compo.innerHTML = components(selected).map(([s, n]) => ` ${s === '-' ? '\u2212' : s} ${stringify(2)}${toSuperscript(n)}`).join('').slice(3)
   body.appendChild(compo)
   const mults = document.createElement('div')
   mults.setAttribute('class', 'mults js-mults')
