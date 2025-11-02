@@ -83,6 +83,9 @@ button {
   font-size: 1.8em;
   line-height: 0.2em;
 }
+.mayan a {
+  display: inline-block;
+}
 .mayan .num {
   font-size: 1.8em;
   line-height: 0.8em;
@@ -91,7 +94,10 @@ button {
   line-height: 0.8em;
   font-size: 2em;
 }
-
+.trigrams .num {
+  font-size: 1.8em;
+  line-height: 1.2em;
+}
 
 .info {
   border: 2px solid #fff0;
@@ -379,7 +385,8 @@ const distance = (i) => {
 
 const stringify = (x, p) => {
   const repeat = (str, x) => fromGen(map(take(ints, x), () => str))
-  const apples = (x) => '(' + repeat('\u{1f34e}\ufe0e', x).join('\u202f') + ')'
+  const apples = (x) => repeat('\u{1f34e}\ufe0e', x).join('')
+  const tally1 = (x) => repeat(1, x).join('')
   const base2 = (x) => x.toString(2)
   const leds = (x) => x.toString(2).split('0').join('\u25cb').split('1').join('\u25cf')
   const base8 = (x) => x.toString(8)
@@ -398,15 +405,15 @@ const stringify = (x, p) => {
   }).join('')
   const base10 = (x) => x.toLocaleString('en-US').split(',').join('\u202f')
   const base16 = (x) => x.toString(16).toUpperCase()
-  const fence = (x) => '(' + [...repeat('\u{1d378}', Math.floor(x / 5)), ...repeat('\u{1d377}', x % 5)].join('\u202f') + ')'
-  const zheng = (x) => '(' + [...repeat('\u{1d376}', Math.floor(x / 5)), (() => {
+  const fence = (x) => [...repeat('\u{1d378}', Math.floor(x / 5)), ...repeat('\u{1d377}', x % 5)].join('')
+  const zheng = (x) => [...repeat('\u{1d376}', Math.floor(x / 5)), (() => {
     switch(x % 5) {
       case 1: return '\u{1d372}'
       case 2: return '\u{1d373}'
       case 3: return '\u{1d374}'
       case 4: return '\u{1d375}'
     }
-  })()].join('\u202f') + ')'
+  })()].join('')
 
   const mayan = (x) => x.toString(20).split('').map((c) => {
     switch(c) {
@@ -519,6 +526,8 @@ const stringify = (x, p) => {
       return base16(x)
     case 'fence':
       return fence(x)
+    case 'tally1':
+      return tally1(x)
     case 'zheng':
       return zheng(x)
     case 'mayan':
@@ -558,7 +567,7 @@ const group = (buf) => function* () {
 }
 
 const navigate = (s) => {
-  if (s.selected !== state.selected) {
+  if (s.hasOwnProperty('selected') && s.selected !== state.selected) {
     if (worker) {
       worker.terminate()
     }
@@ -928,19 +937,18 @@ addEventListener('DOMContentLoaded', init)
           <button class="home">Home</button>
         </div>
         <select class="presentation js-presentation">
-          <option value="base2">Base 2</option>
-          <option value="leds">Base 2, LEDs</option>
-          <option value="base8">Base 8</option>
-          <option value="trigrams">Base 8, Trigrams</option>
-          <option value="base10" selected>Base 10</option>
-          <option value="base16">Base 16</option>
           <option value="apples">Apples</option>
-          <option value="mayan">Mayan</option>
-          <option value="hieroglyphs">Hieroglyphs</option>
-<!--
-          <option value="fence">Tally 5, Fence</option>
-          <option value="zheng">Tally 5, Zhèng</option>
--->
+          <!--<option value="tally1">Arabic tally 1</option>-->
+          <option value="base2">Arabic base 2</option>
+          <option value="base8">Arabic base 8</option>
+          <option value="base10" selected>Arabic base 10</option>
+          <option value="base16">Arabic base 16</option>
+          <option value="hieroglyphs">Egyptian</option>
+          <option value="fence">Fence tally 5</option>
+          <!--<option value="leds">LEDs base 2</option>-->
+          <option value="mayan">Mayan base 20</option>
+          <!-- <option value="trigrams">Trigrams base 8</option> -->
+          <option value="zheng">Zhèng tally 5</option>
         </select>
         <div class="page-controls">
           <button class="prev">PgUp</button>
