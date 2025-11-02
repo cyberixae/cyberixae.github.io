@@ -72,6 +72,27 @@ button {
   background: #fff1;
 }
 
+.num {
+  text-wrap: nowrap;
+  display: inline-block;
+  line-height: 1em;
+  margin: 0;
+}
+
+.leds .num {
+  font-size: 1.8em;
+  line-height: 0.2em;
+}
+.mayan .num {
+  font-size: 1.8em;
+  line-height: 0.8em;
+}
+.hieroglyphs .num {
+  line-height: 0.8em;
+  font-size: 2em;
+}
+
+
 .info {
   border: 2px solid #fff0;
   border-width: 2px 0 0 0;
@@ -375,8 +396,8 @@ const stringify = (x, p) => {
     }
     return c
   }).join('')
-  const tally10 = (x) => x.toLocaleString('en-US').split(',').join('\u202f')
-  const tally16 = (x) => x.toString(16).toUpperCase()
+  const base10 = (x) => x.toLocaleString('en-US').split(',').join('\u202f')
+  const base16 = (x) => x.toString(16).toUpperCase()
   const fence = (x) => '(' + [...repeat('\u{1d378}', Math.floor(x / 5)), ...repeat('\u{1d377}', x % 5)].join('\u202f') + ')'
   const zheng = (x) => '(' + [...repeat('\u{1d376}', Math.floor(x / 5)), (() => {
     switch(x % 5) {
@@ -386,6 +407,32 @@ const stringify = (x, p) => {
       case 4: return '\u{1d375}'
     }
   })()].join('\u202f') + ')'
+
+  const mayan = (x) => x.toString(20).split('').map((c) => {
+    switch(c) {
+      case '0': return '\u{1d2e0}'
+      case '1': return '\u{1d2e1}'
+      case '2': return '\u{1d2e2}'
+      case '3': return '\u{1d2e3}'
+      case '4': return '\u{1d2e4}'
+      case '5': return '\u{1d2e5}'
+      case '6': return '\u{1d2e6}'
+      case '7': return '\u{1d2e7}'
+      case '8': return '\u{1d2e8}'
+      case '9': return '\u{1d2e9}'
+      case 'a': return '\u{1d2ea}'
+      case 'b': return '\u{1d2eb}'
+      case 'c': return '\u{1d2ec}'
+      case 'd': return '\u{1d2ed}'
+      case 'e': return '\u{1d2ee}'
+      case 'f': return '\u{1d2ef}'
+      case 'g': return '\u{1d2f0}'
+      case 'h': return '\u{1d2f1}'
+      case 'i': return '\u{1d2f2}'
+      case 'j': return '\u{1d2f3}'
+    }
+    return c
+  }).join('\n')
 
   const hieroglyphs = (x) => [
     ...repeat('\u{13068}', Math.floor(x / 1_000_000)),
@@ -455,7 +502,7 @@ const stringify = (x, p) => {
       case 9: return ['\u{13402}']
 
     } })(),
-  ].join('\u202f')
+  ].join('')
 
   switch (p) {
     case 'apples':
@@ -468,16 +515,18 @@ const stringify = (x, p) => {
       return base8(x)
     case 'trigrams':
       return trigrams(x)
-    case 'tally16':
-      return tally16(x)
+    case 'base16':
+      return base16(x)
     case 'fence':
       return fence(x)
     case 'zheng':
       return zheng(x)
+    case 'mayan':
+      return mayan(x)
     case 'hieroglyphs':
       return hieroglyphs(x)
   }
-  return tally10(x)
+  return base10(x)
 }
 
 const sample = (min, max) => (i) => map(takeWhile(dropWhile(distance(i), (y) => y < min), (x) => x <= max), (x) => [x, i])
@@ -493,7 +542,7 @@ const makeTitle = (i) => `D${toSubscript(i)}`
 const leftSpaces = (str) => str.length - str.trimStart().length
 
 
-function* group(buf) {
+const group = (buf) => function* () {
   let xs = []
   for (const x of buf) {
     if (xs.length < 1 || x === xs.at(-1)) {
@@ -508,15 +557,6 @@ function* group(buf) {
   }
 }
 
-
-const strBuf = (buf) => {
-  const tmp = []
-  for (const xs of group(buf)) {
-    tmp.push(stringify(xs.at(0), state.presentation) + (xs.length < 2 ? '' : toSuperscript(xs.length)))
-  }
-  return tmp.join(' \u00d7 ')
-}
-
 const navigate = (s) => {
   if (s.selected !== state.selected) {
     if (worker) {
@@ -524,17 +564,19 @@ const navigate = (s) => {
     }
     worker = multWorker()
     worker.onmessage = ({ data }) => {
-      const { buf, tmp, progress } = JSON.parse(data)
-      const text = strBuf(buf) + (progress === null ? '' : ', ...\xa0' + tmp + '\xa0' + progress + '%')
-      state.mults = text
-      Array.from(document.getElementsByClassName('js-mults')).forEach(renderMults(text))
+      const { buf } = JSON.parse(data)
+      state.mults = fromGen(group(buf))
+      Array.from(document.getElementsByClassName('js-mults')).forEach(renderMults)
     }
     worker.postMessage(s.selected)
   }
+  Array.from(document.getElementsByClassName('js-root')).forEach((elem) => {
+    elem.setAttribute('class', 'js-root ' + (s.presentation ?? state.presentation))
+  })
   Object.entries(s).forEach(([k, v]) => {
     state[k] = v
   })
-  console.log(state)
+  console.log('navigate', state)
   render()
 }
 
@@ -551,7 +593,7 @@ const divPairs = (x) => map(divisors(x), (d) => [d, x / d])
 const renderExamples = (min, max) => (elem) => {
   const lines = fromGen(flatMap(take(ints, COLS), sample(min, max))).sort(([a], [b]) => (a - b)).map(([a, b]) => {
     const line = document.createElement('div')
-    line.setAttribute('class', 'row c' + b + ' d d' + b + (state.selected === a ? ' selected' : '' ))
+    line.setAttribute('class', 'row c' + b + (state.selected === a ? ' selected' : '' ))
     const link = document.createElement('a')
     line.appendChild(link)
     link.setAttribute('href', '#')
@@ -559,7 +601,10 @@ const renderExamples = (min, max) => (elem) => {
       event.preventDefault()
       navigate({ selected: a })
     })
-    link.innerHTML = stringify(a, state.presentation)
+    const num = document.createElement('pre')
+    num.setAttribute('class', 'num d d' + b)
+    num.innerHTML = stringify(a, state.presentation)
+    link.appendChild(num)
     return line
   })
   //const title = fromGen(map(take(ints, COLS), (i) => (makeTitle(i)).padStart(WIDTH))).join('')
@@ -605,8 +650,8 @@ const path = (x) => {
 const state = {
   page: 0,
   selected: null,
-  mults: '',
-  presentation: 'tally10',
+  mults: [],
+  presentation: 'base10',
 }
 
 const strMult = (a, b) => a + '\xa0\u00d7\xa0' + b
@@ -673,7 +718,13 @@ const renderInfo = (selected) => (elem) => {
 
   const title = document.createElement('div')
   title.setAttribute('class', 'title')
-  title.innerHTML = stringify(selected, state.presentation) + ' \u220a\xa0\u2192' + toSubscript(parts.length - 1)
+  const num = document.createElement('pre')
+  num.setAttribute('class', 'num')
+  num.innerHTML = stringify(selected, state.presentation)
+  title.appendChild(num)
+  const sets = document.createElement('span')
+  sets.innerHTML = ' \u220a\xa0\u2192' + toSubscript(parts.length - 1)
+  title.appendChild(sets)
   body.appendChild(title)
   const hr = document.createElement('hr')
   body.appendChild(hr)
@@ -685,25 +736,55 @@ const renderInfo = (selected) => (elem) => {
       const arrow = document.createTextNode('\xa0\u2192 ')
       vector.appendChild(arrow)
     }
-    const part = document.createElement('span')
+    const part = document.createElement('pre')
+    part.setAttribute('class', 'num d d' + i)
     part.innerHTML = x
-    part.setAttribute('class', 'd d' + i)
     vector.appendChild(part)
   })
   body.appendChild(vector)
   const compo = document.createElement('div')
   compo.setAttribute('class', 'compo')
-  compo.innerHTML = components(selected).map(([s, n]) => ` ${s === '-' ? '\u2212' : s} ${stringify(2, state.presentation)}${toSuperscript(n)}`).join('').slice(3)
+  components(selected).forEach(([s, n], i) => {
+    if (i > 0) {
+      const sign = document.createElement('span')
+      sign.innerHTML = ` ${s === '-' ? '\u2212' : s} `
+      compo.append(sign)
+    }
+    const two = document.createElement('pre')
+    two.setAttribute('class', 'num')
+    const pow = document.createElement('span')
+    two.innerHTML = stringify(2, state.presentation)
+    pow.innerHTML = toSuperscript(n)
+    compo.append(two)
+    compo.append(pow)
+  })
   body.appendChild(compo)
   const mults = document.createElement('div')
   mults.setAttribute('class', 'mults js-mults')
-  renderMults(state.mults)(mults)
+  renderMults(mults)
   body.appendChild(mults)
   elem.replaceChildren(body)
 }
 
-const renderMults = (mults) => (elem) => {
-  elem.innerHTML = mults
+const renderMults = (elem) => {
+  elem.innerHTML = ''
+  state.mults.forEach((xs, i) => {
+    if (i > 0) {
+      const sign = document.createElement('pre')
+      sign.setAttribute('class', 'num')
+      sign.innerHTML = ' \u00d7 '
+      elem.appendChild(sign)
+    }
+    const mult = document.createElement('pre')
+    mult.setAttribute('class', 'num')
+    mult.innerHTML = stringify(xs.at(0), state.presentation)
+    elem.appendChild(mult)
+    if (xs.length > 1) {
+      const pow = document.createElement('span')
+      pow.innerHTML = toSuperscript(xs.length)
+      elem.appendChild(pow)
+    }
+  })
 }
 
 const renderPage = () => {
@@ -840,7 +921,7 @@ const init = () => {
 addEventListener('DOMContentLoaded', init)
     </script>
   </head>
-  <body>
+  <body class="js-root">
     <div class="main">
       <div class="navigation">
         <div>
@@ -851,9 +932,10 @@ addEventListener('DOMContentLoaded', init)
           <option value="leds">Base 2, LEDs</option>
           <option value="base8">Base 8</option>
           <option value="trigrams">Base 8, Trigrams</option>
-          <option value="tally10" selected>Base 10</option>
-          <option value="tally16">Base 16</option>
+          <option value="base10" selected>Base 10</option>
+          <option value="base16">Base 16</option>
           <option value="apples">Apples</option>
+          <option value="mayan">Mayan</option>
           <option value="hieroglyphs">Hieroglyphs</option>
 <!--
           <option value="fence">Tally 5, Fence</option>
