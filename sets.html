@@ -43,6 +43,12 @@ a {
 button {
   height: 3em;
 }
+select {
+  cursor: pointer;
+}
+option {
+  cursor: pointer;
+}
 .presentation {
   height: 3em
 }
@@ -556,22 +562,22 @@ const zheng = (x) => [...repeat('\u{1d376}', Math.floor(x / 5)), (() => {
 })()].join('')
 
 const stringify = (x) => {
-  switch (state.presentation) {
-    case 'apples': return apples(x)
-    case 'base2': return base2(x)
-    case 'base8': return base8(x)
-    case 'base10': return base10(x)
-    case 'base16': return base16(x)
-    case 'fence': return fence(x)
-    case 'hieroglyphs': return hieroglyphs(x)
-    case 'leds': return leds(x)
-    case 'mayan': return mayan(x)
-    case 'roman': return roman(x)
-    case 'tally1': return tally1(x)
-    case 'trigrams': return trigrams(x)
-    case 'zheng': return zheng(x)
+  const variants = {
+    apples,
+    base2,
+    base8,
+    base10,
+    base16,
+    fence,
+    hieroglyphs,
+    leds,
+    mayan,
+    roman,
+    tally1,
+    trigrams,
+    zheng,
   }
-  return base10(x)
+  return variants[state.presentation](x)
 }
 
 const sample = (min, max) => (i) => map(takeWhile(dropWhile(distance(i), (y) => y < min), (x) => x <= max), (x) => [x, i])
