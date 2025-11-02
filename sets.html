@@ -96,7 +96,7 @@ option {
   font-size: 1.8em;
   line-height: 0.8em;
 }
-.hieroglyphs .num {
+.egyptian .num {
   line-height: 0.8em;
   font-size: 2em;
 }
@@ -405,7 +405,7 @@ const base16 = (x) => x.toString(16).toUpperCase()
 
 const fence = (x) => [...repeat('\u{1d378}', Math.floor(x / 5)), ...repeat('\u{1d377}', x % 5)].join('')
 
-const hieroglyphs = (x) => [
+const egyptian = (x) => [
   ...repeat('\u{13068}', Math.floor(x / 1_000_000)),
   ...repeat('\u{13190}', Math.floor((x % 1_000_000) / 100_000)),
   ...(() => { switch(Math.floor((x % 100_000) / 10_000)) {
@@ -569,7 +569,7 @@ const stringify = (x) => {
     base10,
     base16,
     fence,
-    hieroglyphs,
+    egyptian,
     leds,
     mayan,
     roman,
@@ -862,6 +862,27 @@ const render = () => {
       element.removeAttribute('disabled')
     }
   })
+  Array.from(document.getElementsByClassName('js-tally')).forEach((element) => {
+    if (state.page > 2) {
+      element.setAttribute('disabled',  'disabled')
+    } else {
+      element.removeAttribute('disabled')
+    }
+  })
+  Array.from(document.getElementsByClassName('js-roman')).forEach((element) => {
+    if (state.page > 10) {
+      element.setAttribute('disabled',  'disabled')
+    } else {
+      element.removeAttribute('disabled')
+    }
+  })
+  Array.from(document.getElementsByClassName('js-egyptian')).forEach((element) => {
+    if (state.page > 20) {
+      element.setAttribute('disabled',  'disabled')
+    } else {
+      element.removeAttribute('disabled')
+    }
+  })
 }
 
 const modifyPage = (x) => {
@@ -979,19 +1000,19 @@ addEventListener('DOMContentLoaded', init)
           <button class="home">Home</button>
         </div>
         <select class="presentation js-presentation">
-          <option value="apples">Apples</option>
-          <!--<option value="tally1">Arabic tally 1</option>-->
+          <option value="apples" class="js-tally">Apples</option>
+          <!--<option value="tally1" class="js-tally">Arabic tally 1</option>-->
           <option value="base2">Arabic base 2</option>
           <option value="base8">Arabic base 8</option>
           <option value="base10" selected>Arabic base 10</option>
           <option value="base16">Arabic base 16</option>
-          <option value="hieroglyphs">Egyptian</option>
-          <option value="fence">Fence tally</option>
+          <option value="egyptian" class="js-egyptian">Egyptian</option>
+          <option value="fence" class="js-tally">Fence tally</option>
           <!--<option value="leds">LEDs base 2</option>-->
           <option value="mayan">Mayan base 20</option>
-          <option value="roman">Roman</option>
+          <option value="roman" class="js-roman">Roman</option>
           <!-- <option value="trigrams">Trigrams base 8</option> -->
-          <option value="zheng">Zhèng tally</option>
+          <option value="zheng" class="js-tally">Zhèng tally</option>
         </select>
         <div class="page-controls">
           <button class="prev">PgUp</button>
