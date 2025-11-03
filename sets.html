@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Emoji:wght@300..700&family=Noto+Sans+Egyptian+Hieroglyphs&family=Noto+Sans+Mayan+Numerals&family=Noto+Sans+Symbols+2&display=swap" rel="stylesheet" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Sets</title>
     <style>
@@ -92,17 +95,31 @@ option {
 .mayan a {
   display: inline-block;
 }
-.mayan .num {
-  font-size: 1.8em;
-  line-height: 0.8em;
+.apples .num {
+  font-family: "Noto Emoji", sans-serif;
+  font-size: 0.8em;
 }
 .egyptian .num {
+  font-family: "Noto Sans Egyptian Hieroglyphs", sans-serif;
   line-height: 0.8em;
   font-size: 2em;
+}
+.fence .num {
+  font-family: "Noto Sans Symbols 2", sans-serif;
+  font-size: 1.2em;
+}
+.mayan .num {
+  font-family: "Noto Sans Mayan Numerals", sans-serif;
+  font-size: 1.8em;
+  line-height: 0.8em;
 }
 .trigrams .num {
   font-size: 1.8em;
   line-height: 1.2em;
+}
+.zheng .num {
+  font-family: "Noto Sans Symbols 2", sans-serif;
+  font-size: 1.2em;
 }
 
 .info {
@@ -128,6 +145,7 @@ option {
 }
 
 .info .close {
+  font-family: "Noto Sans Symbols 2", sans-serif;
   color: #fffa;
   position: absolute;
   top: 0.3em;
