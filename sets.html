@@ -137,6 +137,12 @@ option {
   text-align: center;
 }
 
+.info .body {
+  display: flex;
+  flex-direction: column;
+  padding: 1em;
+}
+
 .open {
   border: 2px solid #fff4;
   border-width: 2px 0 0 0;
@@ -166,27 +172,30 @@ option {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .info hr {
   margin: 0.2em 5% 0.2em 5%;
 }
 
+.info .label {
+  margin: 1.4em 0 0.6em 0;
+  font-size: 0.6em;
+}
+
 .info .vector {
+  margin: 0.4em 0;
   line-height: 1.4em;
-  margin: 1em;
   overflow: auto;
 }
 
 .info .compo {
   font-weight: normal;
-  margin: 1em;
   color: #fffa;
 }
 
 .info .mults {
   font-weight: normal;
-  margin: 1em;
   color: #fffa;
-  height: 16em;
   overflow: auto;
 }
 
@@ -683,6 +692,15 @@ const renderExamples = (min, max) => (elem) => {
   elem.replaceChildren(body)
 }
 
+const dyads = (x) => {
+  console.log(x)
+  if (x < 1) {
+    return []
+  }
+  const pow = Math.floor(Math.log2(x))
+  return [['+', pow], ...dyads(x - 2 ** pow)]
+}
+
 const _components = (current, goal, step) => {
   if (current > goal) {
     return [['-', Math.log2(step)], ..._components(current - step, goal, step / 2)]
@@ -765,26 +783,8 @@ const multWorker = () => makeWorker(`
 
 let worker = null;
 
-const renderInfo = (selected) => (elem) => {
-  const body = document.createElement('div')
-  if (selected === null) {
-    body.setAttribute('class', 'info')
-    elem.replaceChildren(body)
-    return
-  }
-  body.setAttribute('class', 'info open')
+const renderInfoTitle = (selected) => (elem) => {
   const parts = path(selected)
-
-  const close = document.createElement('a')
-  close.setAttribute('class', 'close')
-  close.setAttribute('href', '#')
-  close.addEventListener('click', (event) => {
-    event.preventDefault()
-    navigate({ selected: null })
-  })
-  close.innerHTML = '\u{1f5d9}'
-  body.appendChild(close)
-
   const title = document.createElement('div')
   title.setAttribute('class', 'title')
   const num = document.createElement('pre')
@@ -794,9 +794,11 @@ const renderInfo = (selected) => (elem) => {
   const sets = document.createElement('span')
   sets.innerHTML = ' \u220a\xa0\u2192' + toSubscript(parts.length - 1)
   title.appendChild(sets)
-  body.appendChild(title)
-  const hr = document.createElement('hr')
-  body.appendChild(hr)
+  elem.appendChild(title)
+}
+
+const renderInfoVector = (selected) => (elem) => {
+  const parts = path(selected)
   const vector = document.createElement('div')
   vector.setAttribute('class', 'vector')
   const bob = (x) => stringify(x)
@@ -810,7 +812,30 @@ const renderInfo = (selected) => (elem) => {
     part.innerHTML = x
     vector.appendChild(part)
   })
-  body.appendChild(vector)
+  elem.appendChild(vector)
+}
+
+const renderInfoDyads = (selected) => (elem) => {
+  const compo = document.createElement('div')
+  compo.setAttribute('class', 'compo')
+  dyads(selected).forEach(([s, n], i) => {
+    if (i > 0) {
+      const sign = document.createElement('span')
+      sign.innerHTML = ` ${s === '-' ? '\u2212' : s} `
+      compo.append(sign)
+    }
+    const two = document.createElement('pre')
+    two.setAttribute('class', 'num')
+    const pow = document.createElement('span')
+    two.innerHTML = stringify(2)
+    pow.innerHTML = toSuperscript(n)
+    compo.append(two)
+    compo.append(pow)
+  })
+  elem.appendChild(compo)
+}
+
+const renderInfoCompo = (selected) => (elem) => {
   const compo = document.createElement('div')
   compo.setAttribute('class', 'compo')
   components(selected).forEach(([s, n], i) => {
@@ -827,12 +852,60 @@ const renderInfo = (selected) => (elem) => {
     compo.append(two)
     compo.append(pow)
   })
-  body.appendChild(compo)
+  elem.appendChild(compo)
+}
+
+const renderInfoMults = (selected) => (elem) => {
   const mults = document.createElement('div')
+  mults.innerHTML = 'prime decomposition: '
   mults.setAttribute('class', 'mults js-mults')
   renderMults(mults)
-  body.appendChild(mults)
-  elem.replaceChildren(body)
+  elem.appendChild(mults)
+}
+
+const renderInfoField = (labelText, renderChild) => (elem) => {
+  const label = document.createElement('div')
+  label.setAttribute('class', 'label')
+  label.innerHTML = labelText
+  elem.appendChild(label)
+  renderChild(elem)
+}
+
+const renderInfo = (selected) => (elem) => {
+  const info = document.createElement('div')
+  if (selected === null) {
+    info.setAttribute('class', 'info')
+    elem.replaceChildren(info)
+    return
+  }
+  info.setAttribute('class', 'info open')
+  const parts = path(selected)
+
+  const close = document.createElement('a')
+  close.setAttribute('class', 'close')
+  close.setAttribute('href', '#')
+  close.addEventListener('click', (event) => {
+    event.preventDefault()
+    navigate({ selected: null })
+  })
+  close.innerHTML = '\u{1f5d9}'
+  info.appendChild(close)
+
+  const hr = document.createElement('hr')
+
+  renderInfoTitle(selected)(info)
+  info.appendChild(hr)
+  const body = document.createElement('div')
+  body.setAttribute('class', 'body')
+  renderInfoField('Prime Decomposition', renderInfoMults(selected))(body)
+  renderInfoField('Dyadic Decomposition', renderInfoDyads(selected))(body)
+  renderInfoField('Gapless Dyadic Decomposition', (elem) => {
+    renderInfoCompo(selected)(elem)
+    renderInfoVector(selected)(elem)
+  })(body)
+
+  info.appendChild(body)
+  elem.replaceChildren(info)
 }
 
 const renderMults = (elem) => {
