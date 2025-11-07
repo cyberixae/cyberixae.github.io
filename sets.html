@@ -177,7 +177,6 @@ option {
 .info .vector {
   margin: 0.4em 0;
   line-height: 1.4em;
-  overflow: auto;
 }
 
 .info .compo {
@@ -188,7 +187,6 @@ option {
 .info .mults {
   font-weight: normal;
   color: #fffa;
-  overflow: auto;
 }
 
 .js-info {
@@ -208,31 +206,34 @@ option {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  z-index: 1;
 }
 .examples {
   grid-area: examples;
 }
 
 @media screen and (min-width: 800px) {
+  .close {
+    display: none;
+  }
+  .mayan .close {
+    display: none;
+  }
   .main {
     grid-template-columns: 50% 50%;
+    grid-template-rows: auto 1fr;
     grid-template-areas: 
       "examples header"
       "examples info"
-    }
+  }
   .info {
     position: initial;
     grid-area: info;
-    place-self: stretch;
-    bottom: auto;
+    align-self: start;
     min-height: 20em;
     max-height: 95%;
     border-width: 2px 0 2px 2px;
     border-radius: 40px 0 0 40px;
-    left: 22em;
-  }
-  .close {
-    display: none;
   }
 }
 
