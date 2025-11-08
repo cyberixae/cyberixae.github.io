@@ -15,11 +15,10 @@
 }
 body {
   display: flex;
-  flex-direction: column; 
+  flex-direction: column;
   background: #222;
   font-family: sans-serif;
   font-size: 1.4em;
-  margin: 1em;
 }
 h1 {
   font-size: 1em;
@@ -74,6 +73,7 @@ option {
 }
 
 .num {
+  white-space: pre;
   text-wrap: nowrap;
   display: inline-block;
   line-height: 1em;
@@ -94,7 +94,7 @@ option {
 .egyptian .num {
   font-family: "Noto Sans Egyptian Hieroglyphs", sans-serif;
   line-height: 0.8em;
-  font-size: 2em;
+  font-size: 1.8em;
 }
 .fence .num {
   font-family: "Noto Sans Symbols 2", sans-serif;
@@ -102,7 +102,7 @@ option {
 }
 .mayan .num {
   font-family: "Noto Sans Mayan Numerals", sans-serif;
-  font-size: 1.8em;
+  font-size: 1.2em;
   line-height: 0.8em;
 }
 .rods .num {
@@ -205,7 +205,7 @@ option {
   gap: 1em;
   grid-template-columns: 100%;
   grid-template-rows: auto;
-  grid-template-areas: 
+  grid-template-areas:
     "header"
     "examples"
 }
@@ -221,6 +221,10 @@ option {
 }
 
 @media screen and (min-width: 800px) {
+  body {
+    margin: 1em;
+  }
+
   .close {
     display: none;
   }
@@ -230,7 +234,7 @@ option {
   .main {
     grid-template-columns: 50% 50%;
     grid-template-rows: auto 1fr;
-    grid-template-areas: 
+    grid-template-areas:
       "examples header"
       "examples info"
   }
@@ -459,19 +463,26 @@ const distance = (i) => {
   return halfs(fulls(pow2s, i - 1))
 }
 
+const groupDigits = (str, x) => {
+  if (str.length <= x) {
+    return str
+  }
+  return groupDigits(str.slice(0, 0 - x), x) + '\u2009' + str.slice(0 - x)
+}
+
 const repeatG = (str, x) => map(take(ints, x), () => str)
 
 const repeat = (str, x) => fromGen(repeatG(str, x))
 
 const apples = (x) => repeat('\u{1f34e}\ufe0e', x).join('')
 
-const base2 = (x) => x.toString(2)
+const base2 = (x) => groupDigits(x.toString(2), 4)
 
-const base8 = (x) => x.toString(8)
+const base8 = (x) => groupDigits(x.toString(8), 4)
 
-const base10 = (x) => x.toLocaleString('en-US').split(',').join('\u202f')
+const base10 = (x) => groupDigits(x.toString(10), 3)
 
-const base16 = (x) => x.toString(16).toUpperCase()
+const base16 = (x) => groupDigits(x.toString(16).toUpperCase(), 4)
 
 const fence = (x) => [...repeat('\u{1d378}', Math.floor(x / 5)), ...repeat('\u{1d377}', x % 5)].join('')
 
@@ -741,7 +752,7 @@ const renderExamples = (min, max) => (elem) => {
       event.preventDefault()
       navigate({ selected: a })
     })
-    const num = document.createElement('pre')
+    const num = document.createElement('span')
     num.setAttribute('class', 'num d d' + b)
     num.innerHTML = stringify(a)
     link.appendChild(num)
@@ -850,7 +861,7 @@ const renderInfoTitle = (selected) => (elem) => {
   const parts = path(selected)
   const title = document.createElement('div')
   title.setAttribute('class', 'title')
-  const num = document.createElement('pre')
+  const num = document.createElement('span')
   num.setAttribute('class', 'num')
   num.innerHTML = stringify(selected)
   title.appendChild(num)
@@ -870,7 +881,7 @@ const renderInfoVector = (selected) => (elem) => {
       const arrow = document.createTextNode('\xa0\u2192 ')
       vector.appendChild(arrow)
     }
-    const part = document.createElement('pre')
+    const part = document.createElement('span')
     part.setAttribute('class', 'num d d' + i)
     part.innerHTML = x
     vector.appendChild(part)
@@ -887,7 +898,7 @@ const renderInfoDyads = (selected) => (elem) => {
       sign.innerHTML = ` ${s === '-' ? '\u2212' : s} `
       compo.append(sign)
     }
-    const two = document.createElement('pre')
+    const two = document.createElement('span')
     two.setAttribute('class', 'num')
     const pow = document.createElement('span')
     two.innerHTML = stringify(2)
@@ -907,7 +918,7 @@ const renderInfoCompo = (selected) => (elem) => {
       sign.innerHTML = ` ${s === '-' ? '\u2212' : s} `
       compo.append(sign)
     }
-    const two = document.createElement('pre')
+    const two = document.createElement('span')
     two.setAttribute('class', 'num')
     const pow = document.createElement('span')
     two.innerHTML = stringify(2)
@@ -979,12 +990,11 @@ const renderMults = (elem) => {
   elem.innerHTML = ''
   state.mults.forEach((xs, i) => {
     if (i > 0) {
-      const sign = document.createElement('pre')
-      sign.setAttribute('class', 'num')
+      const sign = document.createElement('span')
       sign.innerHTML = ' \u00d7 '
       elem.appendChild(sign)
     }
-    const mult = document.createElement('pre')
+    const mult = document.createElement('span')
     mult.setAttribute('class', 'num')
     mult.innerHTML = stringify(xs.at(0))
     elem.appendChild(mult)
@@ -1104,7 +1114,7 @@ const scroll = () => {
   if (Math.abs(scollcumulate) > INERTIA ) {
     const pages = Math.floor(scollcumulate / INERTIA )
     modifyPage(pages)
-    scollcumulate = scollcumulate % INERTIA 
+    scollcumulate = scollcumulate % INERTIA
   }
   window.setTimeout(scroll, 100)
 }
