@@ -196,6 +196,9 @@ option {
 .js-info {
   display: contents;
 }
+.js-examples {
+  display: contents;
+}
 .main {
   display: grid;
   gap: 1em;
@@ -247,6 +250,24 @@ option {
 .c2 { width: 35% }
 .c3 { width: 55% }
 .c4 { width: 75% }
+
+.fence .examples,.zheng .examples,.apples .examples {
+  display: flex;
+  flex-direction: column;
+}
+.fence .row,.zheng .row,.apples .row {
+  text-align: left;
+}
+
+.fence .c0,.zheng .c0,.apples .c0 { margin-left: 0; }
+.fence .c1,.zheng .c1,.apples .c1 { margin-left: 5%; }
+.fence .c2,.zheng .c2,.apples .c2 { margin-left: 10%; }
+.fence .c3,.zheng .c3,.apples .c3 { margin-left: 15%; }
+.fence .c4,.zheng .c4,.apples .c4 { margin-left: 25%; }
+.fence .c5,.zheng .c5,.apples .c5 { margin-left: 40%; }
+
+
+
 /*
 .d0 { background: #fac }
 .d1 { background: #fca }
@@ -727,6 +748,7 @@ const renderExamples = (min, max) => (elem) => {
   })
   //const title = fromGen(map(take(ints, COLS), (i) => (makeTitle(i)).padStart(WIDTH))).join('')
   const body = document.createElement('div')
+  body.setAttribute('class', 'examples')
   //p.innerHTML = title + '\n\n' + lines.join('\n') + '\n\n' + title
   lines.forEach((line) => body.appendChild(line))
   elem.replaceChildren(body)
@@ -977,7 +999,7 @@ const renderPage = () => {
   const { page, selected } = state
   const min = 2 ** (page === 0 ? 0 : page + 4)
   const max = 2 ** (page === 0 ? 5 : page + 5)
-  Array.from(document.getElementsByClassName('examples')).forEach(renderExamples(min, max))
+  Array.from(document.getElementsByClassName('js-examples')).forEach(renderExamples(min, max))
   Array.from(document.getElementsByClassName('js-info')).forEach(renderInfo(selected))
 }
 
@@ -1122,7 +1144,7 @@ const init = () => {
   initTouchHandler()
   initClickHandlers()
   initScroller()
-  navigate({ selected: null })
+  navigate({ selected: null, presentation: 'zheng' })
 }
 
 addEventListener('DOMContentLoaded', init)
@@ -1155,7 +1177,7 @@ addEventListener('DOMContentLoaded', init)
           <button class="next">PgDn</button>
         </div>
       </div>
-      <div class="examples"></div>
+      <div class="js-examples"></div>
       <div class="js-info"></div>
     </div>
   </body>
