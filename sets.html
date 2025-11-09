@@ -17,6 +17,7 @@ body {
   display: flex;
   flex-direction: column;
   background: #222;
+  color: #aaa;
   font-family: sans-serif;
   font-size: 1.4em;
 }
@@ -281,12 +282,14 @@ option {
 .d4 { background: #acf }
 .d5 { background: #edf }
 */
-.d { color: #edf }
-.d0 { color: #fac }
-.d1 { color: #fca }
-.d2 { color: #afc }
-.d3 { color: #cfa }
-.d4 { color: #acf }
+
+.colorize .d { color: #edf }
+.colorize .d0 { color: #fac }
+.colorize .d1 { color: #fca }
+.colorize .d2 { color: #afc }
+.colorize .d3 { color: #cfa }
+.colorize .d4 { color: #acf }
+.colorize .d5 { color: #edf }
     </style>
     <script>
 
@@ -760,7 +763,7 @@ const renderExamples = (min, max) => (elem) => {
   })
   //const title = fromGen(map(take(ints, COLS), (i) => (makeTitle(i)).padStart(WIDTH))).join('')
   const body = document.createElement('div')
-  body.setAttribute('class', 'examples')
+  body.setAttribute('class', 'examples colorize')
   //p.innerHTML = title + '\n\n' + lines.join('\n') + '\n\n' + title
   lines.forEach((line) => body.appendChild(line))
   elem.replaceChildren(body)
@@ -791,6 +794,8 @@ const components = (x) => {
   }
   return [['+', Math.log2(lower)], ..._components(lower, x, lower / 2)]
 }
+const dist = (x) => x < 1 ? null : components(x).length - 1
+
 const _path = (current, goal, step) => {
   if (current > goal) {
     return [[current - step], ..._path(current - step, goal, step / 2)]
@@ -862,11 +867,20 @@ const renderInfoTitle = (selected) => (elem) => {
   const title = document.createElement('div')
   title.setAttribute('class', 'title')
   const num = document.createElement('span')
-  num.setAttribute('class', 'num')
+  num.setAttribute('class', 'num d' + dist(selected))
   num.innerHTML = stringify(selected)
   title.appendChild(num)
   const sets = document.createElement('span')
-  sets.innerHTML = ' \u220a\xa0\u2192' + toSubscript(parts.length - 1)
+  sets.setAttribute('class', 'title-sets')
+  sets.innerHTML = ' \u220a '
+  const distSet = document.createElement('span')
+  distSet.innerHTML = '\u2192'
+  const setNum = document.createElement('span')
+  const dNum = parts.length - 1
+  setNum.setAttribute('class', 'd' + dist(dNum) )
+  setNum.innerHTML = toSubscript(dNum)
+  distSet.appendChild(setNum)
+  sets.appendChild(distSet )
   title.appendChild(sets)
   elem.appendChild(title)
 }
@@ -874,7 +888,7 @@ const renderInfoTitle = (selected) => (elem) => {
 const renderInfoVector = (selected) => (elem) => {
   const parts = path(selected)
   const vector = document.createElement('div')
-  vector.setAttribute('class', 'vector')
+  vector.setAttribute('class', 'vector colorize')
   const bob = (x) => stringify(x)
   parts.map(bob).forEach((x, i) => {
     if (i > 0) {
@@ -899,8 +913,9 @@ const renderInfoDyads = (selected) => (elem) => {
       compo.append(sign)
     }
     const two = document.createElement('span')
-    two.setAttribute('class', 'num')
+    two.setAttribute('class', 'num d' + dist(2))
     const pow = document.createElement('span')
+    pow.setAttribute('class', 'd' + dist(n))
     two.innerHTML = stringify(2)
     pow.innerHTML = toSuperscript(n)
     compo.append(two)
@@ -919,8 +934,9 @@ const renderInfoCompo = (selected) => (elem) => {
       compo.append(sign)
     }
     const two = document.createElement('span')
-    two.setAttribute('class', 'num')
+    two.setAttribute('class', 'num d' + dist(2))
     const pow = document.createElement('span')
+    pow.setAttribute('class', 'd' + dist(n))
     two.innerHTML = stringify(2)
     pow.innerHTML = toSuperscript(n)
     compo.append(two)
@@ -995,11 +1011,12 @@ const renderMults = (elem) => {
       elem.appendChild(sign)
     }
     const mult = document.createElement('span')
-    mult.setAttribute('class', 'num')
+    mult.setAttribute('class', 'num d' + dist(xs.at(0)))
     mult.innerHTML = stringify(xs.at(0))
     elem.appendChild(mult)
     if (xs.length > 1) {
       const pow = document.createElement('span')
+      pow.setAttribute('class', 'd' + dist(xs.length))
       pow.innerHTML = toSuperscript(xs.length)
       elem.appendChild(pow)
     }
