@@ -494,9 +494,8 @@ const base16 = (x) => groupDigits(x.toString(16).toUpperCase(), 4)
 
 const fence = (x) => [...repeat('\u{1d378}', Math.floor(x / 5)), ...repeat('\u{1d377}', x % 5)].join('')
 
-const rods = (x) => { if (x > 100) { console.log(x) }; return x.toString(10).split('').map((d, i, ds) => {
+const rods = (x) => x.toString(10).split('').map((d, i, ds) => {
   const isUnit = (ds.length - i) % 2
-  if (x > 100) { console.log(d, i, isUnit) }
   switch(d) {
     case '0': return '\u3007'
     case '1': return isUnit ? '\u{1d360}' : '\u{1d369}'
@@ -510,7 +509,7 @@ const rods = (x) => { if (x > 100) { console.log(x) }; return x.toString(10).spl
     case '9': return isUnit ? '\u{1d368}' : '\u{1d371}'
   }
   return d
-}).join('') }
+}).join('')
 
 const egyptian = (x) => [
   ...repeat('\u{13068}', Math.floor(x / 1_000_000)),
@@ -775,7 +774,6 @@ const renderExamples = (min, max) => (elem) => {
 }
 
 const dyads = (x) => {
-  console.log(x)
   if (x < 1) {
     return []
   }
@@ -1028,51 +1026,55 @@ const renderMults = (elem) => {
   })
 }
 
-const renderPage = () => {
-  const { page, selected } = state
-  const min = 2 ** (page === 0 ? 0 : page + 4)
-  const max = 2 ** (page === 0 ? 5 : page + 5)
-  Array.from(document.getElementsByClassName('js-examples')).forEach(renderExamples(min, max))
-  Array.from(document.getElementsByClassName('js-info')).forEach(renderInfo(selected))
-}
-
-const render = () => {
-  renderPage()
-  Array.from(document.getElementsByClassName('home')).forEach((element) => {
+const renderControls = (panel) => {
+  Array.from(panel.getElementsByClassName('home')).forEach((element) => {
     if (state.page === 0) {
       element.setAttribute('disabled',  'disabled')
     } else {
       element.removeAttribute('disabled')
     }
   })
-  Array.from(document.getElementsByClassName('prev')).forEach((element) => {
+  Array.from(panel.getElementsByClassName('prev')).forEach((element) => {
     if (state.page === 0) {
       element.setAttribute('disabled',  'disabled')
     } else {
       element.removeAttribute('disabled')
     }
   })
-  Array.from(document.getElementsByClassName('js-tally')).forEach((element) => {
+  Array.from(panel.getElementsByClassName('js-tally')).forEach((element) => {
     if (state.page > 2) {
       element.setAttribute('disabled',  'disabled')
     } else {
       element.removeAttribute('disabled')
     }
   })
-  Array.from(document.getElementsByClassName('js-roman')).forEach((element) => {
+  Array.from(panel.getElementsByClassName('js-roman')).forEach((element) => {
     if (state.page > 10) {
       element.setAttribute('disabled',  'disabled')
     } else {
       element.removeAttribute('disabled')
     }
   })
-  Array.from(document.getElementsByClassName('js-egyptian')).forEach((element) => {
+  Array.from(panel.getElementsByClassName('js-egyptian')).forEach((element) => {
     if (state.page > 20) {
       element.setAttribute('disabled',  'disabled')
     } else {
       element.removeAttribute('disabled')
     }
   })
+}
+
+const renderPage = (doc) => {
+  const { page, selected } = state
+  const min = 2 ** (page === 0 ? 0 : page + 4)
+  const max = 2 ** (page === 0 ? 5 : page + 5)
+  Array.from(doc.getElementsByClassName('js-examples')).forEach(renderExamples(min, max))
+  Array.from(doc.getElementsByClassName('js-info')).forEach(renderInfo(selected))
+  Array.from(doc.getElementsByClassName('js-controls')).forEach(renderControls)
+}
+
+const render = () => {
+  renderPage(document)
 }
 
 const modifyPage = (x) => {
@@ -1185,7 +1187,7 @@ addEventListener('DOMContentLoaded', init)
   </head>
   <body class="js-root">
     <div class="main">
-      <div class="navigation">
+      <div class="navigation js-controls">
         <div>
           <button class="home">Home</button>
         </div>
