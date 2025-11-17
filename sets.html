@@ -800,7 +800,6 @@ const rnaf = (x) => {
   }
   const digit = isOdd(x) ? 2 - (x % 4) : 0
   const sign = digit < 1 ? '-' : '+'
-  console.log(digit, sign)
   return [[sign, Math.abs(digit)], ...rnaf((x - digit) / 2)]
 }
 const naf = (x) => rnaf(x).reverse()
@@ -955,7 +954,6 @@ const renderInfoNAF = (selected) => (elem) => {
   const compo = document.createElement('div')
   compo.setAttribute('class', 'compo')
   naf(selected).forEach(([s, n], i, nafs) => {
-    console.log(nafs)
     if (n > 0) {
       if (i > 0) {
         const sign = document.createElement('span')
@@ -1041,7 +1039,7 @@ const renderInfo = (selected) => (elem) => {
   renderInfoField('Prime Decomposition', renderInfoMults(selected))(body)
   renderInfoField('Non-Adjacent Form', renderInfoNAF(selected))(body)
   renderInfoField('Dyadic Decomposition', renderInfoDyads(selected))(body)
-  renderInfoField('Gapless Dyadic Decomposition', (elem) => {
+  renderInfoField('\u201cGapless\u201d Dyadic Decomposition', (elem) => {
     renderInfoCompo(selected)(elem)
     renderInfoVector(selected)(elem)
   })(body)
