@@ -792,6 +792,19 @@ const dyads = (x) => {
   return [['+', pow], ...dyads(x - 2 ** pow)]
 }
 
+const isOdd = (x) => Boolean(x % 2)
+
+const rnaf = (x) => {
+  if (x < 1) {
+    return []
+  }
+  const digit = isOdd(x) ? 2 - (x % 4) : 0
+  const sign = digit < 1 ? '-' : '+'
+  console.log(digit, sign)
+  return [[sign, Math.abs(digit)], ...rnaf((x - digit) / 2)]
+}
+const naf = (x) => rnaf(x).reverse()
+
 const _components = (current, goal, step) => {
   if (current > goal) {
     return [['-', Math.log2(step)], ..._components(current - step, goal, step / 2)]
@@ -938,6 +951,30 @@ const renderInfoDyads = (selected) => (elem) => {
   elem.appendChild(compo)
 }
 
+const renderInfoNAF = (selected) => (elem) => {
+  const compo = document.createElement('div')
+  compo.setAttribute('class', 'compo')
+  naf(selected).forEach(([s, n], i, nafs) => {
+    console.log(nafs)
+    if (n > 0) {
+      if (i > 0) {
+        const sign = document.createElement('span')
+        sign.innerHTML = ` ${s === '-' ? '\u2212' : s} `
+        compo.append(sign)
+      }
+      const two = document.createElement('span')
+      two.setAttribute('class', 'num d' + dist(2))
+      const pow = document.createElement('span')
+      pow.setAttribute('class', 'd' + dist(n))
+      two.innerHTML = stringify(2)
+      pow.innerHTML = toSuperscript(nafs.length - 1 - i)
+      compo.append(two)
+      compo.append(pow)
+    }
+  })
+  elem.appendChild(compo)
+}
+
 const renderInfoCompo = (selected) => (elem) => {
   const compo = document.createElement('div')
   compo.setAttribute('class', 'compo')
@@ -1002,6 +1039,7 @@ const renderInfo = (selected) => (elem) => {
   const body = document.createElement('div')
   body.setAttribute('class', 'body')
   renderInfoField('Prime Decomposition', renderInfoMults(selected))(body)
+  renderInfoField('Non-Adjacent Form', renderInfoNAF(selected))(body)
   renderInfoField('Dyadic Decomposition', renderInfoDyads(selected))(body)
   renderInfoField('Gapless Dyadic Decomposition', (elem) => {
     renderInfoCompo(selected)(elem)
