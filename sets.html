@@ -1151,48 +1151,12 @@ const prev = () => {
   modifyPage(-1)
 }
 
-let grab = 0
-const setGrab = (y) => {
-  grab = y
-}
-
-let speed = 0
-const setSpeed = (s) => {
-  speed = s
-}
-
 const initKeyHandler = () => {
   addEventListener('keydown', (event) => {
     if (['Home'].includes(event.code)) { home() }
     if (['PageUp', 'KeyK'].includes(event.code)) { prev() }
     if (['PageDown', 'KeyJ'].includes(event.code)) { next() }
   })
-}
-
-let scollcumulate = 0
-
-const initTouchHandler = () => {
-  addEventListener('touchstart', (event) => {
-    Array.from(event.targetTouches).forEach(({ pageY }) => setGrab(pageY))
-  })
-  addEventListener('touchmove', (event) => {
-    Array.from(event.targetTouches).forEach(({ pageY }) => setSpeed(grab - pageY))
-  })
-  addEventListener('touchend', (event) => {
-    setSpeed(0)
-    scollcumulate = 0
-  })
-}
-
-const INERTIA = 1000
-const scroll = () => {
-  scollcumulate += speed
-  if (Math.abs(scollcumulate) > INERTIA ) {
-    const pages = Math.floor(scollcumulate / INERTIA )
-    modifyPage(pages)
-    scollcumulate = scollcumulate % INERTIA
-  }
-  window.setTimeout(scroll, 100)
 }
 
 const initClickHandlers = () => {
@@ -1228,7 +1192,6 @@ const initScroller = () => {
 
 const init = () => {
   initKeyHandler()
-  initTouchHandler()
   initClickHandlers()
   initScroller()
   navigate({ selected: null })
