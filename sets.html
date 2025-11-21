@@ -27,6 +27,9 @@ h1 {
   font-size: 1em;
   text-align: center;
 }
+button,select {
+  border-radius: 6px;
+}
 button {
   user-select: none;
 }
@@ -1240,7 +1243,7 @@ addEventListener('DOMContentLoaded', init)
         <div>
           <button class="home">Home</button>
         </div>
-        <select class="presentation js-presentation">
+        <select id="presentation" class="presentation js-presentation">
           <option value="apples" class="js-tally">Apples</option>
           <!--<option value="tally1" class="js-tally">Arabic tally 1</option>-->
           <option value="base2">Base 2</option>
