@@ -60,7 +60,6 @@ option {
   width: 100%;
 }
 .row {
-  line-height: 15px;
   font-size: 0.8em;
   text-align: right;
 }
@@ -236,6 +235,9 @@ option {
   min-width: 1em;
   overflow-y: auto;
   overflow-x: visible;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 @media screen and (min-width: 800px) {
