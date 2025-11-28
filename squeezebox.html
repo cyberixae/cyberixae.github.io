@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Squeeze Box</title>
+    <style>
+.wrap {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 440px;
+  overflow: visible;
+  border: 0 solid #0aa;
+}
+
+.itemitem {
+  height: 0;
+  border: 0 solid #000;
+}
+
+.item {
+  color: #000c;
+  font-size: 20em;
+  border: 0 solid #a00;
+  position: relative;
+  display: inline-block;
+  line-height: 20px;
+  height: 20px;
+  top: -10px;
+}
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="itemitem"> </div>
+      <div class="itemitem"><span class="item">foo</span></div>
+      <div class="itemitem"><span class="item">bar</span></div>
+      <div class="itemitem"><span class="item">quux</span></div>
+      <div class="itemitem"> </div>
+    </div>
+  </body>
+</html>
