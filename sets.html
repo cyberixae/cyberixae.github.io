@@ -427,10 +427,33 @@ const systems = {
   },
   rods: {
     title: 'Rods',
-    main: 'base-100',
+    main: 'base-10',
     tally: 5,
-    symbols: [,''],
-    bases: [10, 100],
+    symbols: [
+      '\u3007',
+      '\u{1d360}',
+      '\u{1d361}',
+      '\u{1d362}',
+      '\u{1d363}',
+      '\u{1d364}',
+      '\u{1d365}',
+      '\u{1d366}',
+      '\u{1d367}',
+      '\u{1d368}',
+    ],
+    evenSymbols: [
+      '\u3007',
+      '\u{1d369}',
+      '\u{1d36a}',
+      '\u{1d36b}',
+      '\u{1d36c}',
+      '\u{1d36d}',
+      '\u{1d36e}',
+      '\u{1d36f}',
+      '\u{1d370}',
+      '\u{1d371}',
+    ],
+    bases: [10],
   },
   roman: {
     title: 'Roman',
@@ -657,6 +680,17 @@ const repeatG = (str, x) => map(take(ints, x), () => str)
 
 const repeat = (str, x) => fromGen(repeatG(str, x))
 
+const getBase = (x, oddSymbols, evenSymbols) => x.toString(oddSymbols.length).split('').map((c, i, ds) => {
+  const symbols = ii(() => {
+    if (!evenSymbols) {
+      return oddSymbols
+    }
+    return (ds.length - i) % 2 ? oddSymbols : evenSymbols
+  })
+  console.log(symbols)
+  return symbols[parseInt(c, symbols.length)]
+})
+
 const apples = (x) => repeat(systems.apples.symbols[1], x).join('')
 
 const base2 = (x) => groupDigits(x.toString(2), 4)
@@ -669,30 +703,13 @@ const base16 = (x) => groupDigits(x.toString(16).toUpperCase(), 4)
 
 const fence = (x) => [...repeat(systems.fence.symbols[5], Math.floor(x / 5)), systems.fence.symbols[x % 5]].join('')
 
-const rods = (x) => x.toString(10).split('').map((d, i, ds) => {
-  const isUnit = (ds.length - i) % 2
-  switch(d) {
-    case '0': return '\u3007'
-    case '1': return isUnit ? '\u{1d360}' : '\u{1d369}'
-    case '2': return isUnit ? '\u{1d361}' : '\u{1d36a}'
-    case '3': return isUnit ? '\u{1d362}' : '\u{1d36b}'
-    case '4': return isUnit ? '\u{1d363}' : '\u{1d36c}'
-    case '5': return isUnit ? '\u{1d364}' : '\u{1d36d}'
-    case '6': return isUnit ? '\u{1d365}' : '\u{1d36e}'
-    case '7': return isUnit ? '\u{1d366}' : '\u{1d36f}'
-    case '8': return isUnit ? '\u{1d367}' : '\u{1d370}'
-    case '9': return isUnit ? '\u{1d368}' : '\u{1d371}'
-  }
-  return d
-}).join('')
+const rods = (x) => getBase(x, systems.rods.symbols, systems.rods.evenSymbols).join('')
 
 const egyptian = (x) => fromGen(skim(x, systems.egyptian.symbols)).join('')
 
 const leds = (x) => x.toString(2).split('0').join('\u25cb').split('1').join('\u25cf')
 
-const mayan = (x) => x.toString(20).split('').map((c) => {
-  return systems.mayan.symbols[parseInt(c, 20)]
-}).join('\n')
+const mayan = (x) => getBase(x, systems.mayan.symbols).join('\n')
 
 const skim = (x, lookup) => function* () {
   let tmp = x
