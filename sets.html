@@ -50,7 +50,10 @@ select {
 option {
   cursor: pointer;
 }
-.presentation {
+.symbols {
+  height: 3em
+}
+.system {
   height: 3em
 }
 
@@ -687,19 +690,10 @@ const getBase = (x, oddSymbols, evenSymbols) => x.toString(oddSymbols.length).sp
     }
     return (ds.length - i) % 2 ? oddSymbols : evenSymbols
   })
-  console.log(symbols)
   return symbols[parseInt(c, symbols.length)]
 })
 
 const apples = (x) => repeat(systems.apples.symbols[1], x).join('')
-
-const base2 = (x) => groupDigits(x.toString(2), 4)
-
-const base8 = (x) => groupDigits(x.toString(8), 4)
-
-const base10 = (x) => groupDigits(x.toString(10), 3)
-
-const base16 = (x) => groupDigits(x.toString(16).toUpperCase(), 4)
 
 const fence = (x) => [...repeat(systems.fence.symbols[5], Math.floor(x / 5)), systems.fence.symbols[x % 5]].join('')
 
@@ -723,7 +717,6 @@ const skim = (x, lookup) => function* () {
 
 const roman = (x) => fromGen(skim(x, systems.roman.symbols)).join('')
 
-const tally1 = (x) => repeat(1, x).join('')
 
 const trigrams = (x) => x.toString(8).split('').map((c) => {
   switch(c) {
@@ -739,6 +732,29 @@ const trigrams = (x) => x.toString(8).split('').map((c) => {
   return c
 }).join('')
 
+const tally1 = (x) => repeat(1, x).join('')
+const base2 = (x) => groupDigits(x.toString(2), 4)
+const base6 = (x) => groupDigits(x.toString(6), 4)
+const base8 = (x) => groupDigits(x.toString(8), 4)
+const base10 = (x) => groupDigits(x.toString(10), 3)
+const base16 = (x) => groupDigits(x.toString(16).toUpperCase(), 4)
+const base20 = (x) => groupDigits(x.toString(20).toUpperCase(), 4)
+const base36 = (x) => groupDigits(x.toString(36).toUpperCase(), 4)
+
+const western = (x) => {
+  const variants = {
+    tally1,
+    base2,
+    base6,
+    base8,
+    base10,
+    base16,
+    base20,
+    base36,
+  }
+  return variants[state.system](x)
+}
+
 const zheng = (x) => [...repeat(systems.zheng.symbols[5], Math.floor(x / 5)), (() => {
   switch(x % 5) {
     case 1: return systems.zheng.symbols[1]
@@ -751,21 +767,18 @@ const zheng = (x) => [...repeat(systems.zheng.symbols[5], Math.floor(x / 5)), ((
 const stringify = (x) => {
   const variants = {
     apples,
-    base2,
-    base8,
-    base10,
-    base16,
-    fence,
     egyptian,
+    fence,
     leds,
     mayan,
     rods,
     roman,
     tally1,
     trigrams,
+    western,
     zheng,
   }
-  return variants[state.presentation](x)
+  return variants[state.symbols](x)
 }
 
 const sample = (min, max) => (i) => map(takeWhile(dropWhile(distance(i), (y) => y < min), (x) => x <= max), (x) => [x, i])
@@ -810,7 +823,31 @@ const navigate = (s) => {
     worker.postMessage(s.selected)
   }
   Array.from(document.getElementsByClassName('js-root')).forEach((elem) => {
-    elem.setAttribute('class', 'js-root ' + (s.presentation ?? state.presentation))
+    elem.setAttribute('class', 'js-root ' + (s.symbols ?? state.symbols))
+  })
+  Array.from(document.getElementsByClassName('js-system')).forEach((elem) => {
+    const noSys = document.getElementById('no-system')
+    switch(s.symbols) {
+      case 'apples': noSys.innerHTML = 'Tally 1'; break;
+      case 'fence': noSys.innerHTML = 'Tally 5'; break;
+      case 'mayan': noSys.innerHTML = 'Base 20'; break;
+      case 'rods': noSys.innerHTML = 'Base 10'; break;
+      case 'zheng': noSys.innerHTML = 'Tally 5'; break;
+      default: noSys.innerHTML = '';
+    }
+    if ('symbols' in s) {
+      if (s.symbols === 'western') {
+        if (state.symbols !== 'western') {
+          elem.selectedIndex = 5
+        }
+        noSys.setAttribute('hidden', 'hidden')
+        elem.removeAttribute('disabled')
+      } else {
+        elem.setAttribute('disabled', 'disabled')
+        noSys.removeAttribute('hidden')
+        elem.selectedIndex = 0
+      }
+    }
   })
   Object.entries(s).forEach(([k, v]) => {
     state[k] = v
@@ -913,7 +950,8 @@ const state = {
   page: 0,
   selected: null,
   mults: [],
-  presentation: 'base10',
+  symbols: 'western',
+  system: 'base10',
 }
 
 const strMult = (a, b) => a + '\xa0\u00d7\xa0' + b
@@ -1243,10 +1281,16 @@ const initClickHandlers = () => {
       home()
     })
   })
-  Array.from(document.getElementsByClassName('js-presentation')).forEach((element) => {
+  Array.from(document.getElementsByClassName('js-symbols')).forEach((element) => {
     element.addEventListener('change', (event) => {
       event.preventDefault()
-      navigate({ presentation: event.target.value })
+      navigate({ symbols: event.target.value })
+    })
+  })
+  Array.from(document.getElementsByClassName('js-system')).forEach((element) => {
+    element.addEventListener('change', (event) => {
+      event.preventDefault()
+      navigate({ system: event.target.value })
     })
   })
 }
@@ -1271,22 +1315,32 @@ addEventListener('DOMContentLoaded', init)
         <div>
           <button class="home">Home</button>
         </div>
-        <select id="presentation" class="presentation js-presentation">
-          <option value="apples" class="js-tally">Apples</option>
-          <!--<option value="tally1" class="js-tally">Arabic tally 1</option>-->
-          <option value="base2">Base 2</option>
-          <option value="base8">Base 8</option>
-          <option value="base10" selected class="default">Base 10</option>
-          <option value="base16">Base 16</option>
-          <option value="egyptian" class="js-egyptian">Egyptian</option>
-          <option value="fence" class="js-tally">Fence</option>
-          <!--<option value="leds">LEDs base 2</option>-->
-          <option value="mayan">Mayan</option>
-          <option value="rods">Rods</option>
-          <option value="roman" class="js-roman">Roman</option>
-          <!-- <option value="trigrams">Trigrams base 8</option> -->
-          <option value="zheng" class="js-tally">Zhèng</option>
-        </select>
+        <div>
+          <select id="symbols" class="symbols js-symbols">
+            <option value="apples" class="js-tally">Apples</option>
+            <!--<option value="tally1" class="js-tally">Arabic tally 1</option>-->
+            <option value="egyptian" class="js-egyptian">Egyptian</option>
+            <option value="fence" class="js-tally">Fence</option>
+            <!--<option value="leds">LEDs base 2</option>-->
+            <option value="mayan">Mayan</option>
+            <option value="rods">Rods</option>
+            <option value="roman" class="js-roman">Roman</option>
+            <!-- <option value="trigrams">Trigrams base 8</option> -->
+            <option value="western" selected class="default">Western</option>
+            <option value="zheng" class="js-tally">Zhèng</option>
+          </select>
+          <select id="system" class="system js-system">
+            <option id="no-system" value="" selected hidden></option>
+            <option value="tally1">Tally 1</option>
+            <option value="base2">Base 2</option>
+            <option value="base6">Base 6</option>
+            <option value="base8">Base 8</option>
+            <option value="base10" selected class="default">Base 10</option>
+            <option value="base16">Base 16</option>
+            <option value="base20">Base 20</option>
+            <option value="base36">Base 36</option>
+          </select>
+        </div>
         <div class="page-controls">
           <button class="prev">PgUp</button>
           <button class="next">PgDn</button>
