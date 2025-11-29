@@ -322,6 +322,157 @@ select option.default {
     </style>
     <script>
 
+const ii = (fe) => fe()
+
+const systems = {
+  apples: {
+    title: 'Apples',
+    main: 'tally',
+    tally: 1,
+    symbols: [,'\u{1f34e}\ufe0e'],
+    safe: 'js-tally',
+  },
+  egyptian: {
+    title: 'Egyptian',
+    main: 'add',
+    symbols: {
+      '\u{13068}': 1_000_000,
+      '\u{13190}':   100_000,
+      '\u{130b5}':    90_000,
+      '\u{130b4}':    80_000,
+      '\u{130b3}':    70_000,
+      '\u{130b2}':    60_000,
+      '\u{130b1}':    50_000,
+      '\u{130b0}':    40_000,
+      '\u{130af}':    30_000,
+      '\u{130ae}':    20_000,
+      '\u{130ad}':    10_000,
+      '\u{131c4}':     9_000,
+      '\u{131c3}':     8_000,
+      '\u{131c2}':     7_000,
+      '\u{131c1}':     6_000,
+      '\u{131c0}':     5_000,
+      '\u{131bf}':     4_000,
+      '\u{131be}':     3_000,
+      '\u{131bd}':     2_000,
+      '\u{131bc}':     1_000,
+      '\u{1336a}':       900,
+      '\u{13369}':       800,
+      '\u{13368}':       700,
+      '\u{13367}':       600,
+      '\u{13366}':       500,
+      '\u{13365}':       400,
+      '\u{13364}':       300,
+      '\u{13363}':       200,
+      '\u{13362}':       100,
+      '\u{1338e}':        90,
+      '\u{1338d}':        80,
+      '\u{1338c}':        70,
+      '\u{1338b}':        60,
+      '\u{1338a}':        50,
+      '\u{13389}':        40,
+      '\u{13388}':        30,
+      '\u{13387}':        20,
+      '\u{13386}':        10,
+      '\u{13402}':         9,
+      '\u{13401}':         8,
+      '\u{13400}':         7,
+      '\u{133ff}':         6,
+      '\u{133fe}':         5,
+      '\u{133fd}':         4,
+      '\u{133fc}':         3,
+      '\u{133fb}':         2,
+      '\u{133fa}':         1,
+    },
+    safe: 'js-egyptian',
+  },
+  fence: {
+    title: 'Fence',
+    main: 'tally',
+    tally: 5,
+    symbols: [,
+      '\u{1d377}',
+      '\u{1d377}\u{1d377}',
+      '\u{1d377}\u{1d377}\u{1d377}',
+      '\u{1d377}\u{1d377}\u{1d377}\u{1d377}',
+      '\u{1d378}'
+    ],
+  },
+  mayan: {
+    title: 'Mayan',
+    main: 'base-20',
+    tally: 1,
+    symbols: [
+      '\u{1d2e0}',
+      '\u{1d2e1}',
+      '\u{1d2e2}',
+      '\u{1d2e3}',
+      '\u{1d2e4}',
+      '\u{1d2e5}',
+      '\u{1d2e6}',
+      '\u{1d2e7}',
+      '\u{1d2e8}',
+      '\u{1d2e9}',
+      '\u{1d2ea}',
+      '\u{1d2eb}',
+      '\u{1d2ec}',
+      '\u{1d2ed}',
+      '\u{1d2ee}',
+      '\u{1d2ef}',
+      '\u{1d2f0}',
+      '\u{1d2f1}',
+      '\u{1d2f2}',
+      '\u{1d2f3}',
+    ],
+  },
+  rods: {
+    title: 'Rods',
+    main: 'base-100',
+    tally: 5,
+    symbols: [,''],
+    bases: [10, 100],
+  },
+  roman: {
+    title: 'Roman',
+    main: 'add',
+    symbols: ii(() => {
+
+      const M = 1000
+      const D = 500
+      const C = 100
+      const L = 50
+      const X = 10
+      const V = 5
+      const I = 1
+
+      const CM = M - C
+      const CD = D - C
+      const XC = C - X
+      const XL = L - X
+      const IX = X - I
+      const IV = V - I
+
+      return { M, CM, D, CD, C, XC, L, XL, X, IX, V, IV, I }
+
+    }),
+    safe: 'js-roman',
+  },
+  western: {
+    title: 'Western',
+    main: 'base-10',
+    tally: 1,
+    symbols: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
+    bases: [2, 8, 10, 16, 36],
+  },
+  zheng: {
+    title: 'Zhèng',
+    main: 'tally',
+    tally: 5,
+    bases: [],
+    symbols: [,'\u{1d372}', '\u{1d373}', '\u{1d374}', '\u{1d375}', '\u{1d376}'],
+  },
+}
+
 const lowerLimit = (x) => Math.pow(2, Math.floor(Math.log2(x)))
 const upperLimit = (x) => Math.pow(2, Math.ceil(Math.log2(x)))
 
@@ -506,7 +657,7 @@ const repeatG = (str, x) => map(take(ints, x), () => str)
 
 const repeat = (str, x) => fromGen(repeatG(str, x))
 
-const apples = (x) => repeat('\u{1f34e}\ufe0e', x).join('')
+const apples = (x) => repeat(systems.apples.symbols[1], x).join('')
 
 const base2 = (x) => groupDigits(x.toString(2), 4)
 
@@ -516,7 +667,7 @@ const base10 = (x) => groupDigits(x.toString(10), 3)
 
 const base16 = (x) => groupDigits(x.toString(16).toUpperCase(), 4)
 
-const fence = (x) => [...repeat('\u{1d378}', Math.floor(x / 5)), ...repeat('\u{1d377}', x % 5)].join('')
+const fence = (x) => [...repeat(systems.fence.symbols[5], Math.floor(x / 5)), systems.fence.symbols[x % 5]].join('')
 
 const rods = (x) => x.toString(10).split('').map((d, i, ds) => {
   const isUnit = (ds.length - i) % 2
@@ -609,50 +760,29 @@ const leds = (x) => x.toString(2).split('0').join('\u25cb').split('1').join('\u2
 
 const mayan = (x) => x.toString(20).split('').map((c) => {
   switch(c) {
-    case '0': return '\u{1d2e0}'
-    case '1': return '\u{1d2e1}'
-    case '2': return '\u{1d2e2}'
-    case '3': return '\u{1d2e3}'
-    case '4': return '\u{1d2e4}'
-    case '5': return '\u{1d2e5}'
-    case '6': return '\u{1d2e6}'
-    case '7': return '\u{1d2e7}'
-    case '8': return '\u{1d2e8}'
-    case '9': return '\u{1d2e9}'
-    case 'a': return '\u{1d2ea}'
-    case 'b': return '\u{1d2eb}'
-    case 'c': return '\u{1d2ec}'
-    case 'd': return '\u{1d2ed}'
-    case 'e': return '\u{1d2ee}'
-    case 'f': return '\u{1d2ef}'
-    case 'g': return '\u{1d2f0}'
-    case 'h': return '\u{1d2f1}'
-    case 'i': return '\u{1d2f2}'
-    case 'j': return '\u{1d2f3}'
+    case '0': return systems.mayan.symbols[0]
+    case '1': return systems.mayan.symbols[1]
+    case '2': return systems.mayan.symbols[2]
+    case '3': return systems.mayan.symbols[3]
+    case '4': return systems.mayan.symbols[4]
+    case '5': return systems.mayan.symbols[5]
+    case '6': return systems.mayan.symbols[6]
+    case '7': return systems.mayan.symbols[7]
+    case '8': return systems.mayan.symbols[8]
+    case '9': return systems.mayan.symbols[9]
+    case 'a': return systems.mayan.symbols[10]
+    case 'b': return systems.mayan.symbols[11]
+    case 'c': return systems.mayan.symbols[12]
+    case 'd': return systems.mayan.symbols[13]
+    case 'e': return systems.mayan.symbols[14]
+    case 'f': return systems.mayan.symbols[15]
+    case 'g': return systems.mayan.symbols[16]
+    case 'h': return systems.mayan.symbols[17]
+    case 'i': return systems.mayan.symbols[18]
+    case 'j': return systems.mayan.symbols[19]
   }
   return c
 }).join('\n')
-
-const romanLookup = (() => {
-
-  const M = 1000
-  const D = 500
-  const C = 100
-  const L = 50
-  const X = 10
-  const V = 5
-  const I = 1
-
-  const CM = M - C
-  const CD = D - C
-  const XC = C - X
-  const XL = L - X
-  const IX = X - I
-  const IV = V - I
-
-  return { M, CM, D, CD, C, XC, L, XL, X, IX, V, IV, I }
-
-})()
 
 const skim = (x, lookup) => function* () {
   let tmp = x
@@ -664,7 +794,7 @@ const skim = (x, lookup) => function* () {
   }
 }
 
-const roman = (x) => fromGen(skim(x, romanLookup)).join('')
+const roman = (x) => fromGen(skim(x, systems.roman.symbols)).join('')
 
 const tally1 = (x) => repeat(1, x).join('')
 
@@ -682,12 +812,12 @@ const trigrams = (x) => x.toString(8).split('').map((c) => {
   return c
 }).join('')
 
-const zheng = (x) => [...repeat('\u{1d376}', Math.floor(x / 5)), (() => {
+const zheng = (x) => [...repeat(systems.zheng.symbols[5], Math.floor(x / 5)), (() => {
   switch(x % 5) {
-    case 1: return '\u{1d372}'
-    case 2: return '\u{1d373}'
-    case 3: return '\u{1d374}'
-    case 4: return '\u{1d375}'
+    case 1: return systems.zheng.symbols[1]
+    case 2: return systems.zheng.symbols[2]
+    case 3: return systems.zheng.symbols[3]
+    case 4: return systems.zheng.symbols[4]
   }
 })()].join('')
 
