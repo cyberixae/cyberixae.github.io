@@ -239,7 +239,7 @@ option {
   background: #262626;
   grid-area: examples;
   min-width: 1em;
-  overflow: visible;
+  overflow: auto;
   display: grid;
   grid-auto-columns: minmax(0, 1fr);
   grid-auto-rows: minmax(0, 1fr);
@@ -292,12 +292,12 @@ option {
   text-align: left;
 }
 
-.babylonian .c0,.fence .c0,.zheng .c0,.apples .c0 { margin-left: 0; }
-.babylonian .c1,.fence .c1,.zheng .c1,.apples .c1 { margin-left: 5%; }
-.babylonian .c2,.fence .c2,.zheng .c2,.apples .c2 { margin-left: 10%; }
-.babylonian .c3,.fence .c3,.zheng .c3,.apples .c3 { margin-left: 15%; }
-.babylonian .c4,.fence .c4,.zheng .c4,.apples .c4 { margin-left: 25%; }
-.babylonian .c5,.fence .c5,.zheng .c5,.apples .c5 { margin-left: 40%; }
+.babylonian .c0,.fence .c0,.zheng .c0,.apples .c0 { width: auto; margin-left: 0; }
+.babylonian .c1,.fence .c1,.zheng .c1,.apples .c1 { width: auto; margin-left: 5%; }
+.babylonian .c2,.fence .c2,.zheng .c2,.apples .c2 { width: auto; margin-left: 10%; }
+.babylonian .c3,.fence .c3,.zheng .c3,.apples .c3 { width: auto; margin-left: 15%; }
+.babylonian .c4,.fence .c4,.zheng .c4,.apples .c4 { width: auto; margin-left: 25%; }
+.babylonian .c5,.fence .c5,.zheng .c5,.apples .c5 { width: auto; margin-left: 40%; }
 
 /*
 .d0 { background: #fac }
@@ -868,17 +868,17 @@ const navigate = (s) => {
     elem.setAttribute('class', 'js-root ' + (s.symbols ?? state.symbols))
   })
   Array.from(document.getElementsByClassName('js-system')).forEach((elem) => {
-    const noSys = document.getElementById('no-system')
-    switch(s.symbols) {
-      case 'apples': noSys.innerHTML = 'Tally 1'; break;
-      case 'babylonian': noSys.innerHTML = 'Base 60'; break;
-      case 'fence': noSys.innerHTML = 'Tally 5'; break;
-      case 'mayan': noSys.innerHTML = 'Base 20'; break;
-      case 'rods': noSys.innerHTML = 'Base 10'; break;
-      case 'zheng': noSys.innerHTML = 'Tally 5'; break;
-      default: noSys.innerHTML = '';
-    }
     if ('symbols' in s) {
+      const noSys = document.getElementById('no-system')
+      switch(s.symbols) {
+        case 'apples': noSys.innerHTML = 'Tally 1'; break;
+        case 'babylonian': noSys.innerHTML = 'Base 60'; break;
+        case 'fence': noSys.innerHTML = 'Tally 5'; break;
+        case 'mayan': noSys.innerHTML = 'Base 20'; break;
+        case 'rods': noSys.innerHTML = 'Base 10'; break;
+        case 'zheng': noSys.innerHTML = 'Tally 5'; break;
+        default: noSys.innerHTML = '';
+      }
       if (s.symbols === 'western') {
         if (state.symbols !== 'western') {
           elem.selectedIndex = 5
