@@ -288,18 +288,16 @@ option {
 .c4 { width: 75% }
 .c5 { width: 95% }
 
-.fence .row,.zheng .row,.apples .row {
+.babylonian .row,.fence .row,.zheng .row,.apples .row {
   text-align: left;
 }
 
-.fence .c0,.zheng .c0,.apples .c0 { margin-left: 0; }
-.fence .c1,.zheng .c1,.apples .c1 { margin-left: 5%; }
-.fence .c2,.zheng .c2,.apples .c2 { margin-left: 10%; }
-.fence .c3,.zheng .c3,.apples .c3 { margin-left: 15%; }
-.fence .c4,.zheng .c4,.apples .c4 { margin-left: 25%; }
-.fence .c5,.zheng .c5,.apples .c5 { margin-left: 40%; }
-
-
+.babylonian .c0,.fence .c0,.zheng .c0,.apples .c0 { margin-left: 0; }
+.babylonian .c1,.fence .c1,.zheng .c1,.apples .c1 { margin-left: 5%; }
+.babylonian .c2,.fence .c2,.zheng .c2,.apples .c2 { margin-left: 10%; }
+.babylonian .c3,.fence .c3,.zheng .c3,.apples .c3 { margin-left: 15%; }
+.babylonian .c4,.fence .c4,.zheng .c4,.apples .c4 { margin-left: 25%; }
+.babylonian .c5,.fence .c5,.zheng .c5,.apples .c5 { margin-left: 40%; }
 
 /*
 .d0 { background: #fac }
@@ -325,6 +323,8 @@ select option.default {
     </style>
     <script>
 
+const SDW = '\u{103d0}' // slanted double wedge seems to be missing from unicode
+
 const ii = (fe) => fe()
 
 const systems = {
@@ -334,6 +334,33 @@ const systems = {
     tally: 1,
     symbols: [,'\u{1f34e}\ufe0e'],
     safe: 'js-tally',
+  },
+  babylonian: {
+    main: 'base-60',
+    tally: 1,
+    symbols: ii(() => {
+      const U = [
+        '',
+        '\u{1230b}',
+        '\u{12399}',
+        '\u{1230d}',
+        '\u{1240f}',
+        '\u{12410}',
+      ]
+      const DISH = [
+        '',
+        '\u{12079}',
+        '\u{1222b}',
+        '\u{12408}',
+        '\u{12409}',
+        '\u{1240a}',
+        '\u{1240b}',
+        '\u{1240c}',
+        '\u{1240d}',
+        '\u{1240e}',
+      ]
+      return U.flatMap((u) => DISH.map((d) => u + d || SDW))
+    }),
   },
   egyptian: {
     title: 'Egyptian',
@@ -683,17 +710,31 @@ const repeatG = (str, x) => map(take(ints, x), () => str)
 
 const repeat = (str, x) => fromGen(repeatG(str, x))
 
-const getBase = (x, oddSymbols, evenSymbols) => x.toString(oddSymbols.length).split('').map((c, i, ds) => {
-  const symbols = ii(() => {
-    if (!evenSymbols) {
-      return oddSymbols
-    }
-    return (ds.length - i) % 2 ? oddSymbols : evenSymbols
-  })
-  return symbols[parseInt(c, symbols.length)]
+const fromSeed = (x, f) => function*() {
+  let tmp = x
+  while (true) {
+    yield tmp
+    tmp = f(tmp)
+  }
+}
+
+const digits = (x, base) => map(takeWhile(fromSeed(x, (y) => Math.floor(y / base)), (d) => d > 0), (y) => y % base)
+
+const getBase = (x, oddSymbols, evenSymbols = oddSymbols) => fromGen(digits(x, oddSymbols.length)).reverse().map((d, i, ds) => {
+  return (ds.length - i) % 2 ? oddSymbols[d] : evenSymbols[d]
 })
 
 const apples = (x) => repeat(systems.apples.symbols[1], x).join('')
+
+const babylonian = (x) => {
+  const tmp = getBase(x, systems.babylonian.symbols)
+  const spaces = []
+  while (tmp.at(-1) === SDW) {
+    tmp.pop()
+    spaces.push('\u2003')
+  }
+  return [...tmp, ...spaces].join('\u2007')
+}
 
 const fence = (x) => [...repeat(systems.fence.symbols[5], Math.floor(x / 5)), systems.fence.symbols[x % 5]].join('')
 
@@ -767,6 +808,7 @@ const zheng = (x) => [...repeat(systems.zheng.symbols[5], Math.floor(x / 5)), ((
 const stringify = (x) => {
   const variants = {
     apples,
+    babylonian,
     egyptian,
     fence,
     leds,
@@ -829,6 +871,7 @@ const navigate = (s) => {
     const noSys = document.getElementById('no-system')
     switch(s.symbols) {
       case 'apples': noSys.innerHTML = 'Tally 1'; break;
+      case 'babylonian': noSys.innerHTML = 'Base 60'; break;
       case 'fence': noSys.innerHTML = 'Tally 5'; break;
       case 'mayan': noSys.innerHTML = 'Base 20'; break;
       case 'rods': noSys.innerHTML = 'Base 10'; break;
@@ -879,7 +922,18 @@ const renderExamples = (min, max) => (elem) => {
     })
     const num = document.createElement('span')
     num.setAttribute('class', 'num d d' + b)
-    num.innerHTML = stringify(a)
+
+    stringify(a).split('\u2007').forEach((part, i) => {
+      if (i > 0) {
+        const space = document.createTextNode('\u2007')
+        num.appendChild(space)
+      }
+      const cell = document.createElement('span')
+      cell.setAttribute('class', 'num_cell')
+      cell.innerHTML = part
+      num.appendChild(cell)
+    })
+
     link.appendChild(num)
     return line
   })
@@ -1318,6 +1372,7 @@ addEventListener('DOMContentLoaded', init)
         <div>
           <select id="symbols" class="symbols js-symbols">
             <option value="apples" class="js-tally">Apples</option>
+            <option value="babylonian">Babylonian</option>
             <!--<option value="tally1" class="js-tally">Arabic tally 1</option>-->
             <option value="egyptian" class="js-egyptian">Egyptian</option>
             <option value="fence" class="js-tally">Fence</option>
