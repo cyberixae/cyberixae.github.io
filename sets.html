@@ -528,8 +528,8 @@ const systems = {
     }),
     safe: 'js-roman',
   },
-  western: {
-    title: 'Western',
+  latin: {
+    title: 'Latin',
     main: 'base-10',
     tally: 1,
     symbols: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
@@ -802,7 +802,7 @@ const base16 = (x) => groupDigits(x.toString(16).toUpperCase(), 4)
 const base20 = (x) => groupDigits(x.toString(20).toUpperCase(), 4)
 const base36 = (x) => groupDigits(x.toString(36).toUpperCase(), 4)
 
-const western = (x) => {
+const latin = (x) => {
   const variants = {
     tally1,
     base2,
@@ -831,6 +831,7 @@ const stringify = (x) => {
     babylonian,
     egyptian,
     fence,
+    latin,
     leds,
     mashriq,
     mayan,
@@ -838,7 +839,6 @@ const stringify = (x) => {
     roman,
     tally1,
     trigrams,
-    western,
     zheng,
   }
   return variants[state.symbols](x)
@@ -901,8 +901,8 @@ const navigate = (s) => {
         case 'zheng': noSys.innerHTML = 'Tally 5'; break;
         default: noSys.innerHTML = '';
       }
-      if (s.symbols === 'western') {
-        if (state.symbols !== 'western') {
+      if (s.symbols === 'latin') {
+        if (state.symbols !== 'latin') {
           elem.selectedIndex = 5
         }
         noSys.setAttribute('hidden', 'hidden')
@@ -1026,7 +1026,7 @@ const state = {
   page: 0,
   selected: null,
   mults: [],
-  symbols: 'western',
+  symbols: 'latin',
   system: 'base10',
 }
 
@@ -1398,13 +1398,13 @@ addEventListener('DOMContentLoaded', init)
             <!--<option value="tally1" class="js-tally">Arabic tally 1</option>-->
             <option value="egyptian" class="js-egyptian">Egyptian</option>
             <option value="fence" class="js-tally">Fence</option>
+            <option value="latin" selected class="default">Latin</option>
             <!--<option value="leds">LEDs base 2</option>-->
             <option value="mashriq">Mashriq</option>
             <option value="mayan">Mayan</option>
             <option value="rods">Rods</option>
             <option value="roman" class="js-roman">Roman</option>
             <!-- <option value="trigrams">Trigrams base 8</option> -->
-            <option value="western" selected class="default">Western</option>
             <option value="zheng" class="js-tally">Zhèng</option>
           </select>
           <select id="system" class="system js-system">
