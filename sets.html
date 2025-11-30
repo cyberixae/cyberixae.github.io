@@ -455,6 +455,24 @@ const systems = {
       '\u{1d2f3}',
     ],
   },
+  mashriq: {
+    title: 'Mashriq',
+    main: 'base-10',
+    tally: 1,
+    bases: [10],
+    symbols: [
+      '\u{0660}',
+      '\u{0661}',
+      '\u{0662}',
+      '\u{0663}',
+      '\u{0664}',
+      '\u{0665}',
+      '\u{0666}',
+      '\u{0667}',
+      '\u{0668}',
+      '\u{0669}',
+    ],
+  },
   rods: {
     title: 'Rods',
     main: 'base-10',
@@ -744,6 +762,8 @@ const egyptian = (x) => fromGen(skim(x, systems.egyptian.symbols)).join('')
 
 const leds = (x) => x.toString(2).split('0').join('\u25cb').split('1').join('\u25cf')
 
+const mashriq = (x) => getBase(x, systems.mashriq.symbols).join('')
+
 const mayan = (x) => getBase(x, systems.mayan.symbols).join('\n')
 
 const skim = (x, lookup) => function* () {
@@ -812,6 +832,7 @@ const stringify = (x) => {
     egyptian,
     fence,
     leds,
+    mashriq,
     mayan,
     rods,
     roman,
@@ -874,6 +895,7 @@ const navigate = (s) => {
         case 'apples': noSys.innerHTML = 'Tally 1'; break;
         case 'babylonian': noSys.innerHTML = 'Base 60'; break;
         case 'fence': noSys.innerHTML = 'Tally 5'; break;
+        case 'mashriq': noSys.innerHTML = 'Base 10'; break;
         case 'mayan': noSys.innerHTML = 'Base 20'; break;
         case 'rods': noSys.innerHTML = 'Base 10'; break;
         case 'zheng': noSys.innerHTML = 'Tally 5'; break;
@@ -1377,6 +1399,7 @@ addEventListener('DOMContentLoaded', init)
             <option value="egyptian" class="js-egyptian">Egyptian</option>
             <option value="fence" class="js-tally">Fence</option>
             <!--<option value="leds">LEDs base 2</option>-->
+            <option value="mashriq">Mashriq</option>
             <option value="mayan">Mayan</option>
             <option value="rods">Rods</option>
             <option value="roman" class="js-roman">Roman</option>
