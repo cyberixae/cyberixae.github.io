@@ -3,7 +3,7 @@
   <head>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Emoji:wght@300..700&family=Noto+Sans+Arabic:wght@100..900&family=Noto+Sans+Cuneiform&family=Noto+Sans+Egyptian+Hieroglyphs&family=Noto+Sans+Old+Persian&family=Noto+Sans+Symbols+2&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Emoji:wght@300..700&family=Noto+Sans+Arabic:wght@100..900&family=Noto+Sans+Cuneiform&family=Noto+Sans+Devanagari:wght@100..900&family=Noto+Sans+Egyptian+Hieroglyphs&family=Noto+Sans+Old+Persian&family=Noto+Sans+Symbols+2&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Sets</title>
     <style>
@@ -101,6 +101,9 @@ option {
 }
 .babylonian .num {
   font-family: "Noto Sans Cuneiform", "Noto Sans Old Persian", sans-serif;
+}
+.devanagari .num {
+  font-family: "Noto Sans Devanagari", sans-serif;
 }
 .egyptian .num {
   font-family: "Noto Sans Egyptian Hieroglyphs", sans-serif;
@@ -367,6 +370,24 @@ const systems = {
       ]
       return U.flatMap((u) => DISH.map((d) => u + d || SDW))
     }),
+  },
+  devanagari: {
+    title: 'Devanagari',
+    main: 'base-10',
+    tally: 1,
+    bases: [10],
+    symbols: [
+      '\u{0966}',
+      '\u{0967}',
+      '\u{0968}',
+      '\u{0969}',
+      '\u{096a}',
+      '\u{096b}',
+      '\u{096c}',
+      '\u{096d}',
+      '\u{096e}',
+      '\u{096f}',
+    ],
   },
   egyptian: {
     title: 'Egyptian',
@@ -760,6 +781,8 @@ const babylonian = (x) => {
   return [...tmp, ...spaces].join('\u2007')
 }
 
+const devanagari = (x) => getBase(x, systems.devanagari.symbols).join('')
+
 const fence = (x) => [...repeat(systems.fence.symbols[5], Math.floor(x / 5)), systems.fence.symbols[x % 5]].join('')
 
 const rods = (x) => getBase(x, systems.rods.symbols, systems.rods.evenSymbols).join('')
@@ -835,6 +858,7 @@ const stringify = (x) => {
   const variants = {
     apples,
     babylonian,
+    devanagari,
     egyptian,
     fence,
     latin,
@@ -900,6 +924,7 @@ const navigate = (s) => {
       switch(s.symbols) {
         case 'apples': noSys.innerHTML = 'Tally 1'; break;
         case 'babylonian': noSys.innerHTML = 'Base 60'; break;
+        case 'devanagari': noSys.innerHTML = 'Base 10'; break;
         case 'fence': noSys.innerHTML = 'Tally 5'; break;
         case 'mashriq': noSys.innerHTML = 'Base 10'; break;
         case 'mayan': noSys.innerHTML = 'Base 20'; break;
@@ -1401,7 +1426,7 @@ addEventListener('DOMContentLoaded', init)
           <select id="symbols" class="symbols js-symbols">
             <option value="apples" class="js-tally">Apples</option>
             <option value="babylonian">Babylonian</option>
-            <!--<option value="tally1" class="js-tally">Arabic tally 1</option>-->
+            <option value="devanagari">Devanagari</option>
             <option value="egyptian" class="js-egyptian">Egyptian</option>
             <option value="fence" class="js-tally">Fence</option>
             <option value="latin" selected class="default">Latin</option>
