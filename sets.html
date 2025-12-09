@@ -555,6 +555,12 @@ const systems = {
     }),
     safe: 'js-roman',
   },
+  thai: {
+    title: 'Thai',
+    main: 'base-10',
+    tally: 1,
+    symbols: ['\u{0e50}', '\u{0e51}', '\u{0e52}', '\u{0e53}', '\u{0e54}', '\u{0e55}', '\u{0e56}', '\u{0e57}', '\u{0e58}', '\u{0e59}'],
+  },
   latin: {
     title: 'Latin',
     main: 'base-10',
@@ -807,6 +813,7 @@ const skim = (x, lookup) => function* () {
 
 const roman = (x) => fromGen(skim(x, systems.roman.symbols)).join('')
 
+const thai = (x) => getBase(x, systems.thai.symbols).join('')
 
 const trigrams = (x) => x.toString(8).split('').map((c) => {
   switch(c) {
@@ -868,6 +875,7 @@ const stringify = (x) => {
     rods,
     roman,
     tally1,
+    thai,
     trigrams,
     zheng,
   }
@@ -929,6 +937,7 @@ const navigate = (s) => {
         case 'mashriq': noSys.innerHTML = 'Base 10'; break;
         case 'mayan': noSys.innerHTML = 'Base 20'; break;
         case 'rods': noSys.innerHTML = 'Base 10'; break;
+        case 'thai': noSys.innerHTML = 'Base 10'; break;
         case 'zheng': noSys.innerHTML = 'Tally 5'; break;
         default: noSys.innerHTML = '';
       }
@@ -1435,6 +1444,7 @@ addEventListener('DOMContentLoaded', init)
             <option value="mayan">Mayan</option>
             <option value="rods">Rods</option>
             <option value="roman" class="js-roman">Roman</option>
+            <option value="thai">Thai</option>
             <!-- <option value="trigrams">Trigrams base 8</option> -->
             <option value="zheng" class="js-tally">Zhèng</option>
           </select>
