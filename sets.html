@@ -89,7 +89,7 @@ option {
 }
 
 .leds .num {
-  font-size: 1.8em;
+  font-size: 1.4em;
   line-height: 0.2em;
 }
 .mayan a {
@@ -297,16 +297,16 @@ option {
 .c4 { width: 75% }
 .c5 { width: 95% }
 
-.babylonian .row,.fence .row,.zheng .row,.apples .row {
+.apples .row,.babylonian .row,.egyptian .row,.fence .row,.roman .row,.zheng .row {
   text-align: left;
 }
 
-.babylonian .c0,.fence .c0,.zheng .c0,.apples .c0 { width: auto; margin-left: 0; }
-.babylonian .c1,.fence .c1,.zheng .c1,.apples .c1 { width: auto; margin-left: 5%; }
-.babylonian .c2,.fence .c2,.zheng .c2,.apples .c2 { width: auto; margin-left: 10%; }
-.babylonian .c3,.fence .c3,.zheng .c3,.apples .c3 { width: auto; margin-left: 15%; }
-.babylonian .c4,.fence .c4,.zheng .c4,.apples .c4 { width: auto; margin-left: 25%; }
-.babylonian .c5,.fence .c5,.zheng .c5,.apples .c5 { width: auto; margin-left: 40%; }
+.apples .c0,.babylonian .c0,.egyptian .c0,.fence .c0,.roman .c0,.zheng .c0 { width: auto; margin-left: 0; }
+.apples .c1,.babylonian .c1,.egyptian .c1,.fence .c1,.roman .c1,.zheng .c1 { width: auto; margin-left: 5%; }
+.apples .c2,.babylonian .c2,.egyptian .c2,.fence .c2,.roman .c2,.zheng .c2 { width: auto; margin-left: 10%; }
+.apples .c3,.babylonian .c3,.egyptian .c3,.fence .c3,.roman .c3,.zheng .c3 { width: auto; margin-left: 15%; }
+.apples .c4,.babylonian .c4,.egyptian .c4,.fence .c4,.roman .c4,.zheng .c4 { width: auto; margin-left: 25%; }
+.apples .c5,.babylonian .c5,.egyptian .c5,.fence .c5,.roman .c5,.zheng .c5 { width: auto; margin-left: 40%; }
 
 /*
 .d0 { background: #fac }
@@ -335,6 +335,57 @@ select option.default {
 const SDW = '\u{103d0}' // slanted double wedge seems to be missing from unicode
 
 const ii = (fe) => fe()
+
+function fromGen(g) {
+  const xs = []
+  for (x of g()) {
+    xs.push(x)
+  }
+  return xs
+}
+
+function* ints() {
+  let i = 0
+  while(true) {
+    yield i
+    i += 1
+  }
+}
+
+const map = (g, f) => function* () {
+  for (const x of g()) {
+    yield f(x)
+  }
+}
+
+const concat = (...gs) => function* () {
+  for (const g of gs) {
+    for (const x of g()) {
+      yield x
+    }
+  }
+}
+
+const take = (g, c) => function* () {
+  let i = 0
+  for (const x of g()) {
+    if (i >= c) {
+      return
+    }
+    yield x
+    i += 1
+  }
+}
+
+const drop = (g, c) => function* () {
+  let i = 0
+  for (const x of g()) {
+    if (i >= c) {
+      yield x
+    }
+    i += 1
+  }
+}
 
 const systems = {
   apples: {
@@ -447,12 +498,21 @@ const systems = {
     title: 'Fence',
     main: 'tally',
     tally: 5,
-    symbols: [,
-      '\u{1d377}',
-      '\u{1d377}\u{1d377}',
-      '\u{1d377}\u{1d377}\u{1d377}',
-      '\u{1d377}\u{1d377}\u{1d377}\u{1d377}',
-      '\u{1d378}'
+    symbols: {
+      '\u{1d378}': 5,
+      '\u{1d377}\u{1d377}\u{1d377}\u{1d377}': 4,
+      '\u{1d377}\u{1d377}\u{1d377}': 3,
+      '\u{1d377}\u{1d377}': 2,
+      '\u{1d377}': 1,
+    }
+  },
+  leds: {
+    title: 'LEDs',
+    main: 'base-2',
+    tally: 1,
+    symbols: [
+      '\u25cb',
+      '\u25cf',
     ],
   },
   mayan: {
@@ -565,7 +625,8 @@ const systems = {
     title: 'Latin',
     main: 'base-10',
     tally: 1,
-    symbols: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
+    symbols: fromGen(concat(take(ints, 10), take(map(drop(ints, 0x41), (c) => String.fromCharCode(c)), 26)))
+,
     bases: [2, 8, 10, 16, 36],
   },
   zheng: {
@@ -573,7 +634,13 @@ const systems = {
     main: 'tally',
     tally: 5,
     bases: [],
-    symbols: [,'\u{1d372}', '\u{1d373}', '\u{1d374}', '\u{1d375}', '\u{1d376}'],
+    symbols: {
+      '\u{1d376}': 5,
+      '\u{1d375}': 4,
+      '\u{1d374}': 3,
+      '\u{1d373}': 2,
+      '\u{1d372}': 1,
+    },
   },
 }
 
@@ -591,14 +658,6 @@ const chars = {
 
 }
 
-function fromGen(g) {
-  const xs = []
-  for (x of g()) {
-    xs.push(x)
-  }
-  return xs
-}
-
 const toString = (g, d = ', ') => {
   let str = ''
   for (x of g()) {
@@ -610,14 +669,6 @@ const toString = (g, d = ', ') => {
 const logG = (g) => console.log(toString(g))
 
 const log = (x) => { console.log(x); return x }
-
-function* ints() {
-  let i = 0
-  while(true) {
-    yield i
-    i += 1
-  }
-}
 
 const fromArray = (xs) => function* () {
   for (x in xs) {
@@ -639,20 +690,6 @@ const chunkify = (g, c) => function* () {
     xs.push(x)
   }
   yield xs
-}
-
-const concat = (...gs) => function* () {
-  for (const g of gs) {
-    for (const x of g()) {
-      yield x
-    }
-  }
-}
-
-const map = (g, f) => function* () {
-  for (const x of g()) {
-    yield f(x)
-  }
 }
 
 const flatten = (gs) => function* () {
@@ -679,27 +716,6 @@ const takeWhile = (g, f) => function* () {
       return
     }
     yield x
-  }
-}
-
-const take = (g, c) => function* () {
-  let i = 0
-  for (const x of g()) {
-    if (i >= c) {
-      return
-    }
-    yield x
-    i += 1
-  }
-}
-
-const drop = (g, c) => function* () {
-  let i = 0
-  for (const x of g()) {
-    if (i >= c) {
-      yield x
-    }
-    i += 1
   }
 }
 
@@ -775,32 +791,6 @@ const getBase = (x, oddSymbols, evenSymbols = oddSymbols) => fromGen(digits(x, o
   return (ds.length - i) % 2 ? oddSymbols[d] : evenSymbols[d]
 })
 
-const apples = (x) => repeat(systems.apples.symbols[1], x).join('')
-
-const babylonian = (x) => {
-  const tmp = getBase(x, systems.babylonian.symbols)
-  const spaces = []
-  while (tmp.at(-1) === SDW) {
-    tmp.pop()
-    spaces.push('\u2003')
-  }
-  return [...tmp, ...spaces].join('\u2007')
-}
-
-const devanagari = (x) => getBase(x, systems.devanagari.symbols).join('')
-
-const fence = (x) => [...repeat(systems.fence.symbols[5], Math.floor(x / 5)), systems.fence.symbols[x % 5]].join('')
-
-const rods = (x) => getBase(x, systems.rods.symbols, systems.rods.evenSymbols).join('')
-
-const egyptian = (x) => fromGen(skim(x, systems.egyptian.symbols)).join('')
-
-const leds = (x) => x.toString(2).split('0').join('\u25cb').split('1').join('\u25cf')
-
-const mashriq = (x) => getBase(x, systems.mashriq.symbols).join('')
-
-const mayan = (x) => getBase(x, systems.mayan.symbols).join('\n')
-
 const skim = (x, lookup) => function* () {
   let tmp = x
   for (const [k, v] of Object.entries(lookup)) {
@@ -811,10 +801,7 @@ const skim = (x, lookup) => function* () {
   }
 }
 
-const roman = (x) => fromGen(skim(x, systems.roman.symbols)).join('')
-
-const thai = (x) => getBase(x, systems.thai.symbols).join('')
-
+/*
 const trigrams = (x) => x.toString(8).split('').map((c) => {
   switch(c) {
     case '0': return '\u2637'
@@ -828,59 +815,51 @@ const trigrams = (x) => x.toString(8).split('').map((c) => {
   }
   return c
 }).join('')
-
-const tally1 = (x) => repeat(1, x).join('')
-const base2 = (x) => groupDigits(x.toString(2), 4)
-const base6 = (x) => groupDigits(x.toString(6), 4)
-const base8 = (x) => groupDigits(x.toString(8), 4)
-const base10 = (x) => groupDigits(x.toString(10), 3)
-const base16 = (x) => groupDigits(x.toString(16).toUpperCase(), 4)
-const base20 = (x) => groupDigits(x.toString(20).toUpperCase(), 4)
-const base36 = (x) => groupDigits(x.toString(36).toUpperCase(), 4)
-
-const latin = (x) => {
-  const variants = {
-    tally1,
-    base2,
-    base6,
-    base8,
-    base10,
-    base16,
-    base20,
-    base36,
-  }
-  return variants[state.system](x)
-}
-
-const zheng = (x) => [...repeat(systems.zheng.symbols[5], Math.floor(x / 5)), (() => {
-  switch(x % 5) {
-    case 1: return systems.zheng.symbols[1]
-    case 2: return systems.zheng.symbols[2]
-    case 3: return systems.zheng.symbols[3]
-    case 4: return systems.zheng.symbols[4]
-  }
-})()].join('')
+*/
 
 const stringify = (x) => {
-  const variants = {
-    apples,
-    babylonian,
-    devanagari,
-    egyptian,
-    fence,
-    latin,
-    leds,
-    mashriq,
-    mayan,
-    rods,
-    roman,
-    tally1,
-    thai,
-    trigrams,
-    zheng,
+  switch(state.symbols) {
+    case 'apples':
+      return repeat(systems.apples.symbols[1], x).join('')
+    case 'babylonian':
+      const tmp = getBase(x, systems.babylonian.symbols)
+      const spaces = []
+      while (tmp.at(-1) === SDW) {
+        tmp.pop()
+        spaces.push('\u2003')
+      }
+      return [...tmp, ...spaces].join('\u2007')
+    case 'devanagari':
+      return getBase(x, systems.devanagari.symbols).join('')
+    case 'egyptian':
+      return fromGen(skim(x, systems.egyptian.symbols)).join('')
+    case 'fence':
+      return fromGen(skim(x, systems.fence.symbols)).join('')
+    case 'latin':
+      const [_b, b] = state.system.split('-')
+      if (b < 2) {
+        return repeat(1, x).join('')
+      }
+      const symbols = systems.latin.symbols.slice(0, b)
+      return groupDigits(getBase(x, symbols).join(''), b === '10' ? 3 : 4)
+    case 'leds':
+      return getBase(x, systems.leds.symbols).join('')
+    case 'mashriq':
+      return getBase(x, systems.mashriq.symbols).join('')
+    case 'mayan':
+      return getBase(x, systems.mayan.symbols).join('\n')
+    case 'rods':
+      return getBase(x, systems.rods.symbols, systems.rods.evenSymbols).join('')
+    case 'roman':
+      return fromGen(skim(x, systems.roman.symbols)).join('')
+    case 'thai':
+      return getBase(x, systems.thai.symbols).join('')
+    case 'zheng':
+      return fromGen(skim(x, systems.zheng.symbols)).join('')
   }
-  return variants[state.symbols](x)
+  return x
 }
+
 
 const sample = (min, max) => (i) => map(takeWhile(dropWhile(distance(i), (y) => y < min), (x) => x <= max), (x) => [x, i])
 
@@ -930,16 +909,13 @@ const navigate = (s) => {
     if ('symbols' in s) {
       const noSys = document.getElementById('no-system')
       switch(s.symbols) {
-        case 'apples': noSys.innerHTML = 'Tally 1'; break;
         case 'babylonian': noSys.innerHTML = 'Base 60'; break;
         case 'devanagari': noSys.innerHTML = 'Base 10'; break;
-        case 'fence': noSys.innerHTML = 'Tally 5'; break;
         case 'mashriq': noSys.innerHTML = 'Base 10'; break;
         case 'mayan': noSys.innerHTML = 'Base 20'; break;
         case 'rods': noSys.innerHTML = 'Base 10'; break;
         case 'thai': noSys.innerHTML = 'Base 10'; break;
-        case 'zheng': noSys.innerHTML = 'Tally 5'; break;
-        default: noSys.innerHTML = '';
+        default: noSys.innerHTML = 'Additive';
       }
       if (s.symbols === 'latin') {
         if (state.symbols !== 'latin') {
@@ -1067,7 +1043,7 @@ const state = {
   selected: null,
   mults: [],
   symbols: 'latin',
-  system: 'base10',
+  system: 'base-10',
 }
 
 const strMult = (a, b) => a + '\xa0\u00d7\xa0' + b
@@ -1439,7 +1415,7 @@ addEventListener('DOMContentLoaded', init)
             <option value="egyptian" class="js-egyptian">Egyptian</option>
             <option value="fence" class="js-tally">Fence</option>
             <option value="latin" selected class="default">Latin</option>
-            <!--<option value="leds">LEDs base 2</option>-->
+            <option value="leds">LEDs</option>
             <option value="mashriq">Mashriq</option>
             <option value="mayan">Mayan</option>
             <option value="rods">Rods</option>
@@ -1450,14 +1426,14 @@ addEventListener('DOMContentLoaded', init)
           </select>
           <select id="system" class="system js-system">
             <option id="no-system" value="" selected hidden></option>
-            <option value="tally1">Tally 1</option>
-            <option value="base2">Base 2</option>
-            <option value="base6">Base 6</option>
-            <option value="base8">Base 8</option>
-            <option value="base10" selected class="default">Base 10</option>
-            <option value="base16">Base 16</option>
-            <option value="base20">Base 20</option>
-            <option value="base36">Base 36</option>
+            <option value="tally-1">Tally 1</option>
+            <option value="base-2">Base 2</option>
+            <option value="base-6">Base 6</option>
+            <option value="base-8">Base 8</option>
+            <option value="base-10" selected class="default">Base 10</option>
+            <option value="base-16">Base 16</option>
+            <option value="base-20">Base 20</option>
+            <option value="base-36">Base 36</option>
           </select>
         </div>
         <div class="page-controls">
