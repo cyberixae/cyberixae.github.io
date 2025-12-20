@@ -211,6 +211,11 @@ option {
   color: #fffa;
 }
 
+.info .mantissa {
+  font-weight: normal;
+  color: #fffa;
+}
+
 .info .mults {
   font-weight: normal;
   color: #fffa;
@@ -1202,6 +1207,21 @@ const renderInfoMults = (selected) => (elem) => {
   elem.appendChild(mults)
 }
 
+const noZeros = (x, base=2) => {
+  let tmp = x
+  while (tmp % base === 0) {
+    tmp /= base
+  }
+  return tmp
+}
+
+const renderMantissa = (selected) => (elem) => {
+  const mults = document.createElement('div')
+  mults.setAttribute('class', 'mantissa')
+  mults.innerHTML = stringify(Math.max(1, Math.ceil(Math.log2(noZeros(selected)))))
+  elem.appendChild(mults)
+}
+
 const renderInfoField = (labelText, renderChild) => (elem) => {
   const label = document.createElement('div')
   label.setAttribute('class', 'label')
@@ -1236,6 +1256,7 @@ const renderInfo = (selected) => (elem) => {
   info.appendChild(hr)
   const body = document.createElement('div')
   body.setAttribute('class', 'body')
+  renderInfoField('Mantissa Size', renderMantissa(selected))(body)
   renderInfoField('Prime Decomposition', renderInfoMults(selected))(body)
   renderInfoField('Non-Adjacent Form', renderInfoNAF(selected))(body)
   renderInfoField('Dyadic Decomposition', renderInfoDyads(selected))(body)
