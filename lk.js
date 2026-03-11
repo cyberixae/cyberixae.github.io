@@ -1424,6 +1424,10 @@
   var isDone = false;
   var status = (s) => "\n" + fromFocus(s) + "\n" + (isDone ? "\n\n\u{1F389} Conglaturations! \u{1F389}\n" : "");
   var listing = () => {
+    const shroud = document.createElement("div");
+    shroud.setAttribute("class", "shroud");
+    shroud.setAttribute("style", "display: none;");
+    shroud.setAttribute("id", "levelmenu");
     const panel = document.createElement("div");
     panel.setAttribute("class", "levels");
     Object.keys(theorems).forEach((id) => {
@@ -1431,11 +1435,15 @@
       const link = document.createElement("a");
       link.setAttribute("class", id === selected ? "active" : "");
       link.setAttribute("href", "#");
+      link.onclick = () => {
+        selectLevel(id);
+      };
       link.innerHTML = id;
       item.appendChild(link);
       panel.appendChild(item);
     });
-    return panel;
+    shroud.appendChild(panel);
+    return shroud;
   };
   var level = (s) => {
     const pre = document.createElement("pre");
@@ -1504,7 +1512,8 @@
     render();
   };
   var levelHandler = (_ev) => () => {
-    alert("T\xE4m\xE4 ei viel\xE4 toimi.");
+    const menu = document.getElementById("levelmenu");
+    menu?.removeAttribute("style");
   };
   var mainPanel = (ls, rules) => {
     const panel = document.createElement("div");
