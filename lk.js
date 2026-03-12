@@ -102,14 +102,14 @@
     if (last2.trim().length < 1) {
       return null;
     }
-    const [first, ...rest] = split(b, "\n");
-    if (first.trim() !== last2.trim()) {
+    const [first2, ...rest] = split(b, "\n");
+    if (first2.trim() !== last2.trim()) {
       return null;
     }
     const topLeft = Math.abs(last2.trimStart().length - last2.length);
     const topRight = Math.abs(last2.trimEnd().length - last2.length);
-    const bottomLeft = Math.abs(first.trimStart().length - first.length);
-    const bottomRight = Math.abs(first.trimEnd().length - first.length);
+    const bottomLeft = Math.abs(first2.trimStart().length - first2.length);
+    const bottomRight = Math.abs(first2.trimEnd().length - first2.length);
     const top = margin(
       Math.max(0, bottomLeft - topLeft),
       Math.max(0, bottomRight - topRight)
@@ -162,11 +162,11 @@
     return lines.map((line2) => line2.padEnd(length, space)).join("\n");
   }
   function spaced(blocks, n = 1) {
-    const [first, ...rest] = blocks;
-    if (typeof first !== "string") {
+    const [first2, ...rest] = blocks;
+    if (typeof first2 !== "string") {
       return "";
     }
-    return rest.map(margin(n, 0)).reduce(concat, first);
+    return rest.map(margin(n, 0)).reduce(concat, first2);
   }
   var br = String();
   function leftify(...lines) {
@@ -184,8 +184,8 @@
     return pad(leftify(line1, line2, line3));
   }
   function lastLine(block) {
-    const [first, ...rest] = split(block, "\n");
-    return rest.at(-1) ?? first;
+    const [first2, ...rest] = split(block, "\n");
+    return rest.at(-1) ?? first2;
   }
   function treeAuto(root, branches, note) {
     const branchBlock = spaced(branches, 2);
@@ -205,7 +205,6 @@
     antecedent,
     succedent
   });
-  var conclusion = (proposition) => judgement([], [proposition]);
   var equals2 = (a, b) => {
     return equalFormulas(a.antecedent, b.antecedent) && equalFormulas(a.succedent, b.succedent);
   };
@@ -428,7 +427,20 @@
     return (ps) => isNonEmptyArray(ps) ? printNonEmptyArray(k)(ps) : printNothing;
   }
   function fromAtom({ value }) {
-    return print("atom")(printString(value));
+    let chr = value;
+    if (value === "p") {
+      chr = "\u{1F427}";
+    }
+    if (value === "q") {
+      chr = "\u{1F99C}";
+    }
+    if (value === "r") {
+      chr = "\u{1F9A2}";
+    }
+    if (value === "s") {
+      chr = "\u{1F986}";
+    }
+    return print("atom")(printString(chr));
   }
   function fromFalsum(_falsum) {
     return print("falsum")();
@@ -581,13 +593,13 @@
         case "scr":
           return "CR";
         case "SRotLF":
-          return "\u21B7L";
-        case "SRotRF":
-          return "\u21B6R";
-        case "SRotLB":
           return "\u21B6L";
-        case "SRotRB":
+        case "SRotRF":
           return "\u21B7R";
+        case "SRotLB":
+          return "\u21B7L";
+        case "SRotRB":
+          return "\u21B6R";
         case "sxl":
           return "XL";
         case "sxr":
@@ -1320,69 +1332,309 @@
     i: iota,
     z: zeta
   };
-  var revs = (d, p) => entries(rev).flatMap(([rev2, ed]) => {
+  var revs = (d, p) => entries(rev).flatMap(([rev29, ed]) => {
     const result = editDerivation(d, p, ed);
     if (result) {
-      return [[rev2, result]];
+      return [[rev29, result]];
     }
     return [];
   });
 
   // src/interactive/event.ts
-  var reverse = (rev2) => ({
+  var reverse = (rev29) => ({
     kind: "reverse",
-    rev: rev2
+    rev: rev29
   });
 
-  // src/theorems/harmaa-puolukka-tiikeri.ts
-  var harmaaPuolukkaTiikeri = {
-    rules: Object.keys(rev).filter((r) => ["ir", "swl", "i"].includes(r)),
-    goal: conclusion(
-      lk.o.p2.implication(
-        lk.o.p2.implication(
-          lk.a("p"),
-          lk.o.p2.implication(lk.a("q"), lk.o.p1.negation(lk.a("p")))
-        ),
-        lk.o.p2.implication(lk.a("p"), lk.a("p"))
-      )
-    ),
-    solution: lk.z.ir(
-      lk.z.swl(
-        lk.o.p2.implication(
-          lk.a("p"),
-          lk.o.p2.implication(lk.a("q"), lk.o.p1.negation(lk.a("p")))
-        ),
-        lk.z.ir(lk.i.i(lk.a("p")))
-      )
+  // src/theorems/ch0-identity-1.ts
+  var ch0identity1 = {
+    rules: ["i"],
+    goal: judgement([lk.a("p")], [lk.a("p")])
+  };
+
+  // src/theorems/ch0-identity-2.ts
+  var ch0identity2 = {
+    rules: ["i"],
+    goal: judgement([lk.a("q")], [lk.a("q")])
+  };
+
+  // src/theorems/ch0-identity-3.ts
+  var ch0identity3 = {
+    rules: ["i"],
+    goal: judgement([lk.o.p1.negation(lk.a("p"))], [lk.o.p1.negation(lk.a("p"))])
+  };
+
+  // src/theorems/ch0-identity-4.ts
+  var ch0identity4 = {
+    rules: ["i"],
+    goal: judgement(
+      [lk.o.p2.conjunction(lk.a("p"), lk.a("q"))],
+      [lk.o.p2.conjunction(lk.a("p"), lk.a("q"))]
     )
   };
 
-  // src/theorems/violetti-luumu-biisoni.ts
-  var violettiLuumuBiisoni = {
-    rules: Object.keys(rev),
-    goal: conclusion(lk.o.p2.implication(lk.a("p"), lk.a("p")))
+  // src/theorems/ch0-identity-5.ts
+  var ch0identity5 = {
+    rules: ["i"],
+    goal: judgement(
+      [lk.o.p2.disjunction(lk.a("p"), lk.a("q"))],
+      [lk.o.p2.disjunction(lk.a("p"), lk.a("q"))]
+    )
   };
 
-  // src/theorems/syaani-paprika-kettu.ts
-  var syaaniPaprikaKettu = {
-    rules: Object.keys(rev),
-    goal: conclusion(
-      lk.o.p2.implication(
-        lk.o.p2.conjunction(
-          lk.o.p2.implication(lk.a("p"), lk.a("q")),
-          lk.o.p2.disjunction(lk.o.p1.negation(lk.a("q")), lk.a("r"))
-        ),
-        lk.o.p2.disjunction(lk.o.p1.negation(lk.a("p")), lk.a("r"))
-      )
+  // src/theorems/ch0-identity-6.ts
+  var ch0identity6 = {
+    rules: ["i"],
+    goal: judgement(
+      [lk.o.p2.implication(lk.a("p"), lk.a("q"))],
+      [lk.o.p2.implication(lk.a("p"), lk.a("q"))]
+    )
+  };
+
+  // src/theorems/ch0-identity-7.ts
+  var ch0identity7 = {
+    rules: ["i"],
+    goal: judgement(
+      [lk.o.p2.conjunction(lk.a("p"), lk.o.p1.negation(lk.a("q")))],
+      [lk.o.p2.conjunction(lk.a("p"), lk.o.p1.negation(lk.a("q")))]
+    )
+  };
+
+  // src/theorems/ch0-identity-8.ts
+  var ch0identity8 = {
+    rules: ["i"],
+    goal: judgement(
+      [
+        lk.o.p2.implication(
+          lk.o.p2.disjunction(lk.a("p"), lk.a("q")),
+          lk.o.p2.conjunction(lk.a("p"), lk.a("q"))
+        )
+      ],
+      [
+        lk.o.p2.implication(
+          lk.o.p2.disjunction(lk.a("p"), lk.a("q")),
+          lk.o.p2.conjunction(lk.a("p"), lk.a("q"))
+        )
+      ]
+    )
+  };
+
+  // src/theorems/ch0-identity-9.ts
+  var ch0identity9 = {
+    rules: ["i"],
+    goal: judgement(
+      [
+        lk.o.p2.implication(
+          lk.o.p2.disjunction(lk.a("p"), lk.o.p1.negation(lk.a("q"))),
+          lk.o.p1.negation(lk.o.p2.conjunction(lk.a("r"), lk.a("s")))
+        )
+      ],
+      [
+        lk.o.p2.implication(
+          lk.o.p2.disjunction(lk.a("p"), lk.o.p1.negation(lk.a("q"))),
+          lk.o.p1.negation(lk.o.p2.conjunction(lk.a("r"), lk.a("s")))
+        )
+      ]
+    )
+  };
+
+  // src/theorems/ch1-weakening-1.ts
+  var ch1weakening1 = {
+    rules: ["i", "swl"],
+    goal: judgement([lk.a("p"), lk.a("q")], [lk.a("p")])
+  };
+
+  // src/theorems/ch1-weakening-2.ts
+  var ch1weakening2 = {
+    rules: ["i", "swr"],
+    goal: judgement([lk.a("p")], [lk.a("q"), lk.a("p")])
+  };
+
+  // src/theorems/ch1-weakening-3.ts
+  var ch1weakening3 = {
+    rules: ["i", "swl", "swr"],
+    goal: judgement([lk.a("p"), lk.a("q")], [lk.a("q"), lk.a("p")])
+  };
+
+  // src/theorems/ch1-weakening-4.ts
+  var ch1weakening4 = {
+    rules: ["i", "swl", "swr"],
+    goal: judgement(
+      [lk.a("q"), lk.o.p2.conjunction(lk.a("p"), lk.a("q"))],
+      [lk.o.p2.conjunction(lk.a("q"), lk.a("p")), lk.a("q")]
+    )
+  };
+
+  // src/theorems/ch1-weakening-5.ts
+  var ch1weakening5 = {
+    rules: ["i", "swl", "swr"],
+    goal: judgement(
+      [lk.o.p2.conjunction(lk.a("p"), lk.a("q")), lk.a("p")],
+      [lk.a("q"), lk.o.p2.conjunction(lk.a("p"), lk.a("q"))]
+    )
+  };
+
+  // src/theorems/ch1-weakening-6.ts
+  var ch1weakening6 = {
+    rules: ["i", "swl", "swr"],
+    goal: judgement(
+      [lk.a("p"), lk.a("q"), lk.a("q"), lk.a("p")],
+      [lk.a("p"), lk.a("q"), lk.a("q"), lk.a("p")]
+    )
+  };
+
+  // src/theorems/ch1-weakening-7.ts
+  var ch1weakening7 = {
+    rules: ["i", "swl", "swr"],
+    goal: judgement(
+      [
+        lk.o.p2.implication(
+          lk.o.p2.disjunction(lk.a("p"), lk.a("q")),
+          lk.o.p2.conjunction(lk.a("p"), lk.a("q"))
+        )
+      ],
+      [
+        lk.o.p2.implication(
+          lk.o.p2.disjunction(lk.a("p"), lk.a("q")),
+          lk.o.p2.conjunction(lk.a("p"), lk.a("q"))
+        )
+      ]
+    )
+  };
+
+  // src/theorems/ch1-weakening-8.ts
+  var ch1weakening8 = {
+    rules: ["i", "swl", "swr"],
+    goal: judgement(
+      [lk.a("p"), lk.o.p2.implication(lk.a("q"), lk.a("p")), lk.a("q")],
+      [lk.a("q"), lk.o.p2.implication(lk.a("q"), lk.a("p")), lk.a("p")]
+    )
+  };
+
+  // src/theorems/ch1-weakening-9.ts
+  var ch1weakening9 = {
+    rules: ["i", "swl", "swr"],
+    goal: judgement(
+      [lk.a("s"), lk.a("r"), lk.a("q"), lk.a("p")],
+      [lk.a("p"), lk.a("q"), lk.a("r"), lk.a("s")]
+    )
+  };
+
+  // src/theorems/ch2-permutation-1.ts
+  var ch2permutation1 = {
+    rules: ["i", "swl", "sRotLB", "sRotLF"],
+    goal: judgement(
+      [lk.a("p"), lk.a("p"), lk.a("p"), lk.a("q"), lk.a("p"), lk.a("p")],
+      [lk.a("q")]
+    )
+  };
+
+  // src/theorems/ch2-permutation-2.ts
+  var ch2permutation2 = {
+    rules: ["i", "swr", "sRotRB", "sRotRF"],
+    goal: judgement(
+      [lk.a("q")],
+      [lk.a("p"), lk.a("p"), lk.a("p"), lk.a("q"), lk.a("p"), lk.a("p")]
+    )
+  };
+
+  // src/theorems/ch2-permutation-3.ts
+  var ch2permutation3 = {
+    rules: ["i", "swl", "sRotLB", "sRotLF", "swr", "sRotRB", "sRotRF"],
+    goal: judgement(
+      [lk.a("p"), lk.a("p"), lk.a("p"), lk.a("q"), lk.a("p"), lk.a("p")],
+      [lk.a("p"), lk.a("p"), lk.a("p"), lk.a("q"), lk.a("p"), lk.a("p")]
+    )
+  };
+
+  // src/theorems/ch2-permutation-4.ts
+  var ch2permutation4 = {
+    rules: ["i", "swl", "sRotLB", "sRotLF", "swr", "sRotRB", "sRotRF"],
+    goal: judgement(
+      [lk.a("s"), lk.a("r"), lk.a("q"), lk.a("p")],
+      [lk.a("s"), lk.a("r"), lk.a("q"), lk.a("p")]
+    )
+  };
+
+  // src/theorems/ch2-permutation-5.ts
+  var ch2permutation5 = {
+    rules: ["i", "swl", "sRotLB", "sRotLF", "swr", "sRotRB", "sRotRF"],
+    goal: judgement(
+      [lk.o.p2.conjunction(lk.a("p"), lk.a("q")), lk.o.p2.conjunction(lk.a("p"), lk.a("q"))],
+      [lk.o.p2.conjunction(lk.a("p"), lk.a("q")), lk.o.p2.disjunction(lk.a("p"), lk.a("q"))]
+    )
+  };
+
+  // src/theorems/ch2-permutation-6.ts
+  var ch2permutation6 = {
+    rules: ["i", "swl", "sRotLB", "sRotLF", "swr", "sRotRB", "sRotRF"],
+    goal: judgement(
+      [lk.o.p2.conjunction(lk.a("q"), lk.a("s")), lk.o.p2.conjunction(lk.a("q"), lk.a("s")), lk.o.p2.conjunction(lk.a("q"), lk.a("s"))],
+      [lk.o.p2.conjunction(lk.a("q"), lk.a("s")), lk.o.p2.conjunction(lk.a("s"), lk.a("q")), lk.o.p2.conjunction(lk.a("s"), lk.a("q"))]
+    )
+  };
+
+  // src/theorems/ch2-permutation-7.ts
+  var ch2permutation7 = {
+    rules: ["i", "swl", "sRotLB", "sRotLF", "swr", "sRotRB", "sRotRF"],
+    goal: judgement(
+      [lk.o.p2.implication(lk.a("q"), lk.a("p")), lk.o.p2.implication(lk.a("p"), lk.a("s")), lk.o.p2.implication(lk.a("s"), lk.a("r"))],
+      [lk.o.p2.implication(lk.a("r"), lk.a("p")), lk.o.p2.implication(lk.a("p"), lk.a("s")), lk.o.p2.implication(lk.a("s"), lk.a("q"))]
+    )
+  };
+
+  // src/theorems/ch2-permutation-8.ts
+  var ch2permutation8 = {
+    rules: ["i", "swl", "sRotLB", "sRotLF", "swr", "sRotRB", "sRotRF"],
+    goal: judgement(
+      [lk.o.p2.conjunction(lk.a("s"), lk.a("q")), lk.a("r"), lk.o.p2.implication(lk.a("q"), lk.a("p")), lk.o.p1.negation(lk.a("r"))],
+      [lk.o.p1.negation(lk.a("p")), lk.o.p2.implication(lk.a("s"), lk.a("q")), lk.o.p1.negation(lk.a("r")), lk.o.p2.disjunction(lk.a("q"), lk.a("p"))]
+    )
+  };
+
+  // src/theorems/ch2-permutation-9.ts
+  var ch2permutation9 = {
+    rules: ["i", "swl", "sRotLB", "sRotLF", "swr", "sRotRB", "sRotRF"],
+    goal: judgement(
+      [lk.a("p"), lk.o.p1.negation(lk.a("p")), lk.a("q"), lk.a("r")],
+      [lk.o.p1.negation(lk.a("q")), lk.o.p1.negation(lk.a("p")), lk.a("s"), lk.o.p1.negation(lk.a("r"))]
     )
   };
 
   // src/theorems/index.ts
   var theorems = {
-    harmaaPuolukkaTiikeri,
-    violettiLuumuBiisoni,
-    syaaniPaprikaKettu
+    ch0identity1,
+    ch0identity2,
+    ch0identity3,
+    ch0identity4,
+    ch0identity5,
+    ch0identity6,
+    ch0identity7,
+    ch0identity8,
+    ch0identity9,
+    ch1weakening1,
+    ch1weakening2,
+    ch1weakening3,
+    ch1weakening4,
+    ch1weakening5,
+    ch1weakening6,
+    ch1weakening7,
+    ch1weakening8,
+    ch1weakening9,
+    ch2permutation1,
+    ch2permutation2,
+    ch2permutation3,
+    ch2permutation4,
+    ch2permutation5,
+    ch2permutation6,
+    ch2permutation7,
+    ch2permutation8,
+    ch2permutation9
+    // harmaaPuolukkaTiikeri,
+    // violettiLuumuBiisoni,
+    // syaaniPaprikaKettu,
   };
+  var isTheoremKey = (k) => k in theorems;
 
   // src/web.ts
   var main = {
@@ -1396,8 +1648,8 @@
     nl: fromDerivation(exampleNL),
     scl: fromDerivation(exampleSCL),
     swl: fromDerivation(exampleSWL),
-    //sxl: fromDerivation(exampleSXL),
-    //sRotLB: fromDerivation(exampleSRotLB),
+    //sxl: fromDerivation(exampleSXL), not relevant for reverse
+    sRotLB: fromDerivation(exampleSRotLB),
     sRotLF: fromDerivation(exampleSRotLF)
   };
   var right2 = {
@@ -1408,34 +1660,45 @@
     nr: fromDerivation(exampleNR),
     scr: fromDerivation(exampleSCR),
     swr: fromDerivation(exampleSWR),
-    //sxr: fromDerivation(exampleSXR),
-    //sRotRB: fromDerivation(exampleSRotRB),
+    //sxr: fromDerivation(exampleSXR), not relevant for reverse
+    sRotRB: fromDerivation(exampleSRotRB),
     sRotRF: fromDerivation(exampleSRotRF)
   };
-  var controls = [
-    "prev",
-    "undo",
-    "reset",
-    "level",
-    "next"
-  ];
+  var controls = ["prev", "undo", "reset", "level", "next"];
   var workspace = {};
   var selected = null;
   var isDone = false;
-  var status = (s) => "\n" + fromFocus(s) + "\n" + (isDone ? "\n\n\u{1F389} Conglaturations! \u{1F389}\n" : "");
+  var status = (s) => "\n" + fromFocus(s) + "\n";
   var listing = () => {
     const shroud = document.createElement("div");
+    shroud.onclick = (click) => {
+      click.preventDefault();
+      shroud.setAttribute("style", "display: none;");
+    };
     shroud.setAttribute("class", "shroud");
     shroud.setAttribute("style", "display: none;");
     shroud.setAttribute("id", "levelmenu");
     const panel = document.createElement("div");
+    panel.onclick = (click) => {
+      click.preventDefault();
+      return false;
+    };
+    const close = document.createElement("a");
+    close.setAttribute("class", "close");
+    close.innerHTML = "\u2716";
+    close.onclick = (click) => {
+      click.preventDefault();
+      shroud.setAttribute("style", "display: none;");
+    };
+    panel.appendChild(close);
     panel.setAttribute("class", "levels");
     Object.keys(theorems).forEach((id) => {
       const item = document.createElement("div");
       const link = document.createElement("a");
       link.setAttribute("class", id === selected ? "active" : "");
       link.setAttribute("href", "#");
-      link.onclick = () => {
+      link.onclick = (click) => {
+        click.preventDefault();
         selectLevel(id);
       };
       link.innerHTML = id;
@@ -1446,10 +1709,35 @@
     return shroud;
   };
   var level = (s) => {
+    const panel = document.createElement("div");
+    panel.setAttribute("class", "playarea");
+    if (isDone) {
+      const congrats = document.createElement("div");
+      congrats.setAttribute("class", "congrats");
+      const hurray = document.createElement("div");
+      hurray.setAttribute("class", "hurray");
+      hurray.innerHTML = "\n\n\u{1F389} Conglaturations! \u{1F389}\n";
+      congrats.appendChild(hurray);
+      const congratsButtons = document.createElement("div");
+      congratsButtons.setAttribute("class", "congrabuttons");
+      const againbutton = document.createElement("div");
+      againbutton.setAttribute("class", "button");
+      againbutton.innerHTML = "Play Again";
+      againbutton.onclick = resetHandler();
+      congratsButtons.appendChild(againbutton);
+      const continueButton = document.createElement("div");
+      continueButton.setAttribute("class", "button");
+      continueButton.innerHTML = "Next Level";
+      continueButton.onclick = () => nextLevel();
+      congratsButtons.appendChild(continueButton);
+      panel.appendChild(congrats);
+      panel.appendChild(congratsButtons);
+    }
     const pre = document.createElement("pre");
     pre.setAttribute("class", "status");
     pre.innerHTML = status(s);
-    return pre;
+    panel.appendChild(pre);
+    return panel;
   };
   var ruleHandler = (ev) => () => {
     if (!selected) {
@@ -1631,10 +1919,39 @@
       workspace[conjectureId] = focus(premise(theorems[conjectureId].goal));
     }
     selected = conjectureId;
+    history.pushState({ selected }, "", `?level=${selected}`);
     render();
   };
+  var first = "ch0identity1";
+  var nextLevelId = () => {
+    if (!selected) {
+      return first;
+    }
+    const theoremKeys = Object.keys(theorems);
+    const index = theoremKeys.findIndex((x) => x === selected);
+    if (index < 0) {
+      return first;
+    }
+    return theoremKeys[index + 1] ?? first;
+  };
+  var nextLevel = () => {
+    selectLevel(nextLevelId());
+  };
   var init3 = () => {
-    selectLevel("harmaaPuolukkaTiikeri");
+    const params = new URLSearchParams(window.location.search);
+    const level2 = params.get("level");
+    if (level2 && isTheoremKey(level2)) {
+      selectLevel(level2);
+    } else {
+      nextLevel();
+    }
   };
   document.addEventListener("DOMContentLoaded", init3);
+  window.addEventListener("popstate", (event) => {
+    const level2 = event.state?.selected;
+    if (level2 && isTheoremKey(level2)) {
+      selectLevel(level2);
+    }
+    render();
+  });
 })();
