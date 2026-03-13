@@ -435,7 +435,7 @@
       chr = "\u{1F99C}";
     }
     if (value === "r") {
-      chr = "\u{1F9A2}";
+      chr = "\u{1F983}";
     }
     if (value === "s") {
       chr = "\u{1F986}";
@@ -1332,18 +1332,18 @@
     i: iota,
     z: zeta
   };
-  var revs = (d, p) => entries(rev).flatMap(([rev29, ed]) => {
+  var revs = (d, p) => entries(rev).flatMap(([rev38, ed]) => {
     const result = editDerivation(d, p, ed);
     if (result) {
-      return [[rev29, result]];
+      return [[rev38, result]];
     }
     return [];
   });
 
   // src/interactive/event.ts
-  var reverse = (rev29) => ({
+  var reverse = (rev38) => ({
     kind: "reverse",
-    rev: rev29
+    rev: rev38
   });
 
   // src/theorems/ch0-identity-1.ts
@@ -1601,6 +1601,137 @@
     )
   };
 
+  // src/theorems/ch3-negation-1.ts
+  var ch3negation1 = {
+    rules: ["i", "nl"],
+    goal: judgement([lk.a("r"), lk.o.p1.negation(lk.a("r"))], [])
+  };
+
+  // src/theorems/ch3-negation-2.ts
+  var ch3negation2 = {
+    rules: ["i", "nr"],
+    goal: judgement([], [lk.o.p1.negation(lk.a("r")), lk.a("r")])
+  };
+
+  // src/theorems/ch3-negation-3.ts
+  var ch3negation3 = {
+    rules: ["i", "nl", "nr"],
+    goal: judgement([lk.o.p1.negation(lk.o.p1.negation(lk.a("q")))], [lk.a("q")])
+  };
+
+  // src/theorems/ch3-negation-4.ts
+  var ch3negation4 = {
+    rules: ["i", "nl", "nr"],
+    goal: judgement([
+      lk.o.p1.negation(lk.o.p1.negation(lk.a("s")))
+    ], [
+      lk.o.p1.negation(lk.o.p1.negation(lk.o.p1.negation(lk.o.p1.negation(lk.a("s")))))
+    ])
+  };
+
+  // src/theorems/ch3-negation-5.ts
+  var ch3negation5 = {
+    rules: ["i", "nl", "swl", "nr", "swr", "sRotLF", "sRotRF"],
+    goal: judgement([
+      lk.o.p1.negation(lk.o.p1.negation(lk.a("p"))),
+      lk.o.p1.negation(lk.o.p1.negation(lk.o.p1.negation(lk.a("p"))))
+    ], [
+      lk.o.p1.negation(lk.o.p1.negation(lk.a("p"))),
+      lk.o.p1.negation(lk.o.p1.negation(lk.o.p1.negation(lk.a("p"))))
+    ])
+  };
+
+  // src/theorems/ch3-negation-6.ts
+  var ch3negation6 = {
+    rules: ["i", "nl", "swl", "nr", "swr"],
+    goal: judgement([
+      lk.o.p1.negation(lk.o.p1.negation(lk.a("p"))),
+      lk.o.p1.negation(lk.o.p1.negation(lk.o.p1.negation(lk.a("p"))))
+    ], [
+      lk.o.p1.negation(lk.o.p1.negation(lk.a("p"))),
+      lk.o.p1.negation(lk.o.p1.negation(lk.o.p1.negation(lk.a("p"))))
+    ])
+  };
+
+  // src/theorems/ch3-negation-7.ts
+  var ch3negation7 = {
+    rules: ["i", "nl", "nr"],
+    goal: judgement([
+      lk.o.p1.negation(
+        lk.o.p1.negation(
+          lk.o.p2.conjunction(lk.a("p"), lk.a("q"))
+        )
+      )
+    ], [
+      lk.o.p1.negation(
+        lk.o.p1.negation(
+          lk.o.p1.negation(
+            lk.o.p1.negation(
+              lk.o.p2.conjunction(lk.a("p"), lk.a("q"))
+            )
+          )
+        )
+      )
+    ])
+  };
+
+  // src/theorems/ch3-negation-8.ts
+  var ch3negation8 = {
+    rules: ["i", "nl", "nr", "swl", "sRotLB", "sRotLF", "swr", "sRotRB", "sRotRF"],
+    goal: judgement([
+      lk.o.p1.negation(
+        lk.o.p1.negation(
+          lk.a("p")
+        )
+      ),
+      lk.o.p2.conjunction(
+        lk.o.p1.negation(
+          lk.a("p")
+        ),
+        lk.o.p1.negation(
+          lk.a("q")
+        )
+      ),
+      lk.o.p1.negation(
+        lk.o.p1.negation(
+          lk.o.p1.negation(
+            lk.a("q")
+          )
+        )
+      )
+    ], [
+      lk.o.p1.negation(
+        lk.o.p1.negation(
+          lk.o.p1.negation(
+            lk.a("p")
+          )
+        )
+      ),
+      lk.o.p2.conjunction(
+        lk.o.p1.negation(
+          lk.a("p")
+        ),
+        lk.o.p1.negation(
+          lk.a("q")
+        )
+      ),
+      lk.o.p1.negation(
+        lk.o.p1.negation(
+          lk.a("q")
+        )
+      )
+    ])
+  };
+
+  // src/theorems/ch3-negation-9.ts
+  var ch3negation9 = {
+    rules: ["i", "nl", "nr", "swl", "sRotLB", "sRotLF", "swr", "sRotRB", "sRotRF"],
+    goal: judgement(
+      [lk.o.p1.negation(lk.a("p")), lk.o.p1.negation(lk.a("s")), lk.o.p1.negation(lk.a("p")), lk.a("r")],
+      [lk.a("q"), lk.o.p1.negation(lk.a("q")), lk.a("s"), lk.o.p1.negation(lk.a("r"))]
+    )
+  };
+
   // src/theorems/index.ts
   var theorems = {
     ch0identity1,
@@ -1629,7 +1760,16 @@
     ch2permutation6,
     ch2permutation7,
     ch2permutation8,
-    ch2permutation9
+    ch2permutation9,
+    ch3negation1,
+    ch3negation2,
+    ch3negation3,
+    ch3negation4,
+    ch3negation5,
+    ch3negation6,
+    ch3negation7,
+    ch3negation8,
+    ch3negation9
     // harmaaPuolukkaTiikeri,
     // violettiLuumuBiisoni,
     // syaaniPaprikaKettu,
