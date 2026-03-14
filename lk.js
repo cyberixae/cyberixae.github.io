@@ -9,21 +9,25 @@
     kind: "negation",
     negand
   });
+  var isNegation = (p) => p.kind === "negation";
   var implication = (antecedent, consequent) => ({
     kind: "implication",
     antecedent,
     consequent
   });
+  var isImplication = (p) => p.kind === "implication";
   var conjunction = (leftConjunct, rightConjunct) => ({
     kind: "conjunction",
     leftConjunct,
     rightConjunct
   });
+  var isConjunction = (p) => p.kind === "conjunction";
   var disjunction = (leftDisjunct, rightDisjunct) => ({
     kind: "disjunction",
     leftDisjunct,
     rightDisjunct
   });
+  var isDisjunction = (p) => p.kind === "disjunction";
   var equals = (a, b) => {
     switch (a.kind) {
       case "atom":
@@ -42,6 +46,11 @@
         return b.kind === "disjunction" && equals(b.leftDisjunct, a.leftDisjunct) && equals(b.rightDisjunct, a.rightDisjunct);
     }
   };
+
+  // src/utils/utils.ts
+  function assertNever(_n, s = "Unexpected value") {
+    throw new Error(s);
+  }
 
   // src/utils/array.ts
   var isNonEmptyArray = (a) => {
@@ -66,28 +75,6 @@
     return tmp;
   };
 
-  // src/utils/tuple.ts
-  var head = (a) => {
-    const [h] = a;
-    return h;
-  };
-  var tail = (a) => {
-    const [_h, ...t] = a;
-    return t;
-  };
-  var init2 = (a) => {
-    return a.slice(0, -1);
-  };
-  var last = (a) => {
-    return a[a.length - 1];
-  };
-  var isTupleOf1 = (arr) => arr.length === 1;
-
-  // src/utils/utils.ts
-  function assertNever(_n, s = "Unexpected value") {
-    throw new Error(s);
-  }
-
   // src/render/block.ts
   var space = " ";
   function split(s, d) {
@@ -98,16 +85,16 @@
     return [s];
   }
   function align(a, b) {
-    const last2 = lastLine(a);
-    if (last2.trim().length < 1) {
+    const last3 = lastLine(a);
+    if (last3.trim().length < 1) {
       return null;
     }
     const [first2, ...rest] = split(b, "\n");
-    if (first2.trim() !== last2.trim()) {
+    if (first2.trim() !== last3.trim()) {
       return null;
     }
-    const topLeft = Math.abs(last2.trimStart().length - last2.length);
-    const topRight = Math.abs(last2.trimEnd().length - last2.length);
+    const topLeft = Math.abs(last3.trimStart().length - last3.length);
+    const topRight = Math.abs(last3.trimEnd().length - last3.length);
     const bottomLeft = Math.abs(first2.trimStart().length - first2.length);
     const bottomRight = Math.abs(first2.trimEnd().length - first2.length);
     const top = margin(
@@ -174,10 +161,10 @@
   }
   function tree(root, branches, note, lineWidth) {
     const line1 = center(lineWidth)(spaced(branches, 2));
-    const last2 = center(lineWidth)(lastLine(line1).trim());
+    const last3 = center(lineWidth)(lastLine(line1).trim());
     const line2 = spaced([line(lineWidth), note]);
     const line3 = center(lineWidth)(root);
-    const aligned = align(line1, pad(leftify(last2, line2, line3)));
+    const aligned = align(line1, pad(leftify(last3, line2, line3)));
     if (aligned) {
       return aligned;
     }
@@ -196,15 +183,45 @@
     return tree(root, branches, note, contentWidth);
   }
 
-  // src/model/judgement.ts
+  // src/utils/tuple.ts
+  var head = (a) => {
+    const [h] = a;
+    return h;
+  };
+  var tail = (a) => {
+    const [_h, ...t] = a;
+    return t;
+  };
+  var init2 = (a) => {
+    return a.slice(0, -1);
+  };
+  var last = (a) => {
+    return a[a.length - 1];
+  };
+  var isTupleOf1 = (arr) => arr.length === 1;
+
+  // src/model/sequent.ts
   var equalFormulas = (aa, ab) => {
     return aa.length === ab.length && zip(aa, ab).every(([a, b]) => equals(a, b));
   };
-  var judgement = (antecedent, succedent) => ({
-    kind: "judgement",
+  var sequent = (antecedent, succedent) => ({
+    kind: "sequent",
     antecedent,
     succedent
   });
+  var isActiveL = (j) => {
+    return isNonEmptyArray(j.antecedent);
+  };
+  var refineActiveL = (r) => (j) => {
+    return isActiveL(j) && r(last(j.antecedent));
+  };
+  var isActiveR = (j) => {
+    return isNonEmptyArray(j.succedent);
+  };
+  var refineActiveR = (r) => (j) => {
+    return isActiveR(j) && r(head(j.succedent));
+  };
+  var conclusion = (proposition) => sequent([], [proposition]);
   var equals2 = (a, b) => {
     return equalFormulas(a.antecedent, b.antecedent) && equalFormulas(a.succedent, b.succedent);
   };
@@ -546,8 +563,8 @@
   function fromFormulas(formulas) {
     return printArray("formulas")(formulas.map(fromProp));
   }
-  function fromSequent(judgement2) {
-    const { antecedent, succedent } = judgement2;
+  function fromSequent(judgement) {
+    const { antecedent, succedent } = judgement;
     return (t) => print("sequent")(
       fromFormulas(antecedent),
       fromFormulas(succedent)
@@ -564,6 +581,8 @@
   function fromRule(s) {
     return (t) => {
       switch (s) {
+        case "i":
+          return "I";
         case "cl1":
           return t.conjunction.join(empty) + left2("\u2081");
         case "dr1":
@@ -592,13 +611,13 @@
           return "CL";
         case "scr":
           return "CR";
-        case "SRotLF":
+        case "sRotLF":
           return "\u21B6L";
-        case "SRotRF":
+        case "sRotRF":
           return "\u21B7R";
-        case "SRotLB":
+        case "sRotLB":
           return "\u21B7L";
-        case "SRotRB":
+        case "sRotRB":
           return "\u21B6R";
         case "sxl":
           return "XL";
@@ -637,41 +656,31 @@
   // src/utils/record.ts
   var entries = (s) => Object.entries(s);
 
-  // src/systems/lk.ts
-  var atom2 = atom;
-  var negation2 = (n) => negation(n);
-  var isNegation = (p) => p.kind === "negation";
-  var implication2 = (a, c) => implication(a, c);
-  var isImplication = (p) => p.kind === "implication";
-  var conjunction2 = (l, r) => conjunction(l, r);
-  var isConjunction = (p) => p.kind === "conjunction";
-  var disjunction2 = (l, r) => disjunction(l, r);
-  var isDisjunction = (p) => p.kind === "disjunction";
-  var isActiveL = (j) => {
-    return isNonEmptyArray(j.antecedent);
-  };
-  var refineActiveL = (r) => (j) => {
-    return isActiveL(j) && r(last(j.antecedent));
-  };
-  var isActiveR = (j) => {
-    return isNonEmptyArray(j.succedent);
-  };
-  var refineActiveR = (r) => (j) => {
-    return isActiveR(j) && r(head(j.succedent));
-  };
+  // src/rules/i.ts
   var isIResult = (s) => {
     return isTupleOf1(s.antecedent) && isTupleOf1(s.succedent) && equals(s.antecedent[0], s.succedent[0]);
   };
   var isIResultDerivation = refineDerivation(isIResult);
-  var i = (result) => introduction(result, "I");
-  var applyI = (a) => i(judgement([a], [a]));
+  var i = (result) => introduction(result, "i");
+  var applyI = (a) => i(sequent([a], [a]));
   var reverseI = (p) => {
     return i(p.result);
   };
   var tryReverseI = (d) => {
     return isIResultDerivation(d) ? reverseI(d) : null;
   };
-  var exampleI = applyI(atom2("A"));
+  var exampleI = applyI(atom("A"));
+  var ruleI = {
+    isResult: isIResult,
+    isResultDerivation: isIResultDerivation,
+    make: i,
+    apply: applyI,
+    reverse: reverseI,
+    tryReverse: tryReverseI,
+    example: exampleI
+  };
+
+  // src/rules/cut.ts
   var isCutResult = (s) => {
     return true;
   };
@@ -682,12 +691,34 @@
   var applyCut = (s1, s2) => {
     const \u03B3 = s1.result.antecedent;
     const \u03B4 = init2(s1.result.succedent);
-    return cut(judgement(\u03B3, \u03B4), [s1, s2]);
+    return cut(sequent(\u03B3, \u03B4), [s1, s2]);
+  };
+  var reverseCut = (p, a) => {
+    const \u03B3 = p.result.antecedent;
+    const \u03B4 = p.result.succedent;
+    return cut(p.result, [
+      premise(sequent(\u03B3, [...\u03B4, a])),
+      premise(sequent([a, ...\u03B3], \u03B4))
+    ]);
+  };
+  var tryReverseCut = (d, a) => {
+    return isCutResultDerivation(d) ? reverseCut(d, a) : null;
   };
   var exampleCut = applyCut(
-    premise(judgement([atom2("\u0393")], [atom2("\u0394"), atom2("A")])),
-    premise(judgement([atom2("A"), atom2("\u0393")], [atom2("\u0394")]))
+    premise(sequent([atom("\u0393")], [atom("\u0394"), atom("A")])),
+    premise(sequent([atom("A"), atom("\u0393")], [atom("\u0394")]))
   );
+  var ruleCut = {
+    isResult: isCutResult,
+    isResultDerivation: isCutResultDerivation,
+    make: cut,
+    apply: applyCut,
+    reverse: reverseCut,
+    tryReverse: tryReverseCut,
+    example: exampleCut
+  };
+
+  // src/rules/cl1.ts
   var isCL1Result = refineActiveL(isConjunction);
   var isCL1ResultDerivation = refineDerivation(isCL1Result);
   var cl1 = (result, deps) => {
@@ -697,22 +728,33 @@
     const \u03B3 = init2(s.result.antecedent);
     const a = last(s.result.antecedent);
     const \u03B4 = s.result.succedent;
-    return cl1(judgement([...\u03B3, conjunction2(a, b)], \u03B4), [s]);
+    return cl1(sequent([...\u03B3, conjunction(a, b)], \u03B4), [s]);
   };
   var reverseCL1 = (p) => {
     const \u03B3 = init2(p.result.antecedent);
     const acb = last(p.result.antecedent);
     const a = acb.leftConjunct;
     const \u03B4 = p.result.succedent;
-    return cl1(p.result, [premise(judgement([...\u03B3, a], \u03B4))]);
+    return cl1(p.result, [premise(sequent([...\u03B3, a], \u03B4))]);
   };
   var tryReverseCL1 = (d) => {
     return isCL1ResultDerivation(d) ? reverseCL1(d) : null;
   };
   var exampleCL1 = applyCL1(
-    atom2("B"),
-    premise(judgement([atom2("\u0393"), atom2("A")], [atom2("\u0394")]))
+    atom("B"),
+    premise(sequent([atom("\u0393"), atom("A")], [atom("\u0394")]))
   );
+  var ruleCL1 = {
+    isResult: isCL1Result,
+    isResultDerivation: isCL1ResultDerivation,
+    make: cl1,
+    apply: applyCL1,
+    reverse: reverseCL1,
+    tryReverse: tryReverseCL1,
+    example: exampleCL1
+  };
+
+  // src/rules/dr1.ts
   var isDR1Result = (s) => {
     return s.succedent.at(0)?.kind === "disjunction";
   };
@@ -724,22 +766,33 @@
     const \u03B3 = s.result.antecedent;
     const \u03B4 = tail(s.result.succedent);
     const a = head(s.result.succedent);
-    return dr1(judgement(\u03B3, [disjunction2(a, b), ...\u03B4]), [s]);
+    return dr1(sequent(\u03B3, [disjunction(a, b), ...\u03B4]), [s]);
   };
   var reverseDR1 = (p) => {
     const \u03B3 = p.result.antecedent;
     const adb = head(p.result.succedent);
     const a = adb.leftDisjunct;
     const \u03B4 = tail(p.result.succedent);
-    return dr1(p.result, [premise(judgement(\u03B3, [a, ...\u03B4]))]);
+    return dr1(p.result, [premise(sequent(\u03B3, [a, ...\u03B4]))]);
   };
   var tryReverseDR1 = (d) => {
     return isDR1ResultDerivation(d) ? reverseDR1(d) : null;
   };
   var exampleDR1 = applyDR1(
-    atom2("B"),
-    premise(judgement([atom2("\u0393")], [atom2("A"), atom2("\u0394")]))
+    atom("B"),
+    premise(sequent([atom("\u0393")], [atom("A"), atom("\u0394")]))
   );
+  var ruleDR1 = {
+    isResult: isDR1Result,
+    isResultDerivation: isDR1ResultDerivation,
+    make: dr1,
+    apply: applyDR1,
+    reverse: reverseDR1,
+    tryReverse: tryReverseDR1,
+    example: exampleDR1
+  };
+
+  // src/rules/cl2.ts
   var isCL2Result = refineActiveL(isConjunction);
   var isCL2ResultDerivation = refineDerivation(isCL2Result);
   var cl2 = (result, deps) => {
@@ -749,22 +802,33 @@
     const \u03B3 = init2(s.result.antecedent);
     const b = last(s.result.antecedent);
     const \u03B4 = s.result.succedent;
-    return cl2(judgement([...\u03B3, conjunction2(a, b)], \u03B4), [s]);
+    return cl2(sequent([...\u03B3, conjunction(a, b)], \u03B4), [s]);
   };
   var reverseCL2 = (p) => {
     const \u03B3 = init2(p.result.antecedent);
     const acb = last(p.result.antecedent);
     const b = acb.rightConjunct;
     const \u03B4 = p.result.succedent;
-    return cl2(p.result, [premise(judgement([...\u03B3, b], \u03B4))]);
+    return cl2(p.result, [premise(sequent([...\u03B3, b], \u03B4))]);
   };
   var tryReverseCL2 = (d) => {
     return isCL2ResultDerivation(d) ? reverseCL2(d) : null;
   };
   var exampleCL2 = applyCL2(
-    atom2("A"),
-    premise(judgement([atom2("\u0393"), atom2("B")], [atom2("\u0394")]))
+    atom("A"),
+    premise(sequent([atom("\u0393"), atom("B")], [atom("\u0394")]))
   );
+  var ruleCL2 = {
+    isResult: isCL2Result,
+    isResultDerivation: isCL2ResultDerivation,
+    make: cl2,
+    apply: applyCL2,
+    reverse: reverseCL2,
+    tryReverse: tryReverseCL2,
+    example: exampleCL2
+  };
+
+  // src/rules/dr2.ts
   var isDR2Result = (s) => {
     return s.succedent.at(0)?.kind === "disjunction";
   };
@@ -776,22 +840,33 @@
     const \u03B3 = s.result.antecedent;
     const \u03B4 = tail(s.result.succedent);
     const b = head(s.result.succedent);
-    return dr2(judgement(\u03B3, [disjunction2(a, b), ...\u03B4]), [s]);
+    return dr2(sequent(\u03B3, [disjunction(a, b), ...\u03B4]), [s]);
   };
   var reverseDR2 = (p) => {
     const \u03B3 = p.result.antecedent;
     const adb = head(p.result.succedent);
     const b = adb.rightDisjunct;
     const \u03B4 = tail(p.result.succedent);
-    return dr2(p.result, [premise(judgement(\u03B3, [b, ...\u03B4]))]);
+    return dr2(p.result, [premise(sequent(\u03B3, [b, ...\u03B4]))]);
   };
   var tryReverseDR2 = (d) => {
     return isDR2ResultDerivation(d) ? reverseDR2(d) : null;
   };
   var exampleDR2 = applyDR2(
-    atom2("A"),
-    premise(judgement([atom2("\u0393"), atom2("B")], [atom2("\u0394")]))
+    atom("A"),
+    premise(sequent([atom("\u0393"), atom("B")], [atom("\u0394")]))
   );
+  var ruleDR2 = {
+    isResult: isDR2Result,
+    isResultDerivation: isDR2ResultDerivation,
+    make: dr2,
+    apply: applyDR2,
+    reverse: reverseDR2,
+    tryReverse: tryReverseDR2,
+    example: exampleDR2
+  };
+
+  // src/rules/dl.ts
   var isDLResult = refineActiveL(isDisjunction);
   var isDLResultDerivation = refineDerivation(isDLResult);
   var dl = (result, deps) => {
@@ -802,7 +877,7 @@
     const a = last(s1.result.antecedent);
     const b = last(s2.result.antecedent);
     const \u03B4 = s1.result.succedent;
-    return dl(judgement([...\u03B3, disjunction2(a, b)], \u03B4), [s1, s2]);
+    return dl(sequent([...\u03B3, disjunction(a, b)], \u03B4), [s1, s2]);
   };
   var reverseDL = (p) => {
     const \u03B3 = init2(p.result.antecedent);
@@ -811,17 +886,28 @@
     const b = adb.rightDisjunct;
     const \u03B4 = p.result.succedent;
     return dl(p.result, [
-      premise(judgement([...\u03B3, a], \u03B4)),
-      premise(judgement([...\u03B3, b], \u03B4))
+      premise(sequent([...\u03B3, a], \u03B4)),
+      premise(sequent([...\u03B3, b], \u03B4))
     ]);
   };
   var tryReverseDL = (d) => {
     return isDLResultDerivation(d) ? reverseDL(d) : null;
   };
   var exampleDL = applyDL(
-    premise(judgement([atom2("\u0393"), atom2("A")], [atom2("\u0394")])),
-    premise(judgement([atom2("\u0393"), atom2("B")], [atom2("\u0394")]))
+    premise(sequent([atom("\u0393"), atom("A")], [atom("\u0394")])),
+    premise(sequent([atom("\u0393"), atom("B")], [atom("\u0394")]))
   );
+  var ruleDL = {
+    isResult: isDLResult,
+    isResultDerivation: isDLResultDerivation,
+    make: dl,
+    apply: applyDL,
+    reverse: reverseDL,
+    tryReverse: tryReverseDL,
+    example: exampleDL
+  };
+
+  // src/rules/cr.ts
   var isCRResult = refineActiveR(isConjunction);
   var isCRResultDerivation = refineDerivation(isCRResult);
   var cr = (result, deps) => {
@@ -832,7 +918,7 @@
     const a = head(s1.result.succedent);
     const b = head(s2.result.succedent);
     const \u03B4 = tail(s1.result.succedent);
-    return cr(judgement(\u03B3, [conjunction2(a, b), ...\u03B4]), [s1, s2]);
+    return cr(sequent(\u03B3, [conjunction(a, b), ...\u03B4]), [s1, s2]);
   };
   var reverseCR = (p) => {
     const \u03B3 = p.result.antecedent;
@@ -841,17 +927,28 @@
     const b = acb.rightConjunct;
     const \u03B4 = tail(p.result.succedent);
     return cr(p.result, [
-      premise(judgement(\u03B3, [a, ...\u03B4])),
-      premise(judgement(\u03B3, [b, ...\u03B4]))
+      premise(sequent(\u03B3, [a, ...\u03B4])),
+      premise(sequent(\u03B3, [b, ...\u03B4]))
     ]);
   };
   var tryReverseCR = (d) => {
     return isCRResultDerivation(d) ? reverseCR(d) : null;
   };
   var exampleCR = applyCR(
-    premise(judgement([atom2("\u0393")], [atom2("A"), atom2("\u0394")])),
-    premise(judgement([atom2("\u0393")], [atom2("B"), atom2("\u0394")]))
+    premise(sequent([atom("\u0393")], [atom("A"), atom("\u0394")])),
+    premise(sequent([atom("\u0393")], [atom("B"), atom("\u0394")]))
   );
+  var ruleCR = {
+    isResult: isCRResult,
+    isResultDerivation: isCRResultDerivation,
+    make: cr,
+    apply: applyCR,
+    reverse: reverseCR,
+    tryReverse: tryReverseCR,
+    example: exampleCR
+  };
+
+  // src/rules/il.ts
   var isILResult = refineActiveL(isImplication);
   var isILResultDerivation = refineDerivation(isILResult);
   var il = (result, deps) => {
@@ -862,7 +959,7 @@
     const a = head(s1.result.succedent);
     const b = last(s2.result.antecedent);
     const \u03B4 = tail(s1.result.succedent);
-    return il(judgement([...\u03B3, implication2(a, b)], \u03B4), [s1, s2]);
+    return il(sequent([...\u03B3, implication(a, b)], \u03B4), [s1, s2]);
   };
   var reverseIL = (p) => {
     const \u03B3 = init2(p.result.antecedent);
@@ -871,17 +968,28 @@
     const b = aib.consequent;
     const \u03B4 = p.result.succedent;
     return il(p.result, [
-      premise(judgement(\u03B3, [a, ...\u03B4])),
-      premise(judgement([...\u03B3, b], \u03B4))
+      premise(sequent(\u03B3, [a, ...\u03B4])),
+      premise(sequent([...\u03B3, b], \u03B4))
     ]);
   };
   var tryReverseIL = (d) => {
     return isILResultDerivation(d) ? reverseIL(d) : null;
   };
   var exampleIL = applyIL(
-    premise(judgement([atom2("\u0393")], [atom2("A"), atom2("\u0394")])),
-    premise(judgement([atom2("\u0393"), atom2("B")], [atom2("\u0394")]))
+    premise(sequent([atom("\u0393")], [atom("A"), atom("\u0394")])),
+    premise(sequent([atom("\u0393"), atom("B")], [atom("\u0394")]))
   );
+  var ruleIL = {
+    isResult: isILResult,
+    isResultDerivation: isILResultDerivation,
+    make: il,
+    apply: applyIL,
+    reverse: reverseIL,
+    tryReverse: tryReverseIL,
+    example: exampleIL
+  };
+
+  // src/rules/ir.ts
   var isIRResult = refineActiveR(isImplication);
   var isIRResultDerivation = refineDerivation(isIRResult);
   var ir = (result, deps) => {
@@ -892,7 +1000,7 @@
     const a = last(s.result.antecedent);
     const b = head(s.result.succedent);
     const \u03B4 = tail(s.result.succedent);
-    return ir(judgement(\u03B3, [implication2(a, b), ...\u03B4]), [s]);
+    return ir(sequent(\u03B3, [implication(a, b), ...\u03B4]), [s]);
   };
   var reverseIR = (p) => {
     const \u03B3 = p.result.antecedent;
@@ -900,14 +1008,25 @@
     const a = aib.antecedent;
     const b = aib.consequent;
     const \u03B4 = tail(p.result.succedent);
-    return ir(p.result, [premise(judgement([...\u03B3, a], [b, ...\u03B4]))]);
+    return ir(p.result, [premise(sequent([...\u03B3, a], [b, ...\u03B4]))]);
   };
   var tryReverseIR = (d) => {
     return isIRResultDerivation(d) ? reverseIR(d) : null;
   };
   var exampleIR = applyIR(
-    premise(judgement([atom2("\u0393"), atom2("A")], [atom2("B"), atom2("\u0394")]))
+    premise(sequent([atom("\u0393"), atom("A")], [atom("B"), atom("\u0394")]))
   );
+  var ruleIR = {
+    isResult: isIRResult,
+    isResultDerivation: isIRResultDerivation,
+    make: ir,
+    apply: applyIR,
+    reverse: reverseIR,
+    tryReverse: tryReverseIR,
+    example: exampleIR
+  };
+
+  // src/rules/nl.ts
   var isNLResult = refineActiveL(isNegation);
   var isNLResultDerivation = refineDerivation(isNLResult);
   var nl = (result, deps) => {
@@ -917,21 +1036,32 @@
     const \u03B3 = s.result.antecedent;
     const a = head(s.result.succedent);
     const \u03B4 = tail(s.result.succedent);
-    return nl(judgement([...\u03B3, negation2(a)], \u03B4), [s]);
+    return nl(sequent([...\u03B3, negation(a)], \u03B4), [s]);
   };
   var reverseNL = (p) => {
     const \u03B3 = init2(p.result.antecedent);
     const na = last(p.result.antecedent);
     const a = na.negand;
     const \u03B4 = p.result.succedent;
-    return nl(p.result, [premise(judgement(\u03B3, [a, ...\u03B4]))]);
+    return nl(p.result, [premise(sequent(\u03B3, [a, ...\u03B4]))]);
   };
   var tryReverseNL = (d) => {
     return isNLResultDerivation(d) ? reverseNL(d) : null;
   };
   var exampleNL = applyNL(
-    premise(judgement([atom2("\u0393")], [atom2("A"), atom2("\u0394")]))
+    premise(sequent([atom("\u0393")], [atom("A"), atom("\u0394")]))
   );
+  var ruleNL = {
+    isResult: isNLResult,
+    isResultDerivation: isNLResultDerivation,
+    make: nl,
+    apply: applyNL,
+    reverse: reverseNL,
+    tryReverse: tryReverseNL,
+    example: exampleNL
+  };
+
+  // src/rules/nr.ts
   var isNRResult = refineActiveR(isNegation);
   var isNRResultDerivation = refineDerivation(isNRResult);
   var nr = (result, deps) => {
@@ -941,21 +1071,32 @@
     const \u03B3 = init2(s.result.antecedent);
     const a = last(s.result.antecedent);
     const \u03B4 = s.result.succedent;
-    return nr(judgement(\u03B3, [negation2(a), ...\u03B4]), [s]);
+    return nr(sequent(\u03B3, [negation(a), ...\u03B4]), [s]);
   };
   var reverseNR = (p) => {
     const \u03B3 = p.result.antecedent;
     const na = head(p.result.succedent);
     const a = na.negand;
     const \u03B4 = tail(p.result.succedent);
-    return nr(p.result, [premise(judgement([...\u03B3, a], \u03B4))]);
+    return nr(p.result, [premise(sequent([...\u03B3, a], \u03B4))]);
   };
   var tryReverseNR = (d) => {
     return isNRResultDerivation(d) ? reverseNR(d) : null;
   };
   var exampleNR = applyNR(
-    premise(judgement([atom2("\u0393"), atom2("A")], [atom2("\u0394")]))
+    premise(sequent([atom("\u0393"), atom("A")], [atom("\u0394")]))
   );
+  var ruleNR = {
+    isResult: isNRResult,
+    isResultDerivation: isNRResultDerivation,
+    make: nr,
+    apply: applyNR,
+    reverse: reverseNR,
+    tryReverse: tryReverseNR,
+    example: exampleNR
+  };
+
+  // src/rules/swl.ts
   var isSWLResult = (s) => {
     return s.antecedent.length > 0;
   };
@@ -966,20 +1107,31 @@
   var applySWL = (a, s) => {
     const \u03B3 = s.result.antecedent;
     const \u03B4 = s.result.succedent;
-    return swl(judgement([...\u03B3, a], \u03B4), [s]);
+    return swl(sequent([...\u03B3, a], \u03B4), [s]);
   };
   var reverseSWL = (p) => {
     const \u03B3 = init2(p.result.antecedent);
     const \u03B4 = p.result.succedent;
-    return swl(p.result, [premise(judgement(\u03B3, \u03B4))]);
+    return swl(p.result, [premise(sequent(\u03B3, \u03B4))]);
   };
   var tryReverseSWL = (d) => {
     return isSWLResultDerivation(d) ? reverseSWL(d) : null;
   };
   var exampleSWL = applySWL(
-    atom2("A"),
-    premise(judgement([atom2("\u0393")], [atom2("\u0394")]))
+    atom("A"),
+    premise(sequent([atom("\u0393")], [atom("\u0394")]))
   );
+  var ruleSWL = {
+    isResult: isSWLResult,
+    isResultDerivation: isSWLResultDerivation,
+    make: swl,
+    apply: applySWL,
+    reverse: reverseSWL,
+    tryReverse: tryReverseSWL,
+    example: exampleSWL
+  };
+
+  // src/rules/swr.ts
   var isSWRResult = isActiveR;
   var isSWRResultDerivation = refineDerivation(isSWRResult);
   var swr = (result, deps) => {
@@ -988,20 +1140,31 @@
   var applySWR = (a, s) => {
     const \u03B3 = s.result.antecedent;
     const \u03B4 = s.result.succedent;
-    return swr(judgement(\u03B3, [a, ...\u03B4]), [s]);
+    return swr(sequent(\u03B3, [a, ...\u03B4]), [s]);
   };
   var reverseSWR = (p) => {
     const \u03B3 = p.result.antecedent;
     const \u03B4 = tail(p.result.succedent);
-    return swr(p.result, [premise(judgement(\u03B3, \u03B4))]);
+    return swr(p.result, [premise(sequent(\u03B3, \u03B4))]);
   };
   var tryReverseSWR = (d) => {
     return isSWRResultDerivation(d) ? reverseSWR(d) : null;
   };
   var exampleSWR = applySWR(
-    atom2("A"),
-    premise(judgement([atom2("\u0393")], [atom2("\u0394")]))
+    atom("A"),
+    premise(sequent([atom("\u0393")], [atom("\u0394")]))
   );
+  var ruleSWR = {
+    isResult: isSWRResult,
+    isResultDerivation: isSWRResultDerivation,
+    make: swr,
+    apply: applySWR,
+    reverse: reverseSWR,
+    tryReverse: tryReverseSWR,
+    example: exampleSWR
+  };
+
+  // src/rules/scl.ts
   var isSCLResult = (s) => {
     return s.antecedent.length > 0;
   };
@@ -1013,20 +1176,31 @@
     const \u03B3 = init2(init2(s.result.antecedent));
     const a = last(s.result.antecedent);
     const \u03B4 = s.result.succedent;
-    return scl(judgement([...\u03B3, a], \u03B4), [s]);
+    return scl(sequent([...\u03B3, a], \u03B4), [s]);
   };
   var reverseSCL = (p) => {
     const \u03B3 = init2(p.result.antecedent);
     const a = last(p.result.antecedent);
     const \u03B4 = p.result.succedent;
-    return scl(p.result, [premise(judgement([...\u03B3, a, a], \u03B4))]);
+    return scl(p.result, [premise(sequent([...\u03B3, a, a], \u03B4))]);
   };
   var tryReverseSCL = (d) => {
     return isSCLResultDerivation(d) ? reverseSCL(d) : null;
   };
   var exampleSCL = applySCL(
-    premise(judgement([atom2("\u0393"), atom2("A"), atom2("A")], [atom2("\u0394")]))
+    premise(sequent([atom("\u0393"), atom("A"), atom("A")], [atom("\u0394")]))
   );
+  var ruleSCL = {
+    isResult: isSCLResult,
+    isResultDerivation: isSCLResultDerivation,
+    make: scl,
+    apply: applySCL,
+    reverse: reverseSCL,
+    tryReverse: tryReverseSCL,
+    example: exampleSCL
+  };
+
+  // src/rules/scr.ts
   var isSCRResult = isActiveR;
   var isSCRResultDerivation = refineDerivation(isSCRResult);
   var scr = (result, deps) => {
@@ -1036,128 +1210,183 @@
     const \u03B3 = s.result.antecedent;
     const a = head(s.result.succedent);
     const \u03B4 = tail(tail(s.result.succedent));
-    return scr(judgement(\u03B3, [a, ...\u03B4]), [s]);
+    return scr(sequent(\u03B3, [a, ...\u03B4]), [s]);
   };
   var reverseSCR = (p) => {
     const \u03B3 = p.result.antecedent;
     const a = head(p.result.succedent);
     const \u03B4 = tail(p.result.succedent);
-    return scr(p.result, [premise(judgement(\u03B3, [a, a, ...\u03B4]))]);
+    return scr(p.result, [premise(sequent(\u03B3, [a, a, ...\u03B4]))]);
   };
   var tryReverseSCR = (d) => {
     return isSCRResultDerivation(d) ? reverseSCR(d) : null;
   };
   var exampleSCR = applySCR(
-    premise(judgement([atom2("\u0393")], [atom2("A"), atom2("A"), atom2("\u0394")]))
+    premise(sequent([atom("\u0393")], [atom("A"), atom("A"), atom("\u0394")]))
   );
+  var ruleSCR = {
+    isResult: isSCRResult,
+    isResultDerivation: isSCRResultDerivation,
+    make: scr,
+    apply: applySCR,
+    reverse: reverseSCR,
+    tryReverse: tryReverseSCR,
+    example: exampleSCR
+  };
+
+  // src/rules/srotlf.ts
   var isSRotLFResult = (s) => {
     return s.antecedent.length > 1;
   };
   var isSRotLFResultDerivation = refineDerivation(isSRotLFResult);
   var sRotLF = (result, deps) => {
-    return transformation(result, deps, "SRotLF");
+    return transformation(result, deps, "sRotLF");
   };
   var applySRotLF = (s) => {
     const \u03B3 = init2(init2(s.result.antecedent));
     const a = last(s.result.antecedent);
     const b = last(init2(s.result.antecedent));
     const \u03B4 = s.result.succedent;
-    return sRotLF(judgement([a, ...\u03B3, b], \u03B4), [s]);
+    return sRotLF(sequent([a, ...\u03B3, b], \u03B4), [s]);
   };
   var reverseSRotLF = (p) => {
     const \u03B3 = init2(tail(p.result.antecedent));
     const a = head(p.result.antecedent);
     const b = last(p.result.antecedent);
     const \u03B4 = p.result.succedent;
-    return sRotLF(p.result, [premise(judgement([...\u03B3, b, a], \u03B4))]);
+    return sRotLF(p.result, [premise(sequent([...\u03B3, b, a], \u03B4))]);
   };
   var tryReverseSRotLF = (d) => {
     return isSRotLFResultDerivation(d) ? reverseSRotLF(d) : null;
   };
   var exampleSRotLF = applySRotLF(
-    premise(judgement([atom2("\u0393"), atom2("B"), atom2("A")], [atom2("\u0394")]))
+    premise(sequent([atom("\u0393"), atom("B"), atom("A")], [atom("\u0394")]))
   );
+  var ruleSRotLF = {
+    isResult: isSRotLFResult,
+    isResultDerivation: isSRotLFResultDerivation,
+    make: sRotLF,
+    apply: applySRotLF,
+    reverse: reverseSRotLF,
+    tryReverse: tryReverseSRotLF,
+    example: exampleSRotLF
+  };
+
+  // src/rules/srotlb.ts
   var isSRotLBResult = (s) => {
     return s.antecedent.length > 1;
   };
   var isSRotLBResultDerivation = refineDerivation(isSRotLBResult);
   var sRotLB = (result, deps) => {
-    return transformation(result, deps, "SRotLB");
+    return transformation(result, deps, "sRotLB");
   };
   var applySRotLB = (s) => {
     const a = head(s.result.antecedent);
     const \u03B3 = init2(tail(s.result.antecedent));
     const b = last(s.result.antecedent);
     const \u03B4 = s.result.succedent;
-    return sRotLB(judgement([...\u03B3, b, a], \u03B4), [s]);
+    return sRotLB(sequent([...\u03B3, b, a], \u03B4), [s]);
   };
   var reverseSRotLB = (p) => {
     const \u03B3 = init2(init2(p.result.antecedent));
     const a = last(p.result.antecedent);
     const b = last(init2(p.result.antecedent));
     const \u03B4 = p.result.succedent;
-    return sRotLB(p.result, [premise(judgement([a, ...\u03B3, b], \u03B4))]);
+    return sRotLB(p.result, [premise(sequent([a, ...\u03B3, b], \u03B4))]);
   };
   var tryReverseSRotLB = (d) => {
     return isSRotLBResultDerivation(d) ? reverseSRotLB(d) : null;
   };
   var exampleSRotLB = applySRotLB(
-    premise(judgement([atom2("A"), atom2("\u0393"), atom2("B")], [atom2("\u0394")]))
+    premise(sequent([atom("A"), atom("\u0393"), atom("B")], [atom("\u0394")]))
   );
+  var ruleSRotLB = {
+    isResult: isSRotLBResult,
+    isResultDerivation: isSRotLBResultDerivation,
+    make: sRotLB,
+    apply: applySRotLB,
+    reverse: reverseSRotLB,
+    tryReverse: tryReverseSRotLB,
+    example: exampleSRotLB
+  };
+
+  // src/rules/srotrf.ts
   var isSRotRFResult = (s) => {
     return s.succedent.length > 1;
   };
   var isSRotRFResultDerivation = refineDerivation(isSRotRFResult);
   var sRotRF = (result, deps) => {
-    return transformation(result, deps, "SRotRF");
+    return transformation(result, deps, "sRotRF");
   };
   var applySRotRF = (s) => {
     const \u03B3 = s.result.antecedent;
     const \u03B4 = tail(tail(s.result.succedent));
     const a = head(s.result.succedent);
     const b = head(tail(s.result.succedent));
-    return sRotRF(judgement(\u03B3, [b, ...\u03B4, a]), [s]);
+    return sRotRF(sequent(\u03B3, [b, ...\u03B4, a]), [s]);
   };
   var reverseSRotRF = (p) => {
     const \u03B3 = p.result.antecedent;
     const \u03B4 = init2(tail(p.result.succedent));
     const a = last(p.result.succedent);
     const b = head(p.result.succedent);
-    return sRotRF(p.result, [premise(judgement(\u03B3, [a, b, ...\u03B4]))]);
+    return sRotRF(p.result, [premise(sequent(\u03B3, [a, b, ...\u03B4]))]);
   };
   var tryReverseSRotRF = (d) => {
     return isSRotRFResultDerivation(d) ? reverseSRotRF(d) : null;
   };
   var exampleSRotRF = applySRotRF(
-    premise(judgement([atom2("\u0393")], [atom2("A"), atom2("B"), atom2("\u0394")]))
+    premise(sequent([atom("\u0393")], [atom("A"), atom("B"), atom("\u0394")]))
   );
+  var ruleSRotRF = {
+    isResult: isSRotRFResult,
+    isResultDerivation: isSRotRFResultDerivation,
+    make: sRotRF,
+    apply: applySRotRF,
+    reverse: reverseSRotRF,
+    tryReverse: tryReverseSRotRF,
+    example: exampleSRotRF
+  };
+
+  // src/rules/srotrb.ts
   var isSRotRBResult = (s) => {
     return s.succedent.length > 1;
   };
   var isSRotRBResultDerivation = refineDerivation(isSRotRBResult);
   var sRotRB = (result, deps) => {
-    return transformation(result, deps, "SRotRB");
+    return transformation(result, deps, "sRotRB");
   };
   var applySRotRB = (s) => {
     const \u03B3 = s.result.antecedent;
     const \u03B4 = init2(tail(s.result.succedent));
     const a = last(s.result.succedent);
     const b = head(s.result.succedent);
-    return sRotRB(judgement(\u03B3, [a, b, ...\u03B4]), [s]);
+    return sRotRB(sequent(\u03B3, [a, b, ...\u03B4]), [s]);
   };
   var reverseSRotRB = (p) => {
     const \u03B3 = p.result.antecedent;
     const \u03B4 = tail(tail(p.result.succedent));
     const a = head(p.result.succedent);
     const b = head(tail(p.result.succedent));
-    return sRotRB(p.result, [premise(judgement(\u03B3, [b, ...\u03B4, a]))]);
+    return sRotRB(p.result, [premise(sequent(\u03B3, [b, ...\u03B4, a]))]);
   };
   var tryReverseSRotRB = (d) => {
     return isSRotRBResultDerivation(d) ? reverseSRotRB(d) : null;
   };
   var exampleSRotRB = applySRotRB(
-    premise(judgement([atom2("\u0393")], [atom2("B"), atom2("\u0394"), atom2("A")]))
+    premise(sequent([atom("\u0393")], [atom("B"), atom("\u0394"), atom("A")]))
   );
+  var ruleSRotRB = {
+    isResult: isSRotRBResult,
+    isResultDerivation: isSRotRBResultDerivation,
+    make: sRotRB,
+    apply: applySRotRB,
+    reverse: reverseSRotRB,
+    tryReverse: tryReverseSRotRB,
+    example: exampleSRotRB
+  };
+
+  // src/rules/sxl.ts
   var isSXLResult = (s) => {
     return s.antecedent.length > 1;
   };
@@ -1170,21 +1399,32 @@
     const b = last(s.result.antecedent);
     const a = last(init2(s.result.antecedent));
     const \u03B4 = s.result.succedent;
-    return sxl(judgement([...\u03B3, b, a], \u03B4), [s]);
+    return sxl(sequent([...\u03B3, b, a], \u03B4), [s]);
   };
   var reverseSXL = (p) => {
     const \u03B3 = init2(init2(p.result.antecedent));
     const a = last(p.result.antecedent);
     const b = last(init2(p.result.antecedent));
     const \u03B4 = p.result.succedent;
-    return sxl(p.result, [premise(judgement([...\u03B3, a, b], \u03B4))]);
+    return sxl(p.result, [premise(sequent([...\u03B3, a, b], \u03B4))]);
   };
   var tryReverseSXL = (d) => {
     return isSXLResultDerivation(d) ? reverseSXL(d) : null;
   };
   var exampleSXL = applySXL(
-    premise(judgement([atom2("\u0393"), atom2("A"), atom2("B")], [atom2("\u0394")]))
+    premise(sequent([atom("\u0393"), atom("A"), atom("B")], [atom("\u0394")]))
   );
+  var ruleSXL = {
+    isResult: isSXLResult,
+    isResultDerivation: isSXLResultDerivation,
+    make: sxl,
+    apply: applySXL,
+    reverse: reverseSXL,
+    tryReverse: tryReverseSXL,
+    example: exampleSXL
+  };
+
+  // src/rules/sxr.ts
   var isSXRResult = (s) => {
     return s.succedent.length > 1;
   };
@@ -1197,75 +1437,86 @@
     const b = head(tail(s.result.succedent));
     const a = head(s.result.succedent);
     const \u03B4 = tail(tail(s.result.succedent));
-    return sxr(judgement(\u03B3, [b, a, ...\u03B4]), [s]);
+    return sxr(sequent(\u03B3, [b, a, ...\u03B4]), [s]);
   };
   var reverseSXR = (p) => {
     const \u03B3 = p.result.antecedent;
     const a = head(tail(p.result.succedent));
     const b = head(p.result.succedent);
     const \u03B4 = tail(tail(p.result.succedent));
-    return sxr(p.result, [premise(judgement(\u03B3, [a, b, ...\u03B4]))]);
+    return sxr(p.result, [premise(sequent(\u03B3, [a, b, ...\u03B4]))]);
   };
   var tryReverseSXR = (d) => {
     return isSXRResultDerivation(d) ? reverseSXR(d) : null;
   };
   var exampleSXR = applySXR(
-    premise(judgement([atom2("\u0393")], [atom2("A"), atom2("B"), atom2("\u0394")]))
+    premise(sequent([atom("\u0393")], [atom("A"), atom("B"), atom("\u0394")]))
   );
-  var alpha = (s) => atom2(s);
+  var ruleSXR = {
+    isResult: isSXRResult,
+    isResultDerivation: isSXRResultDerivation,
+    make: sxr,
+    apply: applySXR,
+    reverse: reverseSXR,
+    tryReverse: tryReverseSXR,
+    example: exampleSXR
+  };
+
+  // src/systems/lk.ts
+  var alpha = (s) => atom(s);
   var omega = {
     p0: {},
-    p1: { negation: negation2 },
-    p2: { implication: implication2, conjunction: conjunction2, disjunction: disjunction2 }
+    p1: { negation },
+    p2: { implication, conjunction, disjunction }
   };
   var iota = {
-    i: applyI
+    i: ruleI.apply
   };
   var zeta = {
-    cut: applyCut,
-    cl1: applyCL1,
-    dr1: applyDR1,
-    cl2: applyCL2,
-    dr2: applyDR2,
-    dl: applyDL,
-    cr: applyCR,
-    il: applyIL,
-    ir: applyIR,
-    nl: applyNL,
-    nr: applyNR,
-    swl: applySWL,
-    swr: applySWR,
-    scl: applySCL,
-    scr: applySCR,
-    sRotLF: applySRotLF,
-    sRotLB: applySRotLB,
-    sRotRF: applySRotRF,
-    sRotRB: applySRotRB,
-    sxl: applySXL,
-    sxr: applySXR
+    cut: ruleCut.apply,
+    cl1: ruleCL1.apply,
+    dr1: ruleDR1.apply,
+    cl2: ruleCL2.apply,
+    dr2: ruleDR2.apply,
+    dl: ruleDL.apply,
+    cr: ruleCR.apply,
+    il: ruleIL.apply,
+    ir: ruleIR.apply,
+    nl: ruleNL.apply,
+    nr: ruleNR.apply,
+    swl: ruleSWL.apply,
+    swr: ruleSWR.apply,
+    scl: ruleSCL.apply,
+    scr: ruleSCR.apply,
+    sRotLF: ruleSRotLF.apply,
+    sRotLB: ruleSRotLB.apply,
+    sRotRF: ruleSRotRF.apply,
+    sRotRB: ruleSRotRB.apply,
+    sxl: ruleSXL.apply,
+    sxr: ruleSXR.apply
   };
   var rev = {
-    i: tryReverseI,
-    cl1: tryReverseCL1,
-    dr1: tryReverseDR1,
-    cl2: tryReverseCL2,
-    dr2: tryReverseDR2,
-    dl: tryReverseDL,
-    cr: tryReverseCR,
-    il: tryReverseIL,
-    ir: tryReverseIR,
-    nl: tryReverseNL,
-    nr: tryReverseNR,
-    swl: tryReverseSWL,
-    swr: tryReverseSWR,
-    scl: tryReverseSCL,
-    scr: tryReverseSCR,
-    sRotLF: tryReverseSRotLF,
-    sRotLB: tryReverseSRotLB,
-    sRotRF: tryReverseSRotRF,
-    sRotRB: tryReverseSRotRB,
-    sxl: tryReverseSXL,
-    sxr: tryReverseSXR
+    i: ruleI.tryReverse,
+    cl1: ruleCL1.tryReverse,
+    dr1: ruleDR1.tryReverse,
+    cl2: ruleCL2.tryReverse,
+    dr2: ruleDR2.tryReverse,
+    dl: ruleDL.tryReverse,
+    cr: ruleCR.tryReverse,
+    il: ruleIL.tryReverse,
+    ir: ruleIR.tryReverse,
+    nl: ruleNL.tryReverse,
+    nr: ruleNR.tryReverse,
+    swl: ruleSWL.tryReverse,
+    swr: ruleSWR.tryReverse,
+    scl: ruleSCL.tryReverse,
+    scr: ruleSCR.tryReverse,
+    sRotLF: ruleSRotLF.tryReverse,
+    sRotLB: ruleSRotLB.tryReverse,
+    sRotRF: ruleSRotRF.tryReverse,
+    sRotRB: ruleSRotRB.tryReverse,
+    sxl: ruleSXL.tryReverse,
+    sxr: ruleSXR.tryReverse
   };
   var meta = {
     name: "Gentzen LK",
@@ -1287,10 +1538,10 @@
         title: "Connectives",
         examples: [
           [
-            negation2(atom2("A")),
-            implication2(atom2("A"), atom2("B")),
-            conjunction2(atom2("A"), atom2("B")),
-            disjunction2(atom2("A"), atom2("B"))
+            negation(atom("A")),
+            implication(atom("A"), atom("B")),
+            conjunction(atom("A"), atom("B")),
+            disjunction(atom("A"), atom("B"))
           ]
         ]
       }
@@ -1298,30 +1549,30 @@
     rules: [
       {
         title: "Axiom",
-        examples: [exampleI]
+        examples: [[ruleI.example]]
       },
       {
         title: "Cut",
-        examples: [[exampleCut]]
+        examples: [[ruleCut.example]]
       },
       {
         title: "Logical Rules",
         examples: [
-          [exampleCL1, exampleDR1],
-          [exampleCL2, exampleDR2],
-          [exampleDL, exampleCR],
-          [exampleIL, exampleIR],
-          [exampleNL, exampleNR]
+          [ruleCL1.example, ruleDR1.example],
+          [ruleCL2.example, ruleDR2.example],
+          [ruleDL.example, ruleCR.example],
+          [ruleIL.example, ruleIR.example],
+          [ruleNL.example, ruleNR.example]
         ]
       },
       {
         title: "Structural Rules",
         examples: [
-          [exampleSWL, exampleSWR],
-          [exampleSCL, exampleSCR],
-          [exampleSRotLF, exampleSRotRF],
-          [exampleSRotLB, exampleSRotRB],
-          [exampleSXL, exampleSXR]
+          [ruleSWL.example, ruleSWR.example],
+          [ruleSCL.example, ruleSCR.example],
+          [ruleSRotLF.example, ruleSRotRF.example],
+          [ruleSRotLB.example, ruleSRotRB.example],
+          [ruleSXL.example, ruleSXR.example]
         ]
       }
     ]
@@ -1332,78 +1583,78 @@
     i: iota,
     z: zeta
   };
-  var revs = (d, p) => entries(rev).flatMap(([rev38, ed]) => {
+  var revs = (d, p) => entries(rev).flatMap(([rev47, ed]) => {
     const result = editDerivation(d, p, ed);
     if (result) {
-      return [[rev38, result]];
+      return [[rev47, result]];
     }
     return [];
   });
 
   // src/interactive/event.ts
-  var reverse = (rev38) => ({
+  var reverse = (rev47) => ({
     kind: "reverse",
-    rev: rev38
+    rev: rev47
   });
 
-  // src/theorems/ch0-identity-1.ts
+  // src/challenges/ch0-identity-1.ts
   var ch0identity1 = {
     rules: ["i"],
-    goal: judgement([lk.a("p")], [lk.a("p")])
+    goal: sequent([lk.a("p")], [lk.a("p")])
   };
 
-  // src/theorems/ch0-identity-2.ts
+  // src/challenges/ch0-identity-2.ts
   var ch0identity2 = {
     rules: ["i"],
-    goal: judgement([lk.a("q")], [lk.a("q")])
+    goal: sequent([lk.a("q")], [lk.a("q")])
   };
 
-  // src/theorems/ch0-identity-3.ts
+  // src/challenges/ch0-identity-3.ts
   var ch0identity3 = {
     rules: ["i"],
-    goal: judgement([lk.o.p1.negation(lk.a("p"))], [lk.o.p1.negation(lk.a("p"))])
+    goal: sequent([lk.o.p1.negation(lk.a("p"))], [lk.o.p1.negation(lk.a("p"))])
   };
 
-  // src/theorems/ch0-identity-4.ts
+  // src/challenges/ch0-identity-4.ts
   var ch0identity4 = {
     rules: ["i"],
-    goal: judgement(
+    goal: sequent(
       [lk.o.p2.conjunction(lk.a("p"), lk.a("q"))],
       [lk.o.p2.conjunction(lk.a("p"), lk.a("q"))]
     )
   };
 
-  // src/theorems/ch0-identity-5.ts
+  // src/challenges/ch0-identity-5.ts
   var ch0identity5 = {
     rules: ["i"],
-    goal: judgement(
+    goal: sequent(
       [lk.o.p2.disjunction(lk.a("p"), lk.a("q"))],
       [lk.o.p2.disjunction(lk.a("p"), lk.a("q"))]
     )
   };
 
-  // src/theorems/ch0-identity-6.ts
+  // src/challenges/ch0-identity-6.ts
   var ch0identity6 = {
     rules: ["i"],
-    goal: judgement(
+    goal: sequent(
       [lk.o.p2.implication(lk.a("p"), lk.a("q"))],
       [lk.o.p2.implication(lk.a("p"), lk.a("q"))]
     )
   };
 
-  // src/theorems/ch0-identity-7.ts
+  // src/challenges/ch0-identity-7.ts
   var ch0identity7 = {
     rules: ["i"],
-    goal: judgement(
+    goal: sequent(
       [lk.o.p2.conjunction(lk.a("p"), lk.o.p1.negation(lk.a("q")))],
       [lk.o.p2.conjunction(lk.a("p"), lk.o.p1.negation(lk.a("q")))]
     )
   };
 
-  // src/theorems/ch0-identity-8.ts
+  // src/challenges/ch0-identity-8.ts
   var ch0identity8 = {
     rules: ["i"],
-    goal: judgement(
+    goal: sequent(
       [
         lk.o.p2.implication(
           lk.o.p2.disjunction(lk.a("p"), lk.a("q")),
@@ -1419,10 +1670,10 @@
     )
   };
 
-  // src/theorems/ch0-identity-9.ts
+  // src/challenges/ch0-identity-9.ts
   var ch0identity9 = {
     rules: ["i"],
-    goal: judgement(
+    goal: sequent(
       [
         lk.o.p2.implication(
           lk.o.p2.disjunction(lk.a("p"), lk.o.p1.negation(lk.a("q"))),
@@ -1438,55 +1689,55 @@
     )
   };
 
-  // src/theorems/ch1-weakening-1.ts
+  // src/challenges/ch1-weakening-1.ts
   var ch1weakening1 = {
-    rules: ["i", "swl"],
-    goal: judgement([lk.a("p"), lk.a("q")], [lk.a("p")])
+    rules: ["i", "swl", "swr"],
+    goal: sequent([lk.a("p"), lk.a("q")], [lk.a("p")])
   };
 
-  // src/theorems/ch1-weakening-2.ts
+  // src/challenges/ch1-weakening-2.ts
   var ch1weakening2 = {
-    rules: ["i", "swr"],
-    goal: judgement([lk.a("p")], [lk.a("q"), lk.a("p")])
+    rules: ["i", "swl", "swr"],
+    goal: sequent([lk.a("p")], [lk.a("q"), lk.a("p")])
   };
 
-  // src/theorems/ch1-weakening-3.ts
+  // src/challenges/ch1-weakening-3.ts
   var ch1weakening3 = {
     rules: ["i", "swl", "swr"],
-    goal: judgement([lk.a("p"), lk.a("q")], [lk.a("q"), lk.a("p")])
+    goal: sequent([lk.a("p"), lk.a("q")], [lk.a("q"), lk.a("p")])
   };
 
-  // src/theorems/ch1-weakening-4.ts
+  // src/challenges/ch1-weakening-4.ts
   var ch1weakening4 = {
     rules: ["i", "swl", "swr"],
-    goal: judgement(
+    goal: sequent(
       [lk.a("q"), lk.o.p2.conjunction(lk.a("p"), lk.a("q"))],
       [lk.o.p2.conjunction(lk.a("q"), lk.a("p")), lk.a("q")]
     )
   };
 
-  // src/theorems/ch1-weakening-5.ts
+  // src/challenges/ch1-weakening-5.ts
   var ch1weakening5 = {
     rules: ["i", "swl", "swr"],
-    goal: judgement(
+    goal: sequent(
       [lk.o.p2.conjunction(lk.a("p"), lk.a("q")), lk.a("p")],
       [lk.a("q"), lk.o.p2.conjunction(lk.a("p"), lk.a("q"))]
     )
   };
 
-  // src/theorems/ch1-weakening-6.ts
+  // src/challenges/ch1-weakening-6.ts
   var ch1weakening6 = {
     rules: ["i", "swl", "swr"],
-    goal: judgement(
+    goal: sequent(
       [lk.a("p"), lk.a("q"), lk.a("q"), lk.a("p")],
       [lk.a("p"), lk.a("q"), lk.a("q"), lk.a("p")]
     )
   };
 
-  // src/theorems/ch1-weakening-7.ts
+  // src/challenges/ch1-weakening-7.ts
   var ch1weakening7 = {
     rules: ["i", "swl", "swr"],
-    goal: judgement(
+    goal: sequent(
       [
         lk.o.p2.implication(
           lk.o.p2.disjunction(lk.a("p"), lk.a("q")),
@@ -1502,237 +1753,388 @@
     )
   };
 
-  // src/theorems/ch1-weakening-8.ts
+  // src/challenges/ch1-weakening-8.ts
   var ch1weakening8 = {
     rules: ["i", "swl", "swr"],
-    goal: judgement(
+    goal: sequent(
       [lk.a("p"), lk.o.p2.implication(lk.a("q"), lk.a("p")), lk.a("q")],
       [lk.a("q"), lk.o.p2.implication(lk.a("q"), lk.a("p")), lk.a("p")]
     )
   };
 
-  // src/theorems/ch1-weakening-9.ts
+  // src/challenges/ch1-weakening-9.ts
   var ch1weakening9 = {
     rules: ["i", "swl", "swr"],
-    goal: judgement(
+    goal: sequent(
       [lk.a("s"), lk.a("r"), lk.a("q"), lk.a("p")],
       [lk.a("p"), lk.a("q"), lk.a("r"), lk.a("s")]
     )
   };
 
-  // src/theorems/ch2-permutation-1.ts
+  // src/challenges/ch2-permutation-1.ts
   var ch2permutation1 = {
-    rules: ["i", "swl", "sRotLB", "sRotLF"],
-    goal: judgement(
+    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "sRotLB", "sRotRB"],
+    goal: sequent(
       [lk.a("p"), lk.a("p"), lk.a("p"), lk.a("q"), lk.a("p"), lk.a("p")],
       [lk.a("q")]
     )
   };
 
-  // src/theorems/ch2-permutation-2.ts
+  // src/challenges/ch2-permutation-2.ts
   var ch2permutation2 = {
-    rules: ["i", "swr", "sRotRB", "sRotRF"],
-    goal: judgement(
+    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "sRotLB", "sRotRB"],
+    goal: sequent(
       [lk.a("q")],
       [lk.a("p"), lk.a("p"), lk.a("p"), lk.a("q"), lk.a("p"), lk.a("p")]
     )
   };
 
-  // src/theorems/ch2-permutation-3.ts
+  // src/challenges/ch2-permutation-3.ts
   var ch2permutation3 = {
-    rules: ["i", "swl", "sRotLB", "sRotLF", "swr", "sRotRB", "sRotRF"],
-    goal: judgement(
+    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "sRotLB", "sRotRB"],
+    goal: sequent(
       [lk.a("p"), lk.a("p"), lk.a("p"), lk.a("q"), lk.a("p"), lk.a("p")],
       [lk.a("p"), lk.a("p"), lk.a("p"), lk.a("q"), lk.a("p"), lk.a("p")]
     )
   };
 
-  // src/theorems/ch2-permutation-4.ts
+  // src/challenges/ch2-permutation-4.ts
   var ch2permutation4 = {
-    rules: ["i", "swl", "sRotLB", "sRotLF", "swr", "sRotRB", "sRotRF"],
-    goal: judgement(
+    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "sRotLB", "sRotRB"],
+    goal: sequent(
       [lk.a("s"), lk.a("r"), lk.a("q"), lk.a("p")],
       [lk.a("s"), lk.a("r"), lk.a("q"), lk.a("p")]
     )
   };
 
-  // src/theorems/ch2-permutation-5.ts
+  // src/challenges/ch2-permutation-5.ts
   var ch2permutation5 = {
-    rules: ["i", "swl", "sRotLB", "sRotLF", "swr", "sRotRB", "sRotRF"],
-    goal: judgement(
-      [lk.o.p2.conjunction(lk.a("p"), lk.a("q")), lk.o.p2.conjunction(lk.a("p"), lk.a("q"))],
-      [lk.o.p2.conjunction(lk.a("p"), lk.a("q")), lk.o.p2.disjunction(lk.a("p"), lk.a("q"))]
+    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "sRotLB", "sRotRB"],
+    goal: sequent(
+      [
+        lk.o.p2.conjunction(lk.a("p"), lk.a("q")),
+        lk.o.p2.conjunction(lk.a("p"), lk.a("q"))
+      ],
+      [
+        lk.o.p2.conjunction(lk.a("p"), lk.a("q")),
+        lk.o.p2.disjunction(lk.a("p"), lk.a("q"))
+      ]
     )
   };
 
-  // src/theorems/ch2-permutation-6.ts
+  // src/challenges/ch2-permutation-6.ts
   var ch2permutation6 = {
-    rules: ["i", "swl", "sRotLB", "sRotLF", "swr", "sRotRB", "sRotRF"],
-    goal: judgement(
-      [lk.o.p2.conjunction(lk.a("q"), lk.a("s")), lk.o.p2.conjunction(lk.a("q"), lk.a("s")), lk.o.p2.conjunction(lk.a("q"), lk.a("s"))],
-      [lk.o.p2.conjunction(lk.a("q"), lk.a("s")), lk.o.p2.conjunction(lk.a("s"), lk.a("q")), lk.o.p2.conjunction(lk.a("s"), lk.a("q"))]
+    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "sRotLB", "sRotRB"],
+    goal: sequent(
+      [
+        lk.o.p2.conjunction(lk.a("q"), lk.a("s")),
+        lk.o.p2.conjunction(lk.a("q"), lk.a("s")),
+        lk.o.p2.conjunction(lk.a("q"), lk.a("s"))
+      ],
+      [
+        lk.o.p2.conjunction(lk.a("q"), lk.a("s")),
+        lk.o.p2.conjunction(lk.a("s"), lk.a("q")),
+        lk.o.p2.conjunction(lk.a("s"), lk.a("q"))
+      ]
     )
   };
 
-  // src/theorems/ch2-permutation-7.ts
+  // src/challenges/ch2-permutation-7.ts
   var ch2permutation7 = {
-    rules: ["i", "swl", "sRotLB", "sRotLF", "swr", "sRotRB", "sRotRF"],
-    goal: judgement(
-      [lk.o.p2.implication(lk.a("q"), lk.a("p")), lk.o.p2.implication(lk.a("p"), lk.a("s")), lk.o.p2.implication(lk.a("s"), lk.a("r"))],
-      [lk.o.p2.implication(lk.a("r"), lk.a("p")), lk.o.p2.implication(lk.a("p"), lk.a("s")), lk.o.p2.implication(lk.a("s"), lk.a("q"))]
+    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "sRotLB", "sRotRB"],
+    goal: sequent(
+      [
+        lk.o.p2.implication(lk.a("q"), lk.a("p")),
+        lk.o.p2.implication(lk.a("p"), lk.a("s")),
+        lk.o.p2.implication(lk.a("s"), lk.a("r"))
+      ],
+      [
+        lk.o.p2.implication(lk.a("r"), lk.a("p")),
+        lk.o.p2.implication(lk.a("p"), lk.a("s")),
+        lk.o.p2.implication(lk.a("s"), lk.a("q"))
+      ]
     )
   };
 
-  // src/theorems/ch2-permutation-8.ts
+  // src/challenges/ch2-permutation-8.ts
   var ch2permutation8 = {
-    rules: ["i", "swl", "sRotLB", "sRotLF", "swr", "sRotRB", "sRotRF"],
-    goal: judgement(
-      [lk.o.p2.conjunction(lk.a("s"), lk.a("q")), lk.a("r"), lk.o.p2.implication(lk.a("q"), lk.a("p")), lk.o.p1.negation(lk.a("r"))],
-      [lk.o.p1.negation(lk.a("p")), lk.o.p2.implication(lk.a("s"), lk.a("q")), lk.o.p1.negation(lk.a("r")), lk.o.p2.disjunction(lk.a("q"), lk.a("p"))]
+    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "sRotLB", "sRotRB"],
+    goal: sequent(
+      [
+        lk.o.p2.conjunction(lk.a("s"), lk.a("q")),
+        lk.a("r"),
+        lk.o.p2.implication(lk.a("q"), lk.a("p")),
+        lk.o.p1.negation(lk.a("r"))
+      ],
+      [
+        lk.o.p1.negation(lk.a("p")),
+        lk.o.p2.implication(lk.a("s"), lk.a("q")),
+        lk.o.p1.negation(lk.a("r")),
+        lk.o.p2.disjunction(lk.a("q"), lk.a("p"))
+      ]
     )
   };
 
-  // src/theorems/ch2-permutation-9.ts
+  // src/challenges/ch2-permutation-9.ts
   var ch2permutation9 = {
-    rules: ["i", "swl", "sRotLB", "sRotLF", "swr", "sRotRB", "sRotRF"],
-    goal: judgement(
+    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "sRotLB", "sRotRB"],
+    goal: sequent(
       [lk.a("p"), lk.o.p1.negation(lk.a("p")), lk.a("q"), lk.a("r")],
-      [lk.o.p1.negation(lk.a("q")), lk.o.p1.negation(lk.a("p")), lk.a("s"), lk.o.p1.negation(lk.a("r"))]
+      [
+        lk.o.p1.negation(lk.a("q")),
+        lk.o.p1.negation(lk.a("p")),
+        lk.a("s"),
+        lk.o.p1.negation(lk.a("r"))
+      ]
     )
   };
 
-  // src/theorems/ch3-negation-1.ts
+  // src/challenges/ch3-negation-1.ts
   var ch3negation1 = {
-    rules: ["i", "nl"],
-    goal: judgement([lk.a("r"), lk.o.p1.negation(lk.a("r"))], [])
+    rules: ["i", "nl", "nr"],
+    goal: sequent([lk.a("r"), lk.o.p1.negation(lk.a("r"))], [])
   };
 
-  // src/theorems/ch3-negation-2.ts
+  // src/challenges/ch3-negation-2.ts
   var ch3negation2 = {
-    rules: ["i", "nr"],
-    goal: judgement([], [lk.o.p1.negation(lk.a("r")), lk.a("r")])
+    rules: ["i", "nl", "nr"],
+    goal: sequent([], [lk.o.p1.negation(lk.a("r")), lk.a("r")])
   };
 
-  // src/theorems/ch3-negation-3.ts
+  // src/challenges/ch3-negation-3.ts
   var ch3negation3 = {
     rules: ["i", "nl", "nr"],
-    goal: judgement([lk.o.p1.negation(lk.o.p1.negation(lk.a("q")))], [lk.a("q")])
+    goal: sequent([lk.o.p1.negation(lk.o.p1.negation(lk.a("q")))], [lk.a("q")])
   };
 
-  // src/theorems/ch3-negation-4.ts
+  // src/challenges/ch3-negation-4.ts
   var ch3negation4 = {
     rules: ["i", "nl", "nr"],
-    goal: judgement([
-      lk.o.p1.negation(lk.o.p1.negation(lk.a("s")))
-    ], [
-      lk.o.p1.negation(lk.o.p1.negation(lk.o.p1.negation(lk.o.p1.negation(lk.a("s")))))
-    ])
-  };
-
-  // src/theorems/ch3-negation-5.ts
-  var ch3negation5 = {
-    rules: ["i", "nl", "swl", "nr", "swr", "sRotLF", "sRotRF"],
-    goal: judgement([
-      lk.o.p1.negation(lk.o.p1.negation(lk.a("p"))),
-      lk.o.p1.negation(lk.o.p1.negation(lk.o.p1.negation(lk.a("p"))))
-    ], [
-      lk.o.p1.negation(lk.o.p1.negation(lk.a("p"))),
-      lk.o.p1.negation(lk.o.p1.negation(lk.o.p1.negation(lk.a("p"))))
-    ])
-  };
-
-  // src/theorems/ch3-negation-6.ts
-  var ch3negation6 = {
-    rules: ["i", "nl", "swl", "nr", "swr"],
-    goal: judgement([
-      lk.o.p1.negation(lk.o.p1.negation(lk.a("p"))),
-      lk.o.p1.negation(lk.o.p1.negation(lk.o.p1.negation(lk.a("p"))))
-    ], [
-      lk.o.p1.negation(lk.o.p1.negation(lk.a("p"))),
-      lk.o.p1.negation(lk.o.p1.negation(lk.o.p1.negation(lk.a("p"))))
-    ])
-  };
-
-  // src/theorems/ch3-negation-7.ts
-  var ch3negation7 = {
-    rules: ["i", "nl", "nr"],
-    goal: judgement([
-      lk.o.p1.negation(
+    goal: sequent(
+      [lk.o.p1.negation(lk.o.p1.negation(lk.a("s")))],
+      [
         lk.o.p1.negation(
-          lk.o.p2.conjunction(lk.a("p"), lk.a("q"))
+          lk.o.p1.negation(lk.o.p1.negation(lk.o.p1.negation(lk.a("s"))))
         )
-      )
-    ], [
-      lk.o.p1.negation(
+      ]
+    )
+  };
+
+  // src/challenges/ch3-negation-5.ts
+  var ch3negation5 = {
+    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "nl", "nr"],
+    goal: sequent(
+      [
+        lk.o.p1.negation(lk.o.p1.negation(lk.a("p"))),
+        lk.o.p1.negation(lk.o.p1.negation(lk.o.p1.negation(lk.a("p"))))
+      ],
+      [
+        lk.o.p1.negation(lk.o.p1.negation(lk.a("p"))),
+        lk.o.p1.negation(lk.o.p1.negation(lk.o.p1.negation(lk.a("p"))))
+      ]
+    )
+  };
+
+  // src/challenges/ch3-negation-6.ts
+  var ch3negation6 = {
+    rules: ["i", "swl", "swr", "nl", "nr"],
+    goal: sequent(
+      [
+        lk.o.p1.negation(lk.o.p1.negation(lk.a("p"))),
+        lk.o.p1.negation(lk.o.p1.negation(lk.o.p1.negation(lk.a("p"))))
+      ],
+      [
+        lk.o.p1.negation(lk.o.p1.negation(lk.a("p"))),
+        lk.o.p1.negation(lk.o.p1.negation(lk.o.p1.negation(lk.a("p"))))
+      ]
+    )
+  };
+
+  // src/challenges/ch3-negation-7.ts
+  var ch3negation7 = {
+    rules: ["i", "swl", "swr", "nl", "nr"],
+    goal: sequent(
+      [
+        lk.o.p1.negation(
+          lk.o.p1.negation(lk.o.p2.conjunction(lk.a("p"), lk.a("q")))
+        )
+      ],
+      [
         lk.o.p1.negation(
           lk.o.p1.negation(
             lk.o.p1.negation(
-              lk.o.p2.conjunction(lk.a("p"), lk.a("q"))
+              lk.o.p1.negation(lk.o.p2.conjunction(lk.a("p"), lk.a("q")))
+            )
+          )
+        )
+      ]
+    )
+  };
+
+  // src/challenges/ch3-negation-8.ts
+  var ch3negation8 = {
+    rules: [
+      "i",
+      "swl",
+      "swr",
+      "sRotLF",
+      "sRotRF",
+      "sRotLB",
+      "sRotRB",
+      "nl",
+      "nr"
+    ],
+    goal: sequent(
+      [
+        lk.o.p1.negation(lk.o.p1.negation(lk.a("p"))),
+        lk.o.p2.conjunction(
+          lk.o.p1.negation(lk.a("p")),
+          lk.o.p1.negation(lk.a("q"))
+        ),
+        lk.o.p1.negation(lk.o.p1.negation(lk.o.p1.negation(lk.a("q"))))
+      ],
+      [
+        lk.o.p1.negation(lk.o.p1.negation(lk.o.p1.negation(lk.a("p")))),
+        lk.o.p2.conjunction(
+          lk.o.p1.negation(lk.a("p")),
+          lk.o.p1.negation(lk.a("q"))
+        ),
+        lk.o.p1.negation(lk.o.p1.negation(lk.a("q")))
+      ]
+    )
+  };
+
+  // src/challenges/ch3-negation-9.ts
+  var ch3negation9 = {
+    rules: [
+      "i",
+      "swl",
+      "swr",
+      "sRotLF",
+      "sRotRF",
+      "sRotLB",
+      "sRotRB",
+      "nl",
+      "nr"
+    ],
+    goal: sequent(
+      [
+        lk.o.p1.negation(lk.a("p")),
+        lk.o.p1.negation(lk.a("s")),
+        lk.o.p1.negation(lk.a("p")),
+        lk.a("r")
+      ],
+      [
+        lk.a("q"),
+        lk.o.p1.negation(lk.a("q")),
+        lk.a("s"),
+        lk.o.p1.negation(lk.a("r"))
+      ]
+    )
+  };
+
+  // src/challenges/ch4-theorem-1.ts
+  var ch4theorem1 = {
+    rules: ["i", "ir"],
+    goal: conclusion(lk.o.p2.implication(lk.a("q"), lk.a("q")))
+  };
+
+  // src/challenges/ch4-theorem-2.ts
+  var ch4theorem2 = {
+    rules: ["i", "ir"],
+    goal: conclusion(
+      lk.o.p2.implication(
+        lk.o.p2.conjunction(lk.a("q"), lk.a("q")),
+        lk.o.p2.conjunction(lk.a("q"), lk.a("q"))
+      )
+    )
+  };
+
+  // src/challenges/ch4-theorem-3.ts
+  var ch4theorem3 = {
+    rules: ["i", "ir"],
+    goal: conclusion(
+      lk.o.p2.implication(
+        lk.o.p2.implication(lk.a("p"), lk.a("r")),
+        lk.o.p2.implication(lk.a("p"), lk.a("r"))
+      )
+    )
+  };
+
+  // src/challenges/ch4-theorem-4.ts
+  var ch4theorem4 = {
+    rules: ["i", "ir"],
+    goal: conclusion(
+      lk.o.p2.implication(
+        lk.o.p2.implication(lk.a("q"), lk.o.p2.implication(lk.a("r"), lk.a("q"))),
+        lk.o.p2.implication(lk.a("q"), lk.o.p2.implication(lk.a("r"), lk.a("q")))
+      )
+    )
+  };
+
+  // src/challenges/ch4-theorem-5.ts
+  var ch4theorem5 = {
+    rules: ["i", "swl", "swr", "ir"],
+    goal: conclusion(
+      lk.o.p2.implication(lk.a("q"), lk.o.p2.implication(lk.a("r"), lk.a("q")))
+    )
+  };
+
+  // src/challenges/ch4-theorem-6.ts
+  var ch4theorem6 = {
+    rules: ["i", "swl", "swr", "ir"],
+    goal: conclusion(
+      lk.o.p2.implication(lk.a("r"), lk.o.p2.implication(lk.a("q"), lk.a("q")))
+    )
+  };
+
+  // src/challenges/ch4-theorem-7.ts
+  var ch4theorem7 = {
+    rules: ["i", "swl", "swr", "ir"],
+    goal: conclusion(
+      lk.o.p2.implication(
+        lk.o.p2.implication(
+          lk.a("p"),
+          lk.o.p2.implication(lk.a("q"), lk.o.p1.negation(lk.a("p")))
+        ),
+        lk.o.p2.implication(lk.a("p"), lk.a("p"))
+      )
+    )
+  };
+
+  // src/challenges/ch4-theorem-8.ts
+  var ch4theorem8 = {
+    rules: ["i", "swl", "swr", "nl", "nr", "ir"],
+    goal: conclusion(
+      lk.o.p2.implication(
+        lk.o.p1.negation(lk.o.p1.negation(lk.a("s"))),
+        lk.o.p1.negation(
+          lk.o.p1.negation(lk.o.p1.negation(lk.o.p1.negation(lk.a("s"))))
+        )
+      )
+    )
+  };
+
+  // src/challenges/ch4-theorem-9.ts
+  var ch4theorem9 = {
+    rules: ["i", "swl", "swr", "nl", "nr", "ir"],
+    goal: conclusion(
+      lk.o.p2.implication(
+        lk.o.p1.negation(
+          lk.o.p1.negation(lk.o.p2.conjunction(lk.a("p"), lk.a("q")))
+        ),
+        lk.o.p1.negation(
+          lk.o.p1.negation(
+            lk.o.p1.negation(
+              lk.o.p1.negation(lk.o.p2.conjunction(lk.a("p"), lk.a("q")))
             )
           )
         )
       )
-    ])
-  };
-
-  // src/theorems/ch3-negation-8.ts
-  var ch3negation8 = {
-    rules: ["i", "nl", "nr", "swl", "sRotLB", "sRotLF", "swr", "sRotRB", "sRotRF"],
-    goal: judgement([
-      lk.o.p1.negation(
-        lk.o.p1.negation(
-          lk.a("p")
-        )
-      ),
-      lk.o.p2.conjunction(
-        lk.o.p1.negation(
-          lk.a("p")
-        ),
-        lk.o.p1.negation(
-          lk.a("q")
-        )
-      ),
-      lk.o.p1.negation(
-        lk.o.p1.negation(
-          lk.o.p1.negation(
-            lk.a("q")
-          )
-        )
-      )
-    ], [
-      lk.o.p1.negation(
-        lk.o.p1.negation(
-          lk.o.p1.negation(
-            lk.a("p")
-          )
-        )
-      ),
-      lk.o.p2.conjunction(
-        lk.o.p1.negation(
-          lk.a("p")
-        ),
-        lk.o.p1.negation(
-          lk.a("q")
-        )
-      ),
-      lk.o.p1.negation(
-        lk.o.p1.negation(
-          lk.a("q")
-        )
-      )
-    ])
-  };
-
-  // src/theorems/ch3-negation-9.ts
-  var ch3negation9 = {
-    rules: ["i", "nl", "nr", "swl", "sRotLB", "sRotLF", "swr", "sRotRB", "sRotRF"],
-    goal: judgement(
-      [lk.o.p1.negation(lk.a("p")), lk.o.p1.negation(lk.a("s")), lk.o.p1.negation(lk.a("p")), lk.a("r")],
-      [lk.a("q"), lk.o.p1.negation(lk.a("q")), lk.a("s"), lk.o.p1.negation(lk.a("r"))]
     )
   };
 
-  // src/theorems/index.ts
+  // src/challenges/index.ts
   var theorems = {
     ch0identity1,
     ch0identity2,
@@ -1769,7 +2171,16 @@
     ch3negation6,
     ch3negation7,
     ch3negation8,
-    ch3negation9
+    ch3negation9,
+    ch4theorem1,
+    ch4theorem2,
+    ch4theorem3,
+    ch4theorem4,
+    ch4theorem5,
+    ch4theorem6,
+    ch4theorem7,
+    ch4theorem8,
+    ch4theorem9
     // harmaaPuolukkaTiikeri,
     // violettiLuumuBiisoni,
     // syaaniPaprikaKettu,
@@ -1781,28 +2192,28 @@
     i: fromDerivation(exampleI)
   };
   var left3 = {
-    cl1: fromDerivation(exampleCL1),
-    cl2: fromDerivation(exampleCL2),
-    dl: fromDerivation(exampleDL),
-    il: fromDerivation(exampleIL),
-    nl: fromDerivation(exampleNL),
     scl: fromDerivation(exampleSCL),
     swl: fromDerivation(exampleSWL),
-    //sxl: fromDerivation(exampleSXL), not relevant for reverse
     sRotLB: fromDerivation(exampleSRotLB),
-    sRotLF: fromDerivation(exampleSRotLF)
+    sRotLF: fromDerivation(exampleSRotLF),
+    //sxl: fromDerivation(exampleSXL), not relevant for reverse
+    nl: fromDerivation(exampleNL),
+    il: fromDerivation(exampleIL),
+    cl1: fromDerivation(exampleCL1),
+    cl2: fromDerivation(exampleCL2),
+    dl: fromDerivation(exampleDL)
   };
   var right2 = {
-    dr1: fromDerivation(exampleDR1),
-    dr2: fromDerivation(exampleDR2),
-    cr: fromDerivation(exampleCR),
-    ir: fromDerivation(exampleIR),
-    nr: fromDerivation(exampleNR),
     scr: fromDerivation(exampleSCR),
     swr: fromDerivation(exampleSWR),
-    //sxr: fromDerivation(exampleSXR), not relevant for reverse
     sRotRB: fromDerivation(exampleSRotRB),
-    sRotRF: fromDerivation(exampleSRotRF)
+    sRotRF: fromDerivation(exampleSRotRF),
+    //sxr: fromDerivation(exampleSXR), not relevant for reverse
+    nr: fromDerivation(exampleNR),
+    ir: fromDerivation(exampleIR),
+    dr1: fromDerivation(exampleDR1),
+    dr2: fromDerivation(exampleDR2),
+    cr: fromDerivation(exampleCR)
   };
   var controls = ["prev", "undo", "reset", "level", "next"];
   var workspace = {};
@@ -1819,6 +2230,7 @@
     shroud.setAttribute("style", "display: none;");
     shroud.setAttribute("id", "levelmenu");
     const panel = document.createElement("div");
+    panel.setAttribute("class", "level-select");
     panel.onclick = (click) => {
       click.preventDefault();
       return false;
@@ -1831,20 +2243,30 @@
       shroud.setAttribute("style", "display: none;");
     };
     panel.appendChild(close);
-    panel.setAttribute("class", "levels");
-    Object.keys(theorems).forEach((id) => {
+    const levels = document.createElement("div");
+    levels.setAttribute("class", "levels");
+    Object.entries(theorems).forEach(([id, challenge]) => {
       const item = document.createElement("div");
-      const link = document.createElement("a");
-      link.setAttribute("class", id === selected ? "active" : "");
-      link.setAttribute("href", "#");
-      link.onclick = (click) => {
+      item.setAttribute("class", "level" + (id === selected ? " active" : ""));
+      item.onclick = (click) => {
         click.preventDefault();
         selectLevel(id);
       };
-      link.innerHTML = id;
-      item.appendChild(link);
-      panel.appendChild(item);
+      const title = document.createElement("div");
+      title.setAttribute("class", "title");
+      title.innerHTML = id;
+      item.appendChild(title);
+      const rules = document.createElement("div");
+      rules.setAttribute("class", "rules");
+      rules.innerHTML = challenge.rules.map((rule) => fromRule(rule)(basic)).join(", ");
+      item.appendChild(rules);
+      const goal = document.createElement("div");
+      goal.setAttribute("class", "goal");
+      goal.innerHTML = fromSequent(challenge.goal)(basic);
+      item.appendChild(goal);
+      levels.appendChild(item);
     });
+    panel.appendChild(levels);
     shroud.appendChild(panel);
     return shroud;
   };
@@ -1860,6 +2282,11 @@
       congrats.appendChild(hurray);
       const congratsButtons = document.createElement("div");
       congratsButtons.setAttribute("class", "congrabuttons");
+      const previousButton = document.createElement("div");
+      previousButton.setAttribute("class", "button");
+      previousButton.innerHTML = "Prev Level";
+      previousButton.onclick = () => prevLevel();
+      congratsButtons.appendChild(previousButton);
       const againbutton = document.createElement("div");
       againbutton.setAttribute("class", "button");
       againbutton.innerHTML = "Play Again";
@@ -2062,16 +2489,28 @@
     history.pushState({ selected }, "", `?level=${selected}`);
     render();
   };
-  var first = "ch0identity1";
-  var nextLevelId = () => {
+  var theoremKeys = Object.keys(theorems);
+  var first = theoremKeys.at(0);
+  var last2 = theoremKeys.at(-1);
+  var currentLevelIndex = () => {
     if (!selected) {
-      return first;
+      return 0;
     }
-    const theoremKeys = Object.keys(theorems);
     const index = theoremKeys.findIndex((x) => x === selected);
     if (index < 0) {
-      return first;
+      return 0;
     }
+    return index;
+  };
+  var prevLevelId = () => {
+    const index = currentLevelIndex();
+    return theoremKeys[index - 1] ?? last2;
+  };
+  var prevLevel = () => {
+    selectLevel(prevLevelId());
+  };
+  var nextLevelId = () => {
+    const index = currentLevelIndex();
     return theoremKeys[index + 1] ?? first;
   };
   var nextLevel = () => {
