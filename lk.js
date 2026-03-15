@@ -288,6 +288,34 @@
         return editTransformation(root, path, edit);
     }
   };
+  var subDerivationFromPremise = (root, path) => {
+    if (isNonEmptyArray(path)) {
+      return null;
+    }
+    return root;
+  };
+  var subDerivationFromTransformation = (root, path) => {
+    if (isNonEmptyArray(path)) {
+      const [index, ...rest] = path;
+      const dep = root.deps[index];
+      if (!dep) {
+        return null;
+      }
+      return subDerivation(dep, rest);
+    }
+    return root;
+  };
+  var subDerivation = (root, path) => {
+    if (!root) {
+      return null;
+    }
+    switch (root.kind) {
+      case "premise":
+        return subDerivationFromPremise(root, path);
+      case "transformation":
+        return subDerivationFromTransformation(root, path);
+    }
+  };
   var lsPremise = (_d, path) => {
     return [path];
   };
@@ -317,6 +345,11 @@
   var activePath = (s) => {
     const paths = lsDerivation(s.derivation);
     return mod(paths, s.branch);
+  };
+  var activeSequent = (s) => {
+    const path = activePath(s);
+    const derivation = subDerivation(s.derivation, path);
+    return (derivation ?? s.derivation).result;
   };
   var apply = (s, edit) => {
     const path = activePath(s);
@@ -583,6 +616,10 @@
       switch (s) {
         case "i":
           return "I";
+        case "cl":
+          return t.conjunction.join(empty) + left2();
+        case "dr":
+          return t.disjunction.join(empty) + right();
         case "cl1":
           return t.conjunction.join(empty) + left2("\u2081");
         case "dr1":
@@ -716,6 +753,82 @@
     reverse: reverseCut,
     tryReverse: tryReverseCut,
     example: exampleCut
+  };
+
+  // src/rules/cl.ts
+  var isCLResult = refineActiveL(isConjunction);
+  var isCLResultDerivation = refineDerivation(isCLResult);
+  var cl = (result, deps) => {
+    return transformation(result, deps, "cl");
+  };
+  var applyCL = (s) => {
+    const \u03B3 = init2(init2(s.result.antecedent));
+    const a = last(init2(s.result.antecedent));
+    const b = last(s.result.antecedent);
+    const \u03B4 = s.result.succedent;
+    return cl(sequent([...\u03B3, conjunction(a, b)], \u03B4), [s]);
+  };
+  var reverseCL = (p) => {
+    const \u03B3 = init2(p.result.antecedent);
+    const acb = last(p.result.antecedent);
+    const a = acb.leftConjunct;
+    const b = acb.rightConjunct;
+    const \u03B4 = p.result.succedent;
+    return cl(p.result, [premise(sequent([...\u03B3, a, b], \u03B4))]);
+  };
+  var tryReverseCL = (d) => {
+    return isCLResultDerivation(d) ? reverseCL(d) : null;
+  };
+  var exampleCL = applyCL(
+    premise(sequent([atom("\u0393"), atom("A"), atom("B")], [atom("\u0394")]))
+  );
+  var ruleCL = {
+    isResult: isCLResult,
+    isResultDerivation: isCLResultDerivation,
+    make: cl,
+    apply: applyCL,
+    reverse: reverseCL,
+    tryReverse: tryReverseCL,
+    example: exampleCL
+  };
+
+  // src/rules/dr.ts
+  var isDRResult = (s) => {
+    return s.succedent.at(0)?.kind === "disjunction";
+  };
+  var isDRResultDerivation = refineDerivation(isDRResult);
+  var dr = (result, deps) => {
+    return transformation(result, deps, "dr");
+  };
+  var applyDR = (s) => {
+    const \u03B3 = s.result.antecedent;
+    const a = head(s.result.succedent);
+    const b = head(tail(s.result.succedent));
+    const \u03B4 = tail(tail(s.result.succedent));
+    return dr(sequent(\u03B3, [disjunction(a, b), ...\u03B4]), [s]);
+  };
+  var reverseDR = (p) => {
+    const \u03B3 = p.result.antecedent;
+    const adb = head(p.result.succedent);
+    const a = adb.leftDisjunct;
+    const b = adb.rightDisjunct;
+    const \u03B4 = tail(p.result.succedent);
+    return dr(p.result, [premise(sequent(\u03B3, [a, b, ...\u03B4]))]);
+  };
+  var tryReverseDR = (d) => {
+    return isDRResultDerivation(d) ? reverseDR(d) : null;
+  };
+  var exampleDR = applyDR(
+    premise(sequent([atom("\u0393")], [atom("A"), atom("B"), atom("\u0394")]))
+  );
+  var ruleDR = {
+    isResult: isDRResult,
+    isResultDerivation: isDRResultDerivation,
+    make: dr,
+    apply: applyDR,
+    reverse: reverseDR,
+    tryReverse: tryReverseDR,
+    example: exampleDR
   };
 
   // src/rules/cl1.ts
@@ -1497,6 +1610,8 @@
   };
   var rev = {
     i: ruleI.tryReverse,
+    cl: ruleCL.tryReverse,
+    dr: ruleDR.tryReverse,
     cl1: ruleCL1.tryReverse,
     dr1: ruleDR1.tryReverse,
     cl2: ruleCL2.tryReverse,
@@ -1583,18 +1698,18 @@
     i: iota,
     z: zeta
   };
-  var revs = (d, p) => entries(rev).flatMap(([rev47, ed]) => {
+  var revs = (d, p) => entries(rev).flatMap(([rev54, ed]) => {
     const result = editDerivation(d, p, ed);
     if (result) {
-      return [[rev47, result]];
+      return [[rev54, result]];
     }
     return [];
   });
 
   // src/interactive/event.ts
-  var reverse = (rev47) => ({
+  var reverse = (rev54) => ({
     kind: "reverse",
-    rev: rev47
+    rev: rev54
   });
 
   // src/challenges/ch0-identity-1.ts
@@ -2134,6 +2249,94 @@
     )
   };
 
+  // src/challenges/ch5-composition-1.ts
+  var ch5composition1 = {
+    rules: ["i", "swl", "swr", "cl"],
+    goal: sequent(
+      [lk.o.p2.conjunction(lk.a("p"), lk.a("q"))],
+      [lk.a("q"), lk.a("p")]
+    )
+  };
+
+  // src/challenges/ch5-composition-2.ts
+  var ch5composition2 = {
+    rules: ["i", "swl", "swr", "dr"],
+    goal: sequent(
+      [lk.a("q"), lk.a("p")],
+      [lk.o.p2.disjunction(lk.a("p"), lk.a("q"))]
+    )
+  };
+
+  // src/challenges/ch5-composition-3.ts
+  var ch5composition3 = {
+    rules: ["i", "swl", "swr", "cl", "dr"],
+    goal: sequent(
+      [lk.o.p2.conjunction(lk.a("q"), lk.a("p"))],
+      [lk.o.p2.disjunction(lk.a("p"), lk.a("q"))]
+    )
+  };
+
+  // src/challenges/ch5-composition-4.ts
+  var ch5composition4 = {
+    rules: ["i", "swl", "swr", "cl", "dr"],
+    goal: sequent(
+      [
+        lk.o.p2.conjunction(
+          lk.o.p2.implication(lk.a("q"), lk.a("r")),
+          lk.o.p2.conjunction(lk.a("p"), lk.a("q"))
+        )
+      ],
+      [
+        lk.o.p2.disjunction(
+          lk.o.p2.disjunction(lk.a("r"), lk.a("s")),
+          lk.o.p2.implication(lk.a("q"), lk.a("r"))
+        )
+      ]
+    )
+  };
+
+  // src/challenges/ch5-composition-5.ts
+  var ch5composition5 = {
+    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "nl", "nr", "ir", "cl", "dr"],
+    goal: conclusion(
+      lk.o.p2.implication(
+        lk.o.p2.conjunction(lk.a("q"), lk.o.p1.negation(lk.a("q"))),
+        lk.o.p2.disjunction(lk.a("r"), lk.a("s"))
+      )
+    )
+  };
+
+  // src/challenges/ch5-composition-6.ts
+  var ch5composition6 = {
+    rules: ["i", "swl", "swr", "ir", "cl", "dr"],
+    goal: conclusion(
+      lk.o.p2.disjunction(
+        lk.o.p2.disjunction(lk.a("r"), lk.a("s")),
+        lk.o.p2.implication(
+          lk.o.p2.conjunction(
+            lk.o.p2.implication(lk.a("q"), lk.a("r")),
+            lk.o.p2.conjunction(lk.a("p"), lk.a("q"))
+          ),
+          lk.o.p2.implication(lk.a("q"), lk.a("r"))
+        )
+      )
+    )
+  };
+
+  // src/challenges/ch5-composition-9.ts
+  var ch5composition9 = {
+    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "nl", "nr", "ir", "cl", "dr"],
+    goal: conclusion(
+      lk.o.p2.implication(
+        lk.a("p"),
+        lk.o.p2.implication(
+          lk.o.p1.negation(lk.o.p2.disjunction(lk.a("p"), lk.a("q"))),
+          lk.o.p2.implication(lk.a("q"), lk.a("r"))
+        )
+      )
+    )
+  };
+
   // src/challenges/index.ts
   var theorems = {
     ch0identity1,
@@ -2180,7 +2383,14 @@
     ch4theorem6,
     ch4theorem7,
     ch4theorem8,
-    ch4theorem9
+    ch4theorem9,
+    ch5composition1,
+    ch5composition2,
+    ch5composition3,
+    ch5composition4,
+    ch5composition5,
+    ch5composition6,
+    ch5composition9
     // harmaaPuolukkaTiikeri,
     // violettiLuumuBiisoni,
     // syaaniPaprikaKettu,
@@ -2199,6 +2409,7 @@
     //sxl: fromDerivation(exampleSXL), not relevant for reverse
     nl: fromDerivation(exampleNL),
     il: fromDerivation(exampleIL),
+    cl: fromDerivation(exampleCL),
     cl1: fromDerivation(exampleCL1),
     cl2: fromDerivation(exampleCL2),
     dl: fromDerivation(exampleDL)
@@ -2211,6 +2422,7 @@
     //sxr: fromDerivation(exampleSXR), not relevant for reverse
     nr: fromDerivation(exampleNR),
     ir: fromDerivation(exampleIR),
+    dr: fromDerivation(exampleDR),
     dr1: fromDerivation(exampleDR1),
     dr2: fromDerivation(exampleDR2),
     cr: fromDerivation(exampleCR)
@@ -2219,7 +2431,14 @@
   var workspace = {};
   var selected = null;
   var isDone = false;
-  var status = (s) => "\n" + fromFocus(s) + "\n";
+  var proof = (s) => {
+    const pre = document.createElement("pre");
+    pre.setAttribute("class", "proof");
+    if (s.derivation.kind === "transformation") {
+      pre.innerHTML = "\n" + fromFocus(s) + "\n";
+    }
+    return pre;
+  };
   var listing = () => {
     const shroud = document.createElement("div");
     shroud.onclick = (click) => {
@@ -2270,40 +2489,50 @@
     shroud.appendChild(panel);
     return shroud;
   };
-  var level = (s) => {
+  var congrats = () => {
+    const panel = document.createElement("div");
+    const congrats2 = document.createElement("div");
+    congrats2.setAttribute("class", "congrats");
+    const hurray = document.createElement("div");
+    hurray.setAttribute("class", "hurray");
+    hurray.innerHTML = "\n\n\u{1F389} Conglaturations! \u{1F389}\n";
+    congrats2.appendChild(hurray);
+    const congratsButtons = document.createElement("div");
+    congratsButtons.setAttribute("class", "congrabuttons");
+    const previousButton = document.createElement("div");
+    previousButton.setAttribute("class", "button");
+    previousButton.innerHTML = "Prev Level";
+    previousButton.onclick = () => prevLevel();
+    congratsButtons.appendChild(previousButton);
+    const againbutton = document.createElement("div");
+    againbutton.setAttribute("class", "button");
+    againbutton.innerHTML = "Play Again";
+    againbutton.onclick = resetHandler();
+    congratsButtons.appendChild(againbutton);
+    const continueButton = document.createElement("div");
+    continueButton.setAttribute("class", "button");
+    continueButton.innerHTML = "Next Level";
+    continueButton.onclick = () => nextLevel();
+    congratsButtons.appendChild(continueButton);
+    panel.appendChild(congrats2);
+    panel.appendChild(congratsButtons);
+    return panel;
+  };
+  var current = (s) => {
+    if (isDone) {
+      return congrats();
+    }
+    const active = document.createElement("div");
+    active.setAttribute("class", "current");
+    const sequent14 = activeSequent(s);
+    active.innerHTML = fromSequent(sequent14)(basic);
+    return active;
+  };
+  var playArea = (s) => {
     const panel = document.createElement("div");
     panel.setAttribute("class", "playarea");
-    if (isDone) {
-      const congrats = document.createElement("div");
-      congrats.setAttribute("class", "congrats");
-      const hurray = document.createElement("div");
-      hurray.setAttribute("class", "hurray");
-      hurray.innerHTML = "\n\n\u{1F389} Conglaturations! \u{1F389}\n";
-      congrats.appendChild(hurray);
-      const congratsButtons = document.createElement("div");
-      congratsButtons.setAttribute("class", "congrabuttons");
-      const previousButton = document.createElement("div");
-      previousButton.setAttribute("class", "button");
-      previousButton.innerHTML = "Prev Level";
-      previousButton.onclick = () => prevLevel();
-      congratsButtons.appendChild(previousButton);
-      const againbutton = document.createElement("div");
-      againbutton.setAttribute("class", "button");
-      againbutton.innerHTML = "Play Again";
-      againbutton.onclick = resetHandler();
-      congratsButtons.appendChild(againbutton);
-      const continueButton = document.createElement("div");
-      continueButton.setAttribute("class", "button");
-      continueButton.innerHTML = "Next Level";
-      continueButton.onclick = () => nextLevel();
-      congratsButtons.appendChild(continueButton);
-      panel.appendChild(congrats);
-      panel.appendChild(congratsButtons);
-    }
-    const pre = document.createElement("pre");
-    pre.setAttribute("class", "status");
-    pre.innerHTML = status(s);
-    panel.appendChild(pre);
+    panel.appendChild(current(s));
+    panel.appendChild(proof(s));
     return panel;
   };
   var ruleHandler = (ev) => () => {
@@ -2460,7 +2689,7 @@
     panel.appendChild(leftPanel(ls, rules));
     panel.appendChild(mainPanel(ls, rules));
     panel.appendChild(rightPanel(ls, rules));
-    panel.appendChild(level(s));
+    panel.appendChild(playArea(s));
     panel.appendChild(control(s));
     return panel;
   };
@@ -2468,8 +2697,8 @@
     if (!selected) {
       return;
     }
-    const current = workspace[selected];
-    if (!current) {
+    const current2 = workspace[selected];
+    if (!current2) {
       return;
     }
     const body = document.getElementById("body");
@@ -2477,9 +2706,9 @@
       return;
     }
     body.innerHTML = "";
-    isDone = isProof(current.derivation);
+    isDone = isProof(current2.derivation);
     body.appendChild(listing());
-    body.appendChild(bench(current, theorems[selected].rules));
+    body.appendChild(bench(current2, theorems[selected].rules));
   };
   var selectLevel = (conjectureId) => {
     if (!(conjectureId in workspace)) {
@@ -2504,32 +2733,32 @@
   };
   var prevLevelId = () => {
     const index = currentLevelIndex();
-    return theoremKeys[index - 1] ?? last2;
+    return theoremKeys[index - 1] ?? first;
   };
   var prevLevel = () => {
     selectLevel(prevLevelId());
   };
   var nextLevelId = () => {
     const index = currentLevelIndex();
-    return theoremKeys[index + 1] ?? first;
+    return theoremKeys[index + 1] ?? last2;
   };
   var nextLevel = () => {
     selectLevel(nextLevelId());
   };
   var init3 = () => {
     const params = new URLSearchParams(window.location.search);
-    const level2 = params.get("level");
-    if (level2 && isTheoremKey(level2)) {
-      selectLevel(level2);
+    const level = params.get("level");
+    if (level && isTheoremKey(level)) {
+      selectLevel(level);
     } else {
       nextLevel();
     }
   };
   document.addEventListener("DOMContentLoaded", init3);
   window.addEventListener("popstate", (event) => {
-    const level2 = event.state?.selected;
-    if (level2 && isTheoremKey(level2)) {
-      selectLevel(level2);
+    const level = event.state?.selected;
+    if (level && isTheoremKey(level)) {
+      selectLevel(level);
     }
     render();
   });
