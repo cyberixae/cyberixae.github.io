@@ -1722,18 +1722,18 @@
     i: iota,
     z: zeta
   };
-  var revs = (d, p) => entries(rev).flatMap(([rev64, ed]) => {
+  var revs = (d, p) => entries(rev).flatMap(([rev73, ed]) => {
     const result = editDerivation(d, p, ed);
     if (result) {
-      return [[rev64, result]];
+      return [[rev73, result]];
     }
     return [];
   });
 
   // src/interactive/event.ts
-  var reverse = (rev64) => ({
+  var reverse = (rev73) => ({
     kind: "reverse",
-    rev: rev64
+    rev: rev73
   });
 
   // src/challenges/ch0-identity-1.ts
@@ -2466,6 +2466,118 @@
     )
   };
 
+  // src/challenges/ch7-completeness-1.ts
+  var ch7completeness1 = {
+    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "il", "ir"],
+    goal: sequent(
+      [
+        lk.a("p"),
+        lk.o.p2.implication(lk.a("p"), lk.a("q"))
+      ],
+      [lk.a("q")]
+    )
+  };
+
+  // src/challenges/ch7-completeness-2.ts
+  var ch7completeness2 = {
+    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "nl", "nr", "il", "ir"],
+    goal: conclusion(
+      lk.o.p2.implication(lk.o.p2.implication(lk.a("p"), lk.a("q")), lk.o.p2.implication(lk.o.p1.negation(lk.a("q")), lk.o.p1.negation(lk.a("p"))))
+    )
+  };
+
+  // src/challenges/ch7-completeness-3.ts
+  var ch7completeness3 = {
+    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "il", "ir"],
+    goal: conclusion(
+      lk.o.p2.implication(
+        lk.o.p2.implication(lk.a("p"), lk.a("q")),
+        lk.o.p2.implication(
+          lk.o.p2.implication(lk.a("q"), lk.a("r")),
+          lk.o.p2.implication(lk.a("p"), lk.a("r"))
+        )
+      )
+    )
+  };
+
+  // src/challenges/ch7-completeness-4.ts
+  var ch7completeness4 = {
+    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "il", "ir", "cl", "cr"],
+    goal: conclusion(
+      lk.o.p2.implication(
+        lk.o.p2.implication(lk.o.p2.conjunction(lk.a("p"), lk.a("q")), lk.a("r")),
+        lk.o.p2.implication(
+          lk.a("p"),
+          lk.o.p2.implication(lk.a("q"), lk.a("r"))
+        )
+      )
+    )
+  };
+
+  // src/challenges/ch7-completeness-5.ts
+  var ch7completeness5 = {
+    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "il", "ir", "cl", "cr"],
+    goal: conclusion(
+      lk.o.p2.implication(
+        lk.o.p2.implication(
+          lk.o.p2.implication(lk.a("p"), lk.a("q")),
+          lk.a("p")
+        ),
+        lk.a("p")
+      )
+    )
+  };
+
+  // src/challenges/ch7-completeness-6.ts
+  var ch7completeness6 = {
+    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "nl", "nr", "il", "ir"],
+    goal: conclusion(
+      lk.o.p2.implication(
+        lk.o.p2.implication(lk.a("p"), lk.a("q")),
+        lk.o.p2.implication(
+          lk.o.p2.implication(lk.a("p"), lk.o.p1.negation(lk.a("q"))),
+          lk.o.p1.negation(lk.a("p"))
+        )
+      )
+    )
+  };
+
+  // src/challenges/ch7-completeness-7.ts
+  var ch7completeness7 = {
+    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "il", "ir"],
+    goal: conclusion(
+      lk.o.p2.implication(
+        lk.o.p2.implication(lk.a("p"), lk.o.p2.implication(lk.a("p"), lk.a("q"))),
+        lk.o.p2.implication(lk.a("p"), lk.a("q"))
+      )
+    )
+  };
+
+  // src/challenges/ch7-completeness-8.ts
+  var ch7completeness8 = {
+    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "il", "ir"],
+    goal: conclusion(
+      lk.o.p2.implication(
+        lk.o.p2.implication(lk.o.p2.implication(lk.a("p"), lk.a("q")), lk.a("q")),
+        lk.o.p2.implication(lk.o.p2.implication(lk.a("q"), lk.a("p")), lk.a("p"))
+      )
+    )
+  };
+
+  // src/challenges/ch7-completeness-9.ts
+  var ch7completeness9 = {
+    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "il", "ir", "cl", "cr"],
+    goal: conclusion(
+      lk.o.p2.implication(
+        lk.o.p2.implication(
+          lk.a("p"),
+          lk.o.p2.implication(lk.a("q"), lk.a("r"))
+        ),
+        lk.o.p2.implication(lk.o.p2.conjunction(lk.a("p"), lk.a("q")), lk.a("r"))
+      )
+    )
+  };
+
   // src/challenges/index.ts
   var theorems = {
     ch0identity1,
@@ -2529,7 +2641,16 @@
     ch6branching6,
     ch6branching7,
     ch6branching8,
-    ch6branching9
+    ch6branching9,
+    ch7completeness1,
+    ch7completeness2,
+    ch7completeness3,
+    ch7completeness4,
+    ch7completeness5,
+    ch7completeness6,
+    ch7completeness7,
+    ch7completeness8,
+    ch7completeness9
     // ch5compositionC,
     // ch5compositionE,
     // harmaaPuolukkaTiikeri,
@@ -2665,8 +2786,8 @@
     }
     const active = document.createElement("div");
     active.setAttribute("class", "current");
-    const sequent16 = activeSequent(s);
-    active.innerHTML = fromSequent(sequent16)(basic);
+    const sequent24 = activeSequent(s);
+    active.innerHTML = fromSequent(sequent24)(basic);
     return active;
   };
   var playArea = (s) => {
