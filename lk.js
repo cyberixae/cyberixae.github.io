@@ -1698,18 +1698,18 @@
     i: iota,
     z: zeta
   };
-  var revs = (d, p) => entries(rev).flatMap(([rev54, ed]) => {
+  var revs = (d, p) => entries(rev).flatMap(([rev55, ed]) => {
     const result = editDerivation(d, p, ed);
     if (result) {
-      return [[rev54, result]];
+      return [[rev55, result]];
     }
     return [];
   });
 
   // src/interactive/event.ts
-  var reverse = (rev54) => ({
+  var reverse = (rev55) => ({
     kind: "reverse",
-    rev: rev54
+    rev: rev55
   });
 
   // src/challenges/ch0-identity-1.ts
@@ -2251,7 +2251,7 @@
 
   // src/challenges/ch5-composition-1.ts
   var ch5composition1 = {
-    rules: ["i", "swl", "swr", "cl"],
+    rules: ["i", "swl", "swr", "cl", "dr"],
     goal: sequent(
       [lk.o.p2.conjunction(lk.a("p"), lk.a("q"))],
       [lk.a("q"), lk.a("p")]
@@ -2260,7 +2260,7 @@
 
   // src/challenges/ch5-composition-2.ts
   var ch5composition2 = {
-    rules: ["i", "swl", "swr", "dr"],
+    rules: ["i", "swl", "swr", "cl", "dr"],
     goal: sequent(
       [lk.a("q"), lk.a("p")],
       [lk.o.p2.disjunction(lk.a("p"), lk.a("q"))]
@@ -2280,59 +2280,75 @@
   var ch5composition4 = {
     rules: ["i", "swl", "swr", "cl", "dr"],
     goal: sequent(
-      [
-        lk.o.p2.conjunction(
-          lk.o.p2.implication(lk.a("q"), lk.a("r")),
-          lk.o.p2.conjunction(lk.a("p"), lk.a("q"))
-        )
-      ],
-      [
-        lk.o.p2.disjunction(
-          lk.o.p2.disjunction(lk.a("r"), lk.a("s")),
-          lk.o.p2.implication(lk.a("q"), lk.a("r"))
-        )
-      ]
+      [lk.o.p2.conjunction(lk.o.p2.conjunction(lk.a("r"), lk.a("p")), lk.a("s"))],
+      [lk.o.p2.disjunction(lk.a("s"), lk.o.p2.disjunction(lk.a("p"), lk.a("r")))]
     )
   };
 
   // src/challenges/ch5-composition-5.ts
   var ch5composition5 = {
-    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "nl", "nr", "ir", "cl", "dr"],
-    goal: conclusion(
-      lk.o.p2.implication(
-        lk.o.p2.conjunction(lk.a("q"), lk.o.p1.negation(lk.a("q"))),
-        lk.o.p2.disjunction(lk.a("r"), lk.a("s"))
-      )
+    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "cl", "dr"],
+    goal: sequent(
+      [
+        lk.o.p2.conjunction(
+          lk.o.p2.conjunction(lk.a("r"), lk.a("p")),
+          lk.o.p2.disjunction(lk.a("p"), lk.a("r"))
+        )
+      ],
+      [
+        lk.o.p2.disjunction(
+          lk.o.p2.conjunction(lk.a("p"), lk.a("r")),
+          lk.o.p2.disjunction(lk.a("r"), lk.a("p"))
+        )
+      ]
     )
   };
 
   // src/challenges/ch5-composition-6.ts
   var ch5composition6 = {
-    rules: ["i", "swl", "swr", "ir", "cl", "dr"],
-    goal: conclusion(
-      lk.o.p2.disjunction(
-        lk.o.p2.disjunction(lk.a("r"), lk.a("s")),
-        lk.o.p2.implication(
-          lk.o.p2.conjunction(
-            lk.o.p2.implication(lk.a("q"), lk.a("r")),
-            lk.o.p2.conjunction(lk.a("p"), lk.a("q"))
-          ),
-          lk.o.p2.implication(lk.a("q"), lk.a("r"))
+    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "cl", "dr"],
+    goal: sequent(
+      [
+        lk.o.p2.conjunction(
+          lk.o.p2.disjunction(lk.a("r"), lk.a("p")),
+          lk.o.p2.disjunction(lk.a("p"), lk.a("s"))
         )
-      )
+      ],
+      [
+        lk.o.p2.disjunction(
+          lk.o.p2.disjunction(lk.a("s"), lk.a("p")),
+          lk.o.p2.disjunction(lk.a("r"), lk.a("p"))
+        )
+      ]
     )
   };
 
-  // src/challenges/ch5-composition-9.ts
-  var ch5composition9 = {
+  // src/challenges/ch5-composition-7.ts
+  var ch5composition7 = {
+    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "cl", "dr"],
+    goal: sequent(
+      [
+        lk.o.p2.conjunction(
+          lk.o.p2.conjunction(lk.a("p"), lk.a("q")),
+          lk.o.p2.implication(lk.a("r"), lk.a("q"))
+        )
+      ],
+      [
+        lk.o.p2.disjunction(
+          lk.o.p2.implication(lk.a("q"), lk.a("r")),
+          lk.o.p2.disjunction(lk.a("p"), lk.a("q"))
+        )
+      ]
+    )
+  };
+
+  // src/challenges/ch5-composition-8.ts
+  var ch5composition8 = {
     rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "nl", "nr", "ir", "cl", "dr"],
     goal: conclusion(
       lk.o.p2.implication(
-        lk.a("p"),
-        lk.o.p2.implication(
-          lk.o.p1.negation(lk.o.p2.disjunction(lk.a("p"), lk.a("q"))),
-          lk.o.p2.implication(lk.a("q"), lk.a("r"))
-        )
+        lk.o.p2.conjunction(lk.a("q"), lk.o.p1.negation(lk.a("q"))),
+        lk.o.p2.disjunction(lk.a("r"), lk.a("s"))
       )
     )
   };
@@ -2390,7 +2406,11 @@
     ch5composition4,
     ch5composition5,
     ch5composition6,
-    ch5composition9
+    ch5composition7,
+    ch5composition8
+    //ch6branching1,
+    // ch5compositionC,
+    // ch5compositionE,
     // harmaaPuolukkaTiikeri,
     // violettiLuumuBiisoni,
     // syaaniPaprikaKettu,
@@ -2427,7 +2447,7 @@
     dr2: fromDerivation(exampleDR2),
     cr: fromDerivation(exampleCR)
   };
-  var controls = ["prev", "undo", "reset", "level", "next"];
+  var controls = ["undo", "reset", "level"];
   var workspace = {};
   var selected = null;
   var isDone = false;
@@ -2524,8 +2544,8 @@
     }
     const active = document.createElement("div");
     active.setAttribute("class", "current");
-    const sequent14 = activeSequent(s);
-    active.innerHTML = fromSequent(sequent14)(basic);
+    const sequent12 = activeSequent(s);
+    active.innerHTML = fromSequent(sequent12)(basic);
     return active;
   };
   var playArea = (s) => {
@@ -2751,7 +2771,7 @@
     if (level && isTheoremKey(level)) {
       selectLevel(level);
     } else {
-      nextLevel();
+      selectLevel(first);
     }
   };
   document.addEventListener("DOMContentLoaded", init3);
