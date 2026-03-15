@@ -159,8 +159,8 @@
   function leftify(...lines) {
     return lines.join("\n");
   }
-  function tree(root, branches, note, lineWidth) {
-    const line1 = center(lineWidth)(spaced(branches, 2));
+  function tree(root, branches2, note, lineWidth) {
+    const line1 = center(lineWidth)(spaced(branches2, 2));
     const last3 = center(lineWidth)(lastLine(line1).trim());
     const line2 = spaced([line(lineWidth), note]);
     const line3 = center(lineWidth)(root);
@@ -174,13 +174,13 @@
     const [first2, ...rest] = split(block, "\n");
     return rest.at(-1) ?? first2;
   }
-  function treeAuto(root, branches, note) {
-    const branchBlock = spaced(branches, 2);
+  function treeAuto(root, branches2, note) {
+    const branchBlock = spaced(branches2, 2);
     const contentWidth = Math.max(
       lastLine(branchBlock).trim().length + 2,
       width(root) + 2
     );
-    return tree(root, branches, note, contentWidth);
+    return tree(root, branches2, note, contentWidth);
   }
 
   // src/utils/tuple.ts
@@ -242,9 +242,6 @@
   function introduction(result, rule) {
     return transformation(result, [], rule);
   }
-  var isProof = (d) => {
-    return d.kind === "transformation" && d.deps.every((dep) => isProof(dep));
-  };
   var isEquivalent = (a, b) => equals2(a.result, b.result);
   var replaceDep = (parent, index, d) => {
     const deps = replaceItem(parent.deps, index, d);
@@ -288,13 +285,13 @@
         return editTransformation(root, path, edit);
     }
   };
-  var subDerivationFromPremise = (root, path) => {
+  var subDerivationPremise = (root, path) => {
     if (isNonEmptyArray(path)) {
       return null;
     }
     return root;
   };
-  var subDerivationFromTransformation = (root, path) => {
+  var subDerivationTransformation = (root, path) => {
     if (isNonEmptyArray(path)) {
       const [index, ...rest] = path;
       const dep = root.deps[index];
@@ -311,28 +308,49 @@
     }
     switch (root.kind) {
       case "premise":
-        return subDerivationFromPremise(root, path);
+        return subDerivationPremise(root, path);
       case "transformation":
-        return subDerivationFromTransformation(root, path);
+        return subDerivationTransformation(root, path);
     }
   };
-  var lsPremise = (_d, path) => {
+  var branchesPremise = (_d, path) => {
     return [path];
   };
-  var lsTransformation = (d, path) => {
-    const paths = d.deps.flatMap((dep, i2) => lsDerivation(dep, [...path, i2]));
+  var branchesTransformation = (d, path) => {
+    const paths = d.deps.flatMap((dep, i2) => branches(dep, [...path, i2]));
     if (isNonEmptyArray(paths)) {
       return paths;
     }
     return [path];
   };
-  var lsDerivation = (root, path = []) => {
+  var branches = (root, path = []) => {
     switch (root.kind) {
       case "premise":
-        return lsPremise(root, path);
+        return branchesPremise(root, path);
       case "transformation":
-        return lsTransformation(root, path);
+        return branchesTransformation(root, path);
     }
+  };
+  var openBranchesPremise = (_d, path) => {
+    return [path];
+  };
+  var openBranchesTransformation = (d, path) => {
+    const paths = d.deps.flatMap((dep, i2) => openBranches(dep, [...path, i2]));
+    if (isNonEmptyArray(paths)) {
+      return paths;
+    }
+    return [];
+  };
+  var openBranches = (root, path = []) => {
+    switch (root.kind) {
+      case "premise":
+        return openBranchesPremise(root, path);
+      case "transformation":
+        return openBranchesTransformation(root, path);
+    }
+  };
+  var isProof = (d) => {
+    return openBranches(d).length < 1;
   };
 
   // src/interactive/focus.ts
@@ -343,7 +361,7 @@
   var next = (s) => focus(s.derivation, s.branch + 1);
   var prev = (s) => focus(s.derivation, s.branch - 1);
   var activePath = (s) => {
-    const paths = lsDerivation(s.derivation);
+    const paths = branches(s.derivation);
     return mod(paths, s.branch);
   };
   var activeSequent = (s) => {
@@ -357,7 +375,13 @@
     if (!derivation) {
       return s;
     }
-    return focus(derivation, s.branch);
+    const cursor = focus(derivation, s.branch);
+    const openBefore = openBranches(s.derivation).length;
+    const openAfter = openBranches(derivation).length;
+    if (openAfter < openBefore) {
+      return next(cursor);
+    }
+    return cursor;
   };
   var undo = (s) => {
     const path = activePath(s);
@@ -1698,18 +1722,18 @@
     i: iota,
     z: zeta
   };
-  var revs = (d, p) => entries(rev).flatMap(([rev55, ed]) => {
+  var revs = (d, p) => entries(rev).flatMap(([rev64, ed]) => {
     const result = editDerivation(d, p, ed);
     if (result) {
-      return [[rev55, result]];
+      return [[rev64, result]];
     }
     return [];
   });
 
   // src/interactive/event.ts
-  var reverse = (rev55) => ({
+  var reverse = (rev64) => ({
     kind: "reverse",
-    rev: rev55
+    rev: rev64
   });
 
   // src/challenges/ch0-identity-1.ts
@@ -2353,6 +2377,95 @@
     )
   };
 
+  // src/challenges/ch6-branching-1.ts
+  var ch6branching1 = {
+    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "dl", "cr"],
+    goal: sequent(
+      [lk.o.p2.disjunction(lk.a("p"), lk.a("q"))],
+      [lk.a("p"), lk.a("q")]
+    )
+  };
+
+  // src/challenges/ch6-branching-2.ts
+  var ch6branching2 = {
+    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "dl", "cr"],
+    goal: sequent(
+      [lk.a("p"), lk.a("q")],
+      [lk.o.p2.conjunction(lk.a("p"), lk.a("q"))]
+    )
+  };
+
+  // src/challenges/ch6-branching-3.ts
+  var ch6branching3 = {
+    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "dl", "cr"],
+    goal: sequent(
+      [lk.o.p2.disjunction(lk.a("p"), lk.a("p"))],
+      [lk.o.p2.conjunction(lk.a("p"), lk.a("p"))]
+    )
+  };
+
+  // src/challenges/ch6-branching-4.ts
+  var ch6branching4 = {
+    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "cl", "cr", "dl", "dr"],
+    goal: sequent(
+      [lk.o.p2.disjunction(lk.a("p"), lk.a("q"))],
+      [lk.o.p2.disjunction(lk.a("q"), lk.a("p"))]
+    )
+  };
+
+  // src/challenges/ch6-branching-5.ts
+  var ch6branching5 = {
+    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "cl", "cr", "dl", "dr"],
+    goal: sequent(
+      [lk.o.p2.conjunction(lk.a("p"), lk.a("q"))],
+      [lk.o.p2.conjunction(lk.a("q"), lk.a("p"))]
+    )
+  };
+
+  // src/challenges/ch6-branching-6.ts
+  var ch6branching6 = {
+    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "nl", "nr", "ir", "cl", "cr", "dl", "dr"],
+    goal: conclusion(
+      lk.o.p2.implication(
+        lk.o.p1.negation(lk.o.p2.conjunction(lk.a("p"), lk.a("q"))),
+        lk.o.p2.disjunction(lk.o.p1.negation(lk.a("p")), lk.o.p1.negation(lk.a("q")))
+      )
+    )
+  };
+
+  // src/challenges/ch6-branching-7.ts
+  var ch6branching7 = {
+    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "nl", "nr", "ir", "cl", "cr", "dl", "dr"],
+    goal: conclusion(
+      lk.o.p2.implication(
+        lk.o.p2.disjunction(lk.o.p1.negation(lk.a("p")), lk.o.p1.negation(lk.a("q"))),
+        lk.o.p1.negation(lk.o.p2.conjunction(lk.a("p"), lk.a("q")))
+      )
+    )
+  };
+
+  // src/challenges/ch6-branching-8.ts
+  var ch6branching8 = {
+    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "ir", "cl", "cr", "dl", "dr"],
+    goal: conclusion(
+      lk.o.p2.implication(
+        lk.o.p2.conjunction(lk.a("p"), lk.o.p2.disjunction(lk.a("q"), lk.a("r"))),
+        lk.o.p2.disjunction(lk.o.p2.conjunction(lk.a("p"), lk.a("q")), lk.o.p2.conjunction(lk.a("p"), lk.a("r")))
+      )
+    )
+  };
+
+  // src/challenges/ch6-branching-9.ts
+  var ch6branching9 = {
+    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "ir", "cl", "cr", "dl", "dr"],
+    goal: conclusion(
+      lk.o.p2.implication(
+        lk.o.p2.disjunction(lk.o.p2.conjunction(lk.a("p"), lk.a("q")), lk.o.p2.conjunction(lk.a("p"), lk.a("r"))),
+        lk.o.p2.conjunction(lk.a("p"), lk.o.p2.disjunction(lk.a("q"), lk.a("r")))
+      )
+    )
+  };
+
   // src/challenges/index.ts
   var theorems = {
     ch0identity1,
@@ -2407,8 +2520,16 @@
     ch5composition5,
     ch5composition6,
     ch5composition7,
-    ch5composition8
-    //ch6branching1,
+    ch5composition8,
+    ch6branching1,
+    ch6branching2,
+    ch6branching3,
+    ch6branching4,
+    ch6branching5,
+    ch6branching6,
+    ch6branching7,
+    ch6branching8,
+    ch6branching9
     // ch5compositionC,
     // ch5compositionE,
     // harmaaPuolukkaTiikeri,
@@ -2544,8 +2665,8 @@
     }
     const active = document.createElement("div");
     active.setAttribute("class", "current");
-    const sequent12 = activeSequent(s);
-    active.innerHTML = fromSequent(sequent12)(basic);
+    const sequent16 = activeSequent(s);
+    active.innerHTML = fromSequent(sequent16)(basic);
     return active;
   };
   var playArea = (s) => {
@@ -2675,7 +2796,7 @@
     const panel = document.createElement("div");
     panel.setAttribute("class", "controls");
     controls.forEach((key) => {
-      const disabled = !(key === "level" || ["undo", "reset"].includes(key) && path.length > 0 || ["next", "prev"].includes(key) && lsDerivation(s.derivation).length > 1);
+      const disabled = !(key === "level" || ["undo", "reset"].includes(key) && path.length > 0 || ["next", "prev"].includes(key) && branches(s.derivation).length > 1);
       const pre = document.createElement("pre");
       pre.setAttribute("class", "button" + (disabled ? " disabled" : ""));
       if (!disabled) {
