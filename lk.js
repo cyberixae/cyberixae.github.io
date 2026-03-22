@@ -3678,18 +3678,7 @@
       "ir"
     ],
     goal: conclusion(
-      lk.o.p1.negation(
-        lk.o.p2.implication(
-          lk.o.p2.implication(
-            lk.o.p2.implication(lk.a("p"), lk.a("r")),
-            lk.o.p2.implication(lk.a("q"), lk.a("r"))
-          ),
-          lk.o.p2.implication(
-            lk.o.p2.disjunction(lk.a("p"), lk.a("q")),
-            lk.a("r")
-          )
-        )
-      )
+      lk.o.p2.implication(lk.a("p"), lk.a("p"))
     )
   };
 
