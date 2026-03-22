@@ -1523,12 +1523,14 @@
     mp: ruleMP,
     v: ruleV
   };
-  var left = {
+  var leftStructural = {
     scl: ruleSCL,
     swl: ruleSWL,
     sRotLB: ruleSRotLB,
     sRotLF: ruleSRotLF,
-    sxl: ruleSXL,
+    sxl: ruleSXL
+  };
+  var leftLogical = {
     nl: ruleNL,
     cl: ruleCL,
     cl1: ruleCL1,
@@ -1536,18 +1538,28 @@
     dl: ruleDL,
     il: ruleIL
   };
-  var right = {
+  var left = {
+    ...leftStructural,
+    ...leftLogical
+  };
+  var rightStructural = {
     scr: ruleSCR,
     swr: ruleSWR,
     sRotRB: ruleSRotRB,
     sRotRF: ruleSRotRF,
-    sxr: ruleSXR,
+    sxr: ruleSXR
+  };
+  var rightLogical = {
     nr: ruleNR,
     dr: ruleDR,
     dr1: ruleDR1,
     dr2: ruleDR2,
     cr: ruleCR,
     ir: ruleIR
+  };
+  var right = {
+    ...rightStructural,
+    ...rightLogical
   };
   var _side = {
     ...center,
@@ -2127,8 +2139,8 @@
   var ch0identity4 = {
     rules: ["i"],
     goal: sequent(
-      [lk.o.p2.conjunction(lk.a("p"), lk.a("q"))],
-      [lk.o.p2.conjunction(lk.a("p"), lk.a("q"))]
+      [lk.o.p2.conjunction(lk.a("q"), lk.a("r"))],
+      [lk.o.p2.conjunction(lk.a("q"), lk.a("r"))]
     )
   };
 
@@ -2136,8 +2148,8 @@
   var ch0identity5 = {
     rules: ["i"],
     goal: sequent(
-      [lk.o.p2.disjunction(lk.a("p"), lk.a("q"))],
-      [lk.o.p2.disjunction(lk.a("p"), lk.a("q"))]
+      [lk.o.p2.disjunction(lk.a("r"), lk.a("s"))],
+      [lk.o.p2.disjunction(lk.a("r"), lk.a("s"))]
     )
   };
 
@@ -2145,8 +2157,8 @@
   var ch0identity6 = {
     rules: ["i"],
     goal: sequent(
-      [lk.o.p2.implication(lk.a("p"), lk.a("q"))],
-      [lk.o.p2.implication(lk.a("p"), lk.a("q"))]
+      [lk.o.p2.implication(lk.a("r"), lk.a("p"))],
+      [lk.o.p2.implication(lk.a("r"), lk.a("p"))]
     )
   };
 
@@ -2154,8 +2166,8 @@
   var ch0identity7 = {
     rules: ["i"],
     goal: sequent(
-      [lk.o.p2.conjunction(lk.a("p"), lk.o.p1.negation(lk.a("q")))],
-      [lk.o.p2.conjunction(lk.a("p"), lk.o.p1.negation(lk.a("q")))]
+      [lk.o.p2.conjunction(lk.a("q"), lk.o.p1.negation(lk.a("p")))],
+      [lk.o.p2.conjunction(lk.a("q"), lk.o.p1.negation(lk.a("p")))]
     )
   };
 
@@ -2430,15 +2442,21 @@
 
   // src/challenges/ch3-negation-5.ts
   var ch3negation5 = {
-    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "nl", "nr"],
+    rules: ["i", "swl", "swr", "nl", "nr"],
     goal: sequent(
       [
-        lk.o.p1.negation(lk.o.p1.negation(lk.a("p"))),
-        lk.o.p1.negation(lk.o.p1.negation(lk.o.p1.negation(lk.a("p"))))
+        lk.o.p1.negation(
+          lk.o.p1.negation(lk.o.p2.conjunction(lk.a("p"), lk.a("q")))
+        )
       ],
       [
-        lk.o.p1.negation(lk.o.p1.negation(lk.a("p"))),
-        lk.o.p1.negation(lk.o.p1.negation(lk.o.p1.negation(lk.a("p"))))
+        lk.o.p1.negation(
+          lk.o.p1.negation(
+            lk.o.p1.negation(
+              lk.o.p1.negation(lk.o.p2.conjunction(lk.a("p"), lk.a("q")))
+            )
+          )
+        )
       ]
     )
   };
@@ -2460,21 +2478,25 @@
 
   // src/challenges/ch3-negation-7.ts
   var ch3negation7 = {
-    rules: ["i", "swl", "swr", "nl", "nr"],
+    rules: [
+      "i",
+      "swl",
+      "swr",
+      "sRotLF",
+      "sRotRF",
+      "sRotLB",
+      "sRotRB",
+      "nl",
+      "nr"
+    ],
     goal: sequent(
       [
-        lk.o.p1.negation(
-          lk.o.p1.negation(lk.o.p2.conjunction(lk.a("p"), lk.a("q")))
-        )
+        lk.o.p1.negation(lk.o.p1.negation(lk.a("p"))),
+        lk.o.p1.negation(lk.o.p1.negation(lk.o.p1.negation(lk.a("p"))))
       ],
       [
-        lk.o.p1.negation(
-          lk.o.p1.negation(
-            lk.o.p1.negation(
-              lk.o.p1.negation(lk.o.p2.conjunction(lk.a("p"), lk.a("q")))
-            )
-          )
-        )
+        lk.o.p1.negation(lk.o.p1.negation(lk.a("p"))),
+        lk.o.p1.negation(lk.o.p1.negation(lk.o.p1.negation(lk.a("p"))))
       ]
     )
   };
@@ -2680,7 +2702,17 @@
 
   // src/challenges/ch5-composition-5.ts
   var ch5composition5 = {
-    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "cl", "dr"],
+    rules: [
+      "i",
+      "swl",
+      "swr",
+      "sRotLF",
+      "sRotRF",
+      "sRotLB",
+      "sRotRB",
+      "cl",
+      "dr"
+    ],
     goal: sequent(
       [
         lk.o.p2.conjunction(
@@ -2699,7 +2731,17 @@
 
   // src/challenges/ch5-composition-6.ts
   var ch5composition6 = {
-    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "cl", "dr"],
+    rules: [
+      "i",
+      "swl",
+      "swr",
+      "sRotLF",
+      "sRotRF",
+      "sRotLB",
+      "sRotRB",
+      "cl",
+      "dr"
+    ],
     goal: sequent(
       [
         lk.o.p2.conjunction(
@@ -2718,7 +2760,17 @@
 
   // src/challenges/ch5-composition-7.ts
   var ch5composition7 = {
-    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "cl", "dr"],
+    rules: [
+      "i",
+      "swl",
+      "swr",
+      "sRotLF",
+      "sRotRF",
+      "sRotLB",
+      "sRotRB",
+      "cl",
+      "dr"
+    ],
     goal: sequent(
       [
         lk.o.p2.conjunction(
@@ -2737,7 +2789,20 @@
 
   // src/challenges/ch5-composition-8.ts
   var ch5composition8 = {
-    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "nl", "nr", "ir", "cl", "dr"],
+    rules: [
+      "i",
+      "swl",
+      "swr",
+      "sRotLF",
+      "sRotRF",
+      "sRotLB",
+      "sRotRB",
+      "nl",
+      "nr",
+      "cl",
+      "dr",
+      "ir"
+    ],
     goal: conclusion(
       lk.o.p2.implication(
         lk.o.p2.conjunction(lk.a("q"), lk.o.p1.negation(lk.a("q"))),
@@ -2748,7 +2813,20 @@
 
   // src/challenges/ch5-composition-9.ts
   var ch5composition9 = {
-    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "nl", "nr", "ir", "cl", "dr"],
+    rules: [
+      "i",
+      "swl",
+      "swr",
+      "sRotLF",
+      "sRotRF",
+      "sRotLB",
+      "sRotRB",
+      "nl",
+      "nr",
+      "cl",
+      "dr",
+      "ir"
+    ],
     goal: conclusion(
       lk.o.p2.implication(
         lk.o.p2.conjunction(
@@ -2756,20 +2834,11 @@
             lk.o.p1.negation(lk.a("p")),
             lk.o.p1.negation(lk.a("s"))
           ),
-          lk.o.p2.conjunction(
-            lk.o.p1.negation(lk.a("p")),
-            lk.a("r")
-          )
+          lk.o.p2.conjunction(lk.o.p1.negation(lk.a("p")), lk.a("r"))
         ),
         lk.o.p2.disjunction(
-          lk.o.p2.disjunction(
-            lk.a("q"),
-            lk.o.p1.negation(lk.a("q"))
-          ),
-          lk.o.p2.disjunction(
-            lk.a("s"),
-            lk.o.p1.negation(lk.a("r"))
-          )
+          lk.o.p2.disjunction(lk.a("q"), lk.o.p1.negation(lk.a("q"))),
+          lk.o.p2.disjunction(lk.a("s"), lk.o.p1.negation(lk.a("r")))
         )
       )
     )
@@ -2777,7 +2846,17 @@
 
   // src/challenges/ch6-branching-1.ts
   var ch6branching1 = {
-    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "dl", "cr"],
+    rules: [
+      "i",
+      "swl",
+      "swr",
+      "sRotLF",
+      "sRotRF",
+      "sRotLB",
+      "sRotRB",
+      "dl",
+      "cr"
+    ],
     goal: sequent(
       [lk.o.p2.disjunction(lk.a("p"), lk.a("q"))],
       [lk.a("p"), lk.a("q")]
@@ -2786,7 +2865,17 @@
 
   // src/challenges/ch6-branching-2.ts
   var ch6branching2 = {
-    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "dl", "cr"],
+    rules: [
+      "i",
+      "swl",
+      "swr",
+      "sRotLF",
+      "sRotRF",
+      "sRotLB",
+      "sRotRB",
+      "dl",
+      "cr"
+    ],
     goal: sequent(
       [lk.a("p"), lk.a("q")],
       [lk.o.p2.conjunction(lk.a("p"), lk.a("q"))]
@@ -2795,7 +2884,17 @@
 
   // src/challenges/ch6-branching-3.ts
   var ch6branching3 = {
-    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "dl", "cr"],
+    rules: [
+      "i",
+      "swl",
+      "swr",
+      "sRotLF",
+      "sRotRF",
+      "sRotLB",
+      "sRotRB",
+      "dl",
+      "cr"
+    ],
     goal: sequent(
       [lk.o.p2.disjunction(lk.a("p"), lk.a("p"))],
       [lk.o.p2.conjunction(lk.a("p"), lk.a("p"))]
@@ -2804,7 +2903,19 @@
 
   // src/challenges/ch6-branching-4.ts
   var ch6branching4 = {
-    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "cl", "cr", "dl", "dr"],
+    rules: [
+      "i",
+      "swl",
+      "swr",
+      "sRotLF",
+      "sRotRF",
+      "sRotLB",
+      "sRotRB",
+      "cl",
+      "cr",
+      "dl",
+      "dr"
+    ],
     goal: sequent(
       [lk.o.p2.disjunction(lk.a("p"), lk.a("q"))],
       [lk.o.p2.disjunction(lk.a("q"), lk.a("p"))]
@@ -2813,7 +2924,19 @@
 
   // src/challenges/ch6-branching-5.ts
   var ch6branching5 = {
-    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "cl", "cr", "dl", "dr"],
+    rules: [
+      "i",
+      "swl",
+      "swr",
+      "sRotLF",
+      "sRotRF",
+      "sRotLB",
+      "sRotRB",
+      "cl",
+      "cr",
+      "dl",
+      "dr"
+    ],
     goal: sequent(
       [lk.o.p2.conjunction(lk.a("p"), lk.a("q"))],
       [lk.o.p2.conjunction(lk.a("q"), lk.a("p"))]
@@ -2828,13 +2951,15 @@
       "swr",
       "sRotLF",
       "sRotRF",
+      "sRotLB",
+      "sRotRB",
       "nl",
       "nr",
-      "ir",
       "cl",
       "cr",
       "dl",
-      "dr"
+      "dr",
+      "ir"
     ],
     goal: conclusion(
       lk.o.p2.implication(
@@ -2855,13 +2980,15 @@
       "swr",
       "sRotLF",
       "sRotRF",
+      "sRotLB",
+      "sRotRB",
       "nl",
       "nr",
-      "ir",
       "cl",
       "cr",
       "dl",
-      "dr"
+      "dr",
+      "ir"
     ],
     goal: conclusion(
       lk.o.p2.implication(
@@ -2876,7 +3003,20 @@
 
   // src/challenges/ch6-branching-8.ts
   var ch6branching8 = {
-    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "ir", "cl", "cr", "dl", "dr"],
+    rules: [
+      "i",
+      "swl",
+      "swr",
+      "sRotLF",
+      "sRotRF",
+      "sRotLB",
+      "sRotRB",
+      "cl",
+      "cr",
+      "dl",
+      "dr",
+      "ir"
+    ],
     goal: conclusion(
       lk.o.p2.implication(
         lk.o.p2.conjunction(lk.a("p"), lk.o.p2.disjunction(lk.a("q"), lk.a("r"))),
@@ -2890,7 +3030,20 @@
 
   // src/challenges/ch6-branching-9.ts
   var ch6branching9 = {
-    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "ir", "cl", "cr", "dl", "dr"],
+    rules: [
+      "i",
+      "swl",
+      "swr",
+      "sRotLF",
+      "sRotRF",
+      "sRotLB",
+      "sRotRB",
+      "cl",
+      "cr",
+      "dl",
+      "dr",
+      "ir"
+    ],
     goal: conclusion(
       lk.o.p2.implication(
         lk.o.p2.disjunction(
@@ -2904,7 +3057,17 @@
 
   // src/challenges/ch7-completeness-1.ts
   var ch7completeness1 = {
-    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "il", "ir"],
+    rules: [
+      "i",
+      "swl",
+      "swr",
+      "sRotLF",
+      "sRotRF",
+      "sRotLB",
+      "sRotRB",
+      "il",
+      "ir"
+    ],
     goal: sequent(
       [lk.a("p"), lk.o.p2.implication(lk.a("p"), lk.a("q"))],
       [lk.a("q")]
@@ -2913,7 +3076,19 @@
 
   // src/challenges/ch7-completeness-2.ts
   var ch7completeness2 = {
-    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "nl", "nr", "il", "ir"],
+    rules: [
+      "i",
+      "swl",
+      "swr",
+      "sRotLF",
+      "sRotRF",
+      "sRotLB",
+      "sRotRB",
+      "nl",
+      "nr",
+      "il",
+      "ir"
+    ],
     goal: conclusion(
       lk.o.p2.implication(
         lk.o.p2.implication(lk.a("p"), lk.a("q")),
@@ -2927,7 +3102,17 @@
 
   // src/challenges/ch7-completeness-3.ts
   var ch7completeness3 = {
-    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "il", "ir"],
+    rules: [
+      "i",
+      "swl",
+      "swr",
+      "sRotLF",
+      "sRotRF",
+      "sRotLB",
+      "sRotRB",
+      "il",
+      "ir"
+    ],
     goal: conclusion(
       lk.o.p2.implication(
         lk.o.p2.implication(lk.a("p"), lk.a("q")),
@@ -2941,7 +3126,19 @@
 
   // src/challenges/ch7-completeness-4.ts
   var ch7completeness4 = {
-    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "il", "ir", "cl", "cr"],
+    rules: [
+      "i",
+      "swl",
+      "swr",
+      "sRotLF",
+      "sRotRF",
+      "sRotLB",
+      "sRotRB",
+      "cl",
+      "cr",
+      "il",
+      "ir"
+    ],
     goal: conclusion(
       lk.o.p2.implication(
         lk.o.p2.implication(lk.o.p2.conjunction(lk.a("p"), lk.a("q")), lk.a("r")),
@@ -2952,7 +3149,19 @@
 
   // src/challenges/ch7-completeness-5.ts
   var ch7completeness5 = {
-    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "il", "ir", "cl", "cr"],
+    rules: [
+      "i",
+      "swl",
+      "swr",
+      "sRotLF",
+      "sRotRF",
+      "sRotLB",
+      "sRotRB",
+      "cl",
+      "cr",
+      "il",
+      "ir"
+    ],
     goal: conclusion(
       lk.o.p2.implication(
         lk.o.p2.implication(lk.o.p2.implication(lk.a("p"), lk.a("q")), lk.a("p")),
@@ -2963,7 +3172,19 @@
 
   // src/challenges/ch7-completeness-6.ts
   var ch7completeness6 = {
-    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "nl", "nr", "il", "ir"],
+    rules: [
+      "i",
+      "swl",
+      "swr",
+      "sRotLF",
+      "sRotRF",
+      "sRotLB",
+      "sRotRB",
+      "nl",
+      "nr",
+      "il",
+      "ir"
+    ],
     goal: conclusion(
       lk.o.p2.implication(
         lk.o.p2.implication(lk.a("p"), lk.a("q")),
@@ -2977,7 +3198,17 @@
 
   // src/challenges/ch7-completeness-7.ts
   var ch7completeness7 = {
-    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "il", "ir"],
+    rules: [
+      "i",
+      "swl",
+      "swr",
+      "sRotLF",
+      "sRotRF",
+      "sRotLB",
+      "sRotRB",
+      "il",
+      "ir"
+    ],
     goal: conclusion(
       lk.o.p2.implication(
         lk.o.p2.implication(lk.a("p"), lk.o.p2.implication(lk.a("p"), lk.a("q"))),
@@ -2988,7 +3219,17 @@
 
   // src/challenges/ch7-completeness-8.ts
   var ch7completeness8 = {
-    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "il", "ir"],
+    rules: [
+      "i",
+      "swl",
+      "swr",
+      "sRotLF",
+      "sRotRF",
+      "sRotLB",
+      "sRotRB",
+      "il",
+      "ir"
+    ],
     goal: conclusion(
       lk.o.p2.implication(
         lk.o.p2.implication(lk.o.p2.implication(lk.a("p"), lk.a("q")), lk.a("q")),
@@ -2999,7 +3240,19 @@
 
   // src/challenges/ch7-completeness-9.ts
   var ch7completeness9 = {
-    rules: ["i", "swl", "swr", "sRotLF", "sRotRF", "il", "ir", "cl", "cr"],
+    rules: [
+      "i",
+      "swl",
+      "swr",
+      "sRotLF",
+      "sRotRF",
+      "sRotLB",
+      "sRotRB",
+      "cl",
+      "cr",
+      "il",
+      "ir"
+    ],
     goal: conclusion(
       lk.o.p2.implication(
         lk.o.p2.implication(lk.a("p"), lk.o.p2.implication(lk.a("q"), lk.a("r"))),
@@ -3058,12 +3311,12 @@
       "sRotRB",
       "nl",
       "nr",
-      "il",
-      "ir",
       "cl",
       "cr",
       "dl",
-      "dr"
+      "dr",
+      "il",
+      "ir"
     ],
     goal: conclusion(
       lk.o.p2.implication(
@@ -3090,12 +3343,12 @@
       "sRotRB",
       "nl",
       "nr",
-      "il",
-      "ir",
       "cl",
       "cr",
       "dl",
-      "dr"
+      "dr",
+      "il",
+      "ir"
     ],
     goal: conclusion(
       lk.o.p2.implication(
@@ -3121,12 +3374,12 @@
       "sRotRB",
       "nl",
       "nr",
-      "il",
-      "ir",
       "cl",
       "cr",
       "dl",
-      "dr"
+      "dr",
+      "il",
+      "ir"
     ],
     goal: sequent(
       [lk.o.p2.disjunction(lk.o.p0.falsum, lk.a("p"))],
@@ -3148,12 +3401,12 @@
       "sRotRB",
       "nl",
       "nr",
-      "il",
-      "ir",
       "cl",
       "cr",
       "dl",
-      "dr"
+      "dr",
+      "il",
+      "ir"
     ],
     goal: conclusion(
       lk.o.p2.implication(
@@ -3180,12 +3433,12 @@
       "sRotRB",
       "nl",
       "nr",
-      "il",
-      "ir",
       "cl",
       "cr",
       "dl",
-      "dr"
+      "dr",
+      "il",
+      "ir"
     ],
     goal: sequent(
       [
@@ -3220,12 +3473,12 @@
       "sRotRB",
       "nl",
       "nr",
-      "il",
-      "ir",
       "cl",
       "cr",
       "dl",
-      "dr"
+      "dr",
+      "il",
+      "ir"
     ],
     goal: conclusion(
       lk.o.p2.disjunction(
@@ -3245,6 +3498,8 @@
   var ch9consolidation2 = {
     rules: [
       "i",
+      "f",
+      "v",
       "swl",
       "swr",
       "sRotLF",
@@ -3253,12 +3508,12 @@
       "sRotRB",
       "nl",
       "nr",
-      "il",
-      "ir",
       "cl",
       "cr",
       "dl",
-      "dr"
+      "dr",
+      "il",
+      "ir"
     ],
     goal: conclusion(
       lk.o.p2.implication(
@@ -3266,6 +3521,173 @@
         lk.o.p2.implication(
           lk.o.p1.negation(lk.o.p2.disjunction(lk.a("p"), lk.a("q"))),
           lk.o.p2.implication(lk.a("q"), lk.a("r"))
+        )
+      )
+    )
+  };
+
+  // src/challenges/ch9-consolidation-3.ts
+  var ch9consolidation3 = {
+    rules: [
+      "i",
+      "f",
+      "v",
+      "swl",
+      "swr",
+      "sRotLF",
+      "sRotRF",
+      "sRotLB",
+      "sRotRB",
+      "nl",
+      "nr",
+      "cl",
+      "cr",
+      "dl",
+      "dr",
+      "il",
+      "ir"
+    ],
+    goal: conclusion(
+      lk.o.p2.implication(
+        lk.o.p2.conjunction(
+          lk.o.p2.implication(lk.a("p"), lk.a("q")),
+          lk.o.p2.disjunction(lk.o.p1.negation(lk.a("q")), lk.a("r"))
+        ),
+        lk.o.p2.disjunction(lk.o.p1.negation(lk.a("p")), lk.a("r"))
+      )
+    )
+    /*
+    solution: lk.z.ir(
+      lk.z.swl(
+        lk.o.p2.implication(
+          lk.a('p'),
+          lk.o.p2.implication(lk.a('q'), lk.o.p1.negation(lk.a('p'))),
+        ),
+        lk.z.ir(lk.i.i(lk.a('p'))),
+      ),
+    ),*/
+  };
+
+  // src/challenges/ch9-consolidation-4.ts
+  var ch9consolidation4 = {
+    rules: [
+      "i",
+      "f",
+      "v",
+      "swl",
+      "swr",
+      "sRotLF",
+      "sRotRF",
+      "sRotLB",
+      "sRotRB",
+      "nl",
+      "nr",
+      "cl",
+      "cr",
+      "dl",
+      "dr",
+      "il",
+      "ir"
+    ],
+    goal: conclusion(lk.o.p2.disjunction(lk.a("p"), lk.o.p1.negation(lk.a("p"))))
+  };
+
+  // src/challenges/ch9-consolidation-5.ts
+  var ch9consolidation5 = {
+    rules: [
+      "i",
+      "f",
+      "v",
+      "swl",
+      "swr",
+      "sRotLF",
+      "sRotRF",
+      "sRotLB",
+      "sRotRB",
+      "nl",
+      "nr",
+      "cl",
+      "cr",
+      "dl",
+      "dr",
+      "il",
+      "ir"
+    ],
+    goal: conclusion(
+      lk.o.p2.implication(
+        lk.o.p2.implication(lk.a("p"), lk.o.p2.implication(lk.a("q"), lk.a("r"))),
+        lk.o.p2.implication(lk.a("q"), lk.o.p2.implication(lk.a("p"), lk.a("r")))
+      )
+    )
+  };
+
+  // src/challenges/ch9-consolidation-6.ts
+  var ch9consolidation6 = {
+    rules: [
+      "i",
+      "f",
+      "v",
+      "swl",
+      "swr",
+      "sRotLF",
+      "sRotRF",
+      "sRotLB",
+      "sRotRB",
+      "nl",
+      "nr",
+      "cl",
+      "cr",
+      "dl",
+      "dr",
+      "il",
+      "ir"
+    ],
+    goal: conclusion(
+      lk.o.p2.implication(
+        lk.o.p2.implication(lk.a("p"), lk.a("r")),
+        lk.o.p2.implication(
+          lk.o.p2.implication(lk.a("q"), lk.a("r")),
+          lk.o.p2.implication(
+            lk.o.p2.disjunction(lk.a("p"), lk.a("q")),
+            lk.a("r")
+          )
+        )
+      )
+    )
+  };
+
+  // src/challenges/ch9-consolidation-7.ts
+  var ch9consolidation7 = {
+    rules: [
+      "i",
+      "f",
+      "v",
+      "swl",
+      "swr",
+      "sRotLF",
+      "sRotRF",
+      "sRotLB",
+      "sRotRB",
+      "nl",
+      "nr",
+      "cl",
+      "cr",
+      "dl",
+      "dr",
+      "il",
+      "ir"
+    ],
+    goal: conclusion(
+      lk.o.p1.negation(
+        lk.o.p2.implication(
+          lk.o.p2.implication(
+            lk.o.p2.implication(lk.a("p"), lk.a("r")),
+            lk.o.p2.implication(lk.a("q"), lk.a("r"))
+          ),
+          lk.o.p2.implication(
+            lk.o.p2.disjunction(lk.a("p"), lk.a("q")),
+            lk.a("r")
+          )
         )
       )
     )
@@ -3355,7 +3777,12 @@
     ch8constants8,
     ch8constants9,
     ch9consolidation1,
-    ch9consolidation2
+    ch9consolidation2,
+    ch9consolidation3,
+    ch9consolidation4,
+    ch9consolidation5,
+    ch9consolidation6,
+    ch9consolidation7
     // ch5compositionC,
     // ch5compositionE,
   };
@@ -3390,6 +3817,11 @@
     }
     availableRules() {
       return get(this.theorems, this.selected).rules;
+    }
+    applicableRules() {
+      const available = this.availableRules();
+      const appplicable = applicableRules2(this.currentConjecture());
+      return available.filter((rule) => appplicable.includes(rule));
     }
     selectConjecture(id) {
       if (!(id in this.conjectures)) {
@@ -3719,7 +4151,7 @@
     return panel;
   };
   var bench = (s, rules2) => {
-    const ls = applicableRules2(s);
+    const ls = workspace.applicableRules();
     const panel = document.createElement("div");
     panel.setAttribute("class", "bench");
     panel.appendChild(leftPanel(ls, rules2));
@@ -3747,6 +4179,114 @@
     }
     render();
   };
+  var ps5KeyMap = {
+    12: "leftWeakening",
+    14: "leftRotateLeft",
+    15: "leftRotateRight",
+    13: "leftConnective",
+    3: "rightWeakening",
+    2: "rightRotateLeft",
+    1: "rightRotateRight",
+    0: "rightConnective",
+    5: "axiom",
+    4: "undo"
+  };
+  var oldPresses = [];
+  function gameLoop() {
+    const pads = navigator.getGamepads();
+    if (pads.length < 1) {
+      return;
+    }
+    const gp = pads[0];
+    if (!gp) {
+      return;
+    }
+    for (const [button, action] of Object.entries(ps5KeyMap)) {
+      const index = Number(button);
+      const oldPress = oldPresses[index] ?? false;
+      const newPress = gp.buttons[index]?.pressed ?? false;
+      if (newPress !== oldPress) {
+        if (newPress) {
+          dispatch(action);
+        }
+        oldPresses[index] = newPress;
+      }
+    }
+    requestAnimationFrame(gameLoop);
+  }
+  var autoRule = (rules2) => {
+    const available = workspace.applicableRules();
+    const [first] = rules2.filter((rule) => available.includes(rule));
+    if (!first) {
+      return;
+    }
+    if (isReverseId0(first)) {
+      workspace.applyEvent(reverse02(first));
+    }
+  };
+  var dispatch = (action) => {
+    if (workspace.isSolved()) {
+      switch (action) {
+        case "leftWeakening":
+        case "rightWeakening":
+          workspace.applyEvent(reset());
+          break;
+        case "axiom":
+        case "rightConnective":
+          workspace.selectConjecture(workspace.nextConjectureId());
+          break;
+        case "undo":
+          workspace.selectConjecture(workspace.previousConjectureId());
+          break;
+      }
+    } else {
+      switch (action) {
+        case "leftWeakening":
+          workspace.applyEvent(reverse02("swl"));
+          break;
+        case "leftRotateLeft":
+          workspace.applyEvent(reverse02("sRotLF"));
+          break;
+        case "leftRotateRight":
+          workspace.applyEvent(reverse02("sRotLB"));
+          break;
+        case "leftConnective":
+          autoRule(keys(leftLogical));
+          break;
+        case "rightWeakening":
+          workspace.applyEvent(reverse02("swr"));
+          break;
+        case "rightRotateLeft":
+          workspace.applyEvent(reverse02("sRotRB"));
+          break;
+        case "rightRotateRight":
+          workspace.applyEvent(reverse02("sRotRF"));
+          break;
+        case "rightConnective":
+          autoRule(keys(rightLogical));
+          break;
+        case "axiom":
+          autoRule(keys(center));
+          break;
+        case "undo":
+          workspace.applyEvent(undo());
+          break;
+      }
+    }
+    render();
+  };
+  var qwertyKeyMap = {
+    e: "leftWeakening",
+    s: "leftRotateLeft",
+    f: "leftRotateRight",
+    d: "leftConnective",
+    i: "rightWeakening",
+    j: "rightRotateLeft",
+    l: "rightRotateRight",
+    k: "rightConnective",
+    Enter: "axiom",
+    Backspace: "undo"
+  };
   var init3 = () => {
     const params = new URLSearchParams(window.location.search);
     const level = params.get("level") ?? "";
@@ -3755,6 +4295,16 @@
       history.replaceState({ selected: level }, "", `?level=${level}`);
     }
     render();
+    document.addEventListener("keydown", (ev) => {
+      const action = qwertyKeyMap[ev.key];
+      if (!action) {
+        return;
+      }
+      dispatch(action);
+    });
+    window.addEventListener("gamepadconnected", (_ev) => {
+      gameLoop();
+    });
   };
   var gen = repl(workspace);
   gen.next("");
