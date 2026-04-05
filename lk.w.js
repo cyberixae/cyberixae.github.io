@@ -1,16 +1,19 @@
 "use strict";
 (() => {
+  // src/utils/record.ts
+  var entries = (s) => Object.entries(s);
+
   // src/utils/iterable.ts
   var uniq = (arr) => (function* () {
     const skip = /* @__PURE__ */ new Set();
     const it = arr[Symbol.iterator]();
     while (true) {
       const { done, value } = it.next();
-      if (done) {
+      if (done === true) {
         return;
       }
       if (skip.has(value)) {
-        break;
+        continue;
       }
       yield value;
       skip.add(value);
@@ -29,7 +32,7 @@
   var uniq2 = (arr) => {
     return [...uniq(arr)];
   };
-  var rotate = ([x, ...xs]) => [...xs, x];
+  var includes = (arr, val) => arr.some((x) => x === val);
 
   // src/utils/seq.ts
   var empty = () => function* () {
@@ -97,7 +100,6 @@
     }
     return [value];
   };
-  var sequenceT = (t) => sequence(t);
   var repeatIO = (io) => function* () {
     while (true) {
       yield io();
@@ -270,6 +272,15 @@
     conjunction: (leftConjunct, rightConjunct) => uniq2([...leftConjunct, ...rightConjunct]),
     disjunction: (leftDisjunct, rightDisjunct) => uniq2([...leftDisjunct, ...rightDisjunct])
   });
+  var connectives = (p) => fold(p, {
+    atom: () => [],
+    falsum: () => ["falsum"],
+    verum: () => ["verum"],
+    negation: (negand) => uniq2(["negation", ...negand]),
+    implication: (antecedent, consequent) => uniq2(["implication", ...antecedent, ...consequent]),
+    conjunction: (leftConjunct, rightConjunct) => uniq2(["conjunction", ...leftConjunct, ...rightConjunct]),
+    disjunction: (leftDisjunct, rightDisjunct) => uniq2(["disjunction", ...leftDisjunct, ...rightDisjunct])
+  });
   var countermodels = (p) => {
     return filter(valuations(atoms(p)), (v2) => isCountermodel(v2, p));
   };
@@ -332,17 +343,6 @@
   var equals2 = (fa, fb) => {
     return fa.length === fb.length && zip(fa, fb).every(([a, b]) => equals(a, b));
   };
-  var rotations = (fs) => function* () {
-    yield fs;
-    if (!isNonEmptyArray(fs)) {
-      return;
-    }
-    let tmp = rotate(fs);
-    while (tmp[0] !== fs[0]) {
-      yield tmp;
-      tmp = rotate(tmp);
-    }
-  };
 
   // src/model/sequent.ts
   var sequent = (antecedent, succedent) => ({
@@ -375,15 +375,6 @@
       s.succedent.reduce((acc, p) => disjunction(acc, p), falsum)
     )
   );
-  var rotations2 = (s) => function* () {
-    yield* map(
-      sequenceT([
-        rotations(s.antecedent),
-        rotations(s.succedent)
-      ]),
-      ([antecedent, succedent]) => sequent(antecedent, succedent)
-    )();
-  };
 
   // src/model/derivation.ts
   function premise(result) {
@@ -401,7 +392,7 @@
   function introduction(result, rule) {
     return transformation(result, [], rule);
   }
-  function proof(result, deps, rule) {
+  function proofUsing(result, deps, rule) {
     return { kind: "transformation", result, deps, rule };
   }
 
@@ -424,7 +415,7 @@
   };
   var isA1ResultDerivation = refineDerivation(isA1Result);
   var a1 = (result) => {
-    return introduction(result, "A1");
+    return introduction(result, "a1");
   };
   var applyA1 = (p, q) => {
     return a1(conclusion(implication(p, implication(q, p))));
@@ -438,6 +429,7 @@
   var exampleA1 = applyA1(atom("A"), atom("B"));
   var ruleA1 = {
     id: "a1",
+    connectives: ["implication"],
     isResult: isA1Result,
     isResultDerivation: isA1ResultDerivation,
     make: a1,
@@ -499,7 +491,7 @@
   };
   var isA2ResultDerivation = refineDerivation(isA2Result);
   var a2 = (result) => {
-    return introduction(result, "A2");
+    return introduction(result, "a2");
   };
   var applyA2 = (p, q, r) => a2(
     conclusion(
@@ -518,6 +510,7 @@
   var exampleA2 = applyA2(atom("A"), atom("B"), atom("C"));
   var ruleA2 = {
     id: "a2",
+    connectives: ["implication"],
     isResult: isA2Result,
     isResultDerivation: isA2ResultDerivation,
     make: a2,
@@ -560,7 +553,7 @@
   };
   var isA3ResultDerivation = refineDerivation(isA3Result);
   var a3 = (result) => {
-    return introduction(result, "A3");
+    return introduction(result, "a3");
   };
   var applyA3 = (p, q) => a3(
     conclusion(
@@ -576,6 +569,7 @@
   var exampleA3 = applyA3(atom("A"), atom("B"));
   var ruleA3 = {
     id: "a3",
+    connectives: ["implication", "negation"],
     isResult: isA3Result,
     isResultDerivation: isA3ResultDerivation,
     make: a3,
@@ -615,6 +609,7 @@
   );
   var ruleCL = {
     id: "cl",
+    connectives: ["conjunction"],
     isResult: isCLResult,
     isResultDerivation: isCLResultDerivation,
     make: cl,
@@ -653,6 +648,7 @@
   );
   var ruleCL1 = {
     id: "cl1",
+    connectives: ["conjunction"],
     isResult: isCL1Result,
     isResultDerivation: isCL1ResultDerivation,
     make: cl1,
@@ -691,6 +687,7 @@
   );
   var ruleCL2 = {
     id: "cl2",
+    connectives: ["conjunction"],
     isResult: isCL2Result,
     isResultDerivation: isCL2ResultDerivation,
     make: cl2,
@@ -734,6 +731,7 @@
   );
   var ruleCR = {
     id: "cr",
+    connectives: ["conjunction"],
     isResult: isCRResult,
     isResultDerivation: isCRResultDerivation,
     make: cr,
@@ -749,7 +747,7 @@
   };
   var isCutResultDerivation = refineDerivation(isCutResult);
   var cut = (result, deps) => {
-    return transformation(result, deps, "Cut");
+    return transformation(result, deps, "cut");
   };
   var applyCut = (...deps) => {
     const [dep1] = deps;
@@ -774,6 +772,7 @@
   );
   var ruleCut = {
     id: "cut",
+    connectives: [],
     isResult: isCutResult,
     isResultDerivation: isCutResultDerivation,
     make: cut,
@@ -817,6 +816,7 @@
   );
   var ruleDL = {
     id: "dl",
+    connectives: ["disjunction"],
     isResult: isDLResult,
     isResultDerivation: isDLResultDerivation,
     make: dl,
@@ -858,6 +858,7 @@
   );
   var ruleDR = {
     id: "dr",
+    connectives: ["disjunction"],
     isResult: isDRResult,
     isResultDerivation: isDRResultDerivation,
     make: dr,
@@ -898,6 +899,7 @@
   );
   var ruleDR1 = {
     id: "dr1",
+    connectives: ["disjunction"],
     isResult: isDR1Result,
     isResultDerivation: isDR1ResultDerivation,
     make: dr1,
@@ -938,6 +940,7 @@
   );
   var ruleDR2 = {
     id: "dr2",
+    connectives: ["disjunction"],
     isResult: isDR2Result,
     isResultDerivation: isDR2ResultDerivation,
     make: dr2,
@@ -963,6 +966,7 @@
   var exampleF = applyF();
   var ruleF = {
     id: "f",
+    connectives: ["falsum"],
     isResult: isFResult,
     isResultDerivation: isFResultDerivation,
     make: f,
@@ -988,6 +992,7 @@
   var exampleI = applyI(atom("A"));
   var ruleI = {
     id: "i",
+    connectives: [],
     isResult: isIResult,
     isResultDerivation: isIResultDerivation,
     make: i,
@@ -1031,6 +1036,7 @@
   );
   var ruleIL = {
     id: "il",
+    connectives: ["implication"],
     isResult: isILResult,
     isResultDerivation: isILResultDerivation,
     make: il,
@@ -1070,6 +1076,7 @@
   );
   var ruleIR = {
     id: "ir",
+    connectives: ["implication"],
     isResult: isIRResult,
     isResultDerivation: isIRResultDerivation,
     make: ir,
@@ -1093,14 +1100,14 @@
   // src/rules/mp.ts
   var isMPResult = (j) => isConclusion(j);
   var isMPResultDerivation = refineDerivation(isMPResult);
-  var mp = (result, deps) => transformation(result, deps, "MP");
+  var mp = (result, deps) => transformation(result, deps, "mp");
   var applyMP = (...deps) => {
     const [dep1, dep2] = deps;
     const a12 = dep1.result.succedent[0].antecedent;
     const a22 = dep2.result.succedent[0];
     const _a = assertEqual(a12, a22);
     const c = dep1.result.succedent[0].consequent;
-    return transformation(conclusion(c), deps, "MP");
+    return transformation(conclusion(c), deps, "mp");
   };
   var reverseMP = (d, p) => {
     const q = head2(d.result.succedent);
@@ -1116,6 +1123,7 @@
   );
   var ruleMP = {
     id: "mp",
+    connectives: [],
     isResult: isMPResult,
     isResultDerivation: isMPResultDerivation,
     make: mp,
@@ -1153,6 +1161,7 @@
   );
   var ruleNL = {
     id: "nl",
+    connectives: ["negation"],
     isResult: isNLResult,
     isResultDerivation: isNLResultDerivation,
     make: nl,
@@ -1190,6 +1199,7 @@
   );
   var ruleNR = {
     id: "nr",
+    connectives: ["negation"],
     isResult: isNRResult,
     isResultDerivation: isNRResultDerivation,
     make: nr,
@@ -1228,6 +1238,7 @@
   );
   var ruleSCL = {
     id: "scl",
+    connectives: [],
     isResult: isSCLResult,
     isResultDerivation: isSCLResultDerivation,
     make: scl,
@@ -1264,6 +1275,7 @@
   );
   var ruleSCR = {
     id: "scr",
+    connectives: [],
     isResult: isSCRResult,
     isResultDerivation: isSCRResultDerivation,
     make: scr,
@@ -1304,6 +1316,7 @@
   );
   var ruleSRotLB = {
     id: "sRotLB",
+    connectives: [],
     isResult: isSRotLBResult,
     isResultDerivation: isSRotLBResultDerivation,
     make: sRotLB,
@@ -1344,6 +1357,7 @@
   );
   var ruleSRotLF = {
     id: "sRotLF",
+    connectives: [],
     isResult: isSRotLFResult,
     isResultDerivation: isSRotLFResultDerivation,
     make: sRotLF,
@@ -1384,6 +1398,7 @@
   );
   var ruleSRotRB = {
     id: "sRotRB",
+    connectives: [],
     isResult: isSRotRBResult,
     isResultDerivation: isSRotRBResultDerivation,
     make: sRotRB,
@@ -1424,6 +1439,7 @@
   );
   var ruleSRotRF = {
     id: "sRotRF",
+    connectives: [],
     isResult: isSRotRFResult,
     isResultDerivation: isSRotRFResultDerivation,
     make: sRotRF,
@@ -1461,6 +1477,7 @@
   );
   var ruleSWL = {
     id: "swl",
+    connectives: [],
     isResult: isSWLResult,
     isResultDerivation: isSWLResultDerivation,
     make: swl,
@@ -1496,6 +1513,7 @@
   );
   var ruleSWR = {
     id: "swr",
+    connectives: [],
     isResult: isSWRResult,
     isResultDerivation: isSWRResultDerivation,
     make: swr,
@@ -1536,6 +1554,7 @@
   );
   var ruleSXL = {
     id: "sxl",
+    connectives: [],
     isResult: isSXLResult,
     isResultDerivation: isSXLResultDerivation,
     make: sxl,
@@ -1576,6 +1595,7 @@
   );
   var ruleSXR = {
     id: "sxr",
+    connectives: [],
     isResult: isSXRResult,
     isResultDerivation: isSXRResultDerivation,
     make: sxr,
@@ -1601,6 +1621,7 @@
   var exampleV = applyV();
   var ruleV = {
     id: "v",
+    connectives: ["verum"],
     isResult: isVResult,
     isResultDerivation: isVResultDerivation,
     make: v,
@@ -1712,6 +1733,59 @@
     ...right
   };
 
+  // src/solver/bruteStructure0.ts
+  var seqKey = (s) => JSON.stringify([s.antecedent, s.succedent]);
+  var buildStructurePath = (d, rules, p) => {
+    if (equals3(d.result, p.result)) {
+      return proofUsing(d.result, p.deps, p.rule);
+    }
+    const target = seqKey(p.result);
+    const parent = /* @__PURE__ */ new Map();
+    const startKey = seqKey(d.result);
+    const queue = [d];
+    const visited = /* @__PURE__ */ new Set([startKey]);
+    const nodes = /* @__PURE__ */ new Map([[startKey, d]]);
+    let found = false;
+    outer: while (queue.length > 0) {
+      const current = queue.shift();
+      const currentKey = seqKey(current.result);
+      for (const [rId, rule] of entries(reverseStructure0)) {
+        const ruleId = rId;
+        if (!includes(rules, ruleId)) continue;
+        const reversed = rule.tryReverse(current);
+        if (!reversed || reversed.kind !== "transformation") continue;
+        const [dep] = reversed.deps;
+        if (!dep || dep.kind !== "premise") continue;
+        const depKey = seqKey(dep.result);
+        if (visited.has(depKey)) continue;
+        visited.add(depKey);
+        nodes.set(depKey, dep);
+        parent.set(depKey, { parentKey: currentKey, ruleId });
+        if (depKey === target) {
+          found = true;
+          break outer;
+        }
+        queue.push(dep);
+      }
+    }
+    if (!found) return null;
+    let proof = proofUsing(p.result, p.deps, p.rule);
+    let key = target;
+    while (key !== startKey) {
+      const edge = parent.get(key);
+      const parentNode = nodes.get(edge.parentKey);
+      proof = proofUsing(parentNode.result, [proof], edge.ruleId);
+      key = edge.parentKey;
+    }
+    return proof;
+  };
+  var bruteStructure0 = (d, rules, p) => function* () {
+    const result = buildStructurePath(d, rules, p);
+    if (result !== null) {
+      yield result;
+    }
+  };
+
   // src/solver/brute.ts
   var hypoWeaken = (d) => function* () {
     const farLeft = d.result.antecedent.at(0);
@@ -1726,88 +1800,142 @@
       yield premise(sequent([], [farRight]));
     }
   };
-  var bruteWeaken0 = (d, p) => function* () {
+  var bruteWeaken0 = (d, rules, p) => function* () {
     if (equals3(d.result, p.result)) {
-      yield proof(d.result, p.deps, p.rule);
+      yield proofUsing(d.result, p.deps, p.rule);
       return;
     }
-    if (d.result.antecedent.length > p.result.antecedent.length && reverseStructure0.swl.isResultDerivation(d)) {
+    const swl2 = "swl";
+    if (includes(rules, swl2) && d.result.antecedent.length > p.result.antecedent.length && reverseStructure0[swl2].isResultDerivation(d)) {
       const step = reverseStructure0.swl.reverse(d);
       const [dep] = step.deps;
       if (dep.kind === "premise") {
         yield* map(
-          bruteWeaken0(dep, p),
-          (depProof) => proof(step.result, [depProof], step.rule)
+          bruteWeaken0(dep, rules, p),
+          (depProof) => proofUsing(step.result, [depProof], swl2)
         )();
       }
       return;
     }
-    if (d.result.succedent.length > p.result.succedent.length && reverseStructure0.swr.isResultDerivation(d)) {
+    const swr2 = "swr";
+    if (includes(rules, swr2) && d.result.succedent.length > p.result.succedent.length && reverseStructure0[swr2].isResultDerivation(d)) {
       const step = reverseStructure0.swr.reverse(d);
       const [dep] = step.deps;
       if (dep.kind === "premise") {
         yield* map(
-          bruteWeaken0(dep, p),
-          (depProof) => proof(step.result, [depProof], step.rule)
+          bruteWeaken0(dep, rules, p),
+          (depProof) => proofUsing(step.result, [depProof], swr2)
         )();
       }
       return;
     }
   };
-  var bruteAxiom0 = (d, limit) => function* () {
+  var bruteAxiom0 = (d, rules, limit) => function* () {
     for (const rule of Object.values(reverseAxiom0)) {
+      if (!includes(rules, rule.id)) {
+        continue;
+      }
       const result = rule.tryReverse(d);
       if (!result) {
         continue;
       }
-      yield* brute0(result, limit)();
+      yield* brute0(result, rules, limit)();
     }
   };
-  var bruteLogic0 = (d, limit) => function* () {
+  var candidateConnectives = (rules, sequent2) => {
+    const kinds = /* @__PURE__ */ new Set();
+    for (const [rId, rule] of entries(reverse0)) {
+      if (!includes(rules, rId)) continue;
+      for (const kind of rule.connectives) kinds.add(kind);
+    }
+    for (const p of [...sequent2.antecedent, ...sequent2.succedent])
+      for (const kind of connectives(p)) kinds.add(kind);
+    return kinds;
+  };
+  var formulasOfOpCount = (opCount, atoms2, connectives2) => function* () {
+    if (opCount === 0) {
+      for (const a of atoms2) yield atom(a);
+      if (connectives2.has("falsum")) yield falsum;
+      if (connectives2.has("verum")) yield verum;
+      return;
+    }
+    if (connectives2.has("negation")) {
+      for (const p of formulasOfOpCount(opCount - 1, atoms2, connectives2)()) {
+        yield negation(p);
+      }
+    }
+    for (let leftOps = 0; leftOps < opCount; leftOps++) {
+      const rightOps = opCount - 1 - leftOps;
+      for (const l of formulasOfOpCount(leftOps, atoms2, connectives2)()) {
+        for (const r of formulasOfOpCount(rightOps, atoms2, connectives2)()) {
+          if (connectives2.has("implication")) yield implication(l, r);
+          if (connectives2.has("conjunction")) yield conjunction(l, r);
+          if (connectives2.has("disjunction")) yield disjunction(l, r);
+        }
+      }
+    }
+  };
+  var bruteLogic1 = (d, rules, limit) => function* () {
+    const applicableRules = entries(reverse1).filter(
+      ([rId]) => includes(rules, rId)
+    );
+    if (applicableRules.length === 0) return;
+    const atoms2 = uniq2([
+      ...d.result.antecedent.flatMap(atoms),
+      ...d.result.succedent.flatMap(atoms)
+    ]);
+    const connectives2 = candidateConnectives(rules, d.result);
+    for (let opCount = 0; opCount <= limit * 2; opCount++) {
+      for (const formula of formulasOfOpCount(opCount, atoms2, connectives2)()) {
+        for (const [, rule] of applicableRules) {
+          const result = rule.tryReverse(formula)(d);
+          if (!result) continue;
+          yield* brute0(result, rules, limit)();
+        }
+      }
+    }
+  };
+  var bruteLogic0 = (d, rules, limit) => function* () {
     yield* flatMap(
       hypoWeaken(d),
-      (hypo) => flatMap(bruteAxiom0(hypo, limit), (h) => bruteWeaken0(d, h))
+      (hypo) => flatMap(
+        bruteAxiom0(hypo, rules, limit),
+        (h) => bruteWeaken0(d, rules, h)
+      )
     )();
     for (const rule of Object.values(reverseLogic0)) {
+      if (!includes(rules, rule.id)) {
+        continue;
+      }
       const result = rule.tryReverse(d);
       if (!result) {
         continue;
       }
-      yield* brute0(result, limit)();
+      yield* brute0(result, rules, limit)();
     }
+    yield* bruteLogic1(d, rules, limit)();
   };
-  var hypoRotate = (d) => function* () {
-    yield* map(rotations2(d.result), premise)();
-  };
-  var bruteRotate0 = (d, p) => function* () {
-    if (equals3(d.result, p.result)) {
-      yield proof(d.result, p.deps, p.rule);
-      return;
-    }
-    if (!equals2(d.result.antecedent, p.result.antecedent) && reverseStructure0.sRotLF.isResultDerivation(d)) {
-      const step = reverseStructure0.sRotLF.reverse(d);
-      const [dep] = step.deps;
-      if (dep.kind === "premise") {
-        yield* map(
-          bruteRotate0(dep, p),
-          (depProof) => proof(step.result, [depProof], step.rule)
-        )();
+  var hypoStructure = (d, rules) => function* () {
+    const visited = /* @__PURE__ */ new Set();
+    const queue = [d];
+    while (queue.length > 0) {
+      const current = queue.shift();
+      const key = seqKey(current.result);
+      if (visited.has(key)) continue;
+      visited.add(key);
+      yield current;
+      for (const [rId, rule] of entries(reverseStructure0)) {
+        const ruleId = rId;
+        if (!includes(rules, ruleId)) continue;
+        const reversed = rule.tryReverse(current);
+        if (!reversed || reversed.kind !== "transformation") continue;
+        const [dep] = reversed.deps;
+        if (!dep || dep.kind !== "premise") continue;
+        queue.push(dep);
       }
-      return;
-    }
-    if (!equals2(d.result.succedent, p.result.succedent) && reverseStructure0.sRotRF.isResultDerivation(d)) {
-      const step = reverseStructure0.sRotRF.reverse(d);
-      const [dep] = step.deps;
-      if (dep.kind === "premise") {
-        yield* map(
-          bruteRotate0(dep, p),
-          (depProof) => proof(step.result, [depProof], step.rule)
-        )();
-      }
-      return;
     }
   };
-  var brute0Premise = (d, limit) => function* () {
+  var brute0Premise = (d, rules, limit) => function* () {
     if (limit < 1) {
       return;
     }
@@ -1815,70 +1943,94 @@
       return;
     }
     yield* flatMap(
-      hypoRotate(d),
-      (hypo) => flatMap(bruteLogic0(hypo, limit), (h) => bruteRotate0(d, h))
+      hypoStructure(d, rules),
+      (hypo) => flatMap(
+        bruteLogic0(hypo, rules, limit),
+        (h) => bruteStructure0(d, rules, h)
+      )
     )();
   };
-  var brute0Transformation = (d, limit) => function* () {
-    const depProofs = sequence(d.deps.map((dep) => brute0(dep, limit - 1)));
-    yield* map(depProofs, (proofs) => proof(d.result, proofs, d.rule))();
+  var brute0Transformation = (d, rules, limit) => function* () {
+    const depProofs = sequence(
+      d.deps.map((dep) => brute0(dep, rules, limit - 1))
+    );
+    yield* map(
+      depProofs,
+      (proofs) => proofUsing(d.result, proofs, d.rule)
+    )();
   };
-  var brute0 = (d, limit) => function* () {
+  var brute0 = (d, rules, limit) => function* () {
     switch (d.kind) {
       case "premise":
-        yield* brute0Premise(d, limit)();
+        yield* brute0Premise(d, rules, limit)();
         break;
-      case "transformation":
-        yield* brute0Transformation(d, limit)();
+      case "transformation": {
+        const rule = d.rule;
+        if (includes(rules, rule)) {
+          yield* brute0Transformation({ ...d, rule }, rules, limit)();
+        }
         break;
+      }
     }
   };
-  var brute = (s) => {
-    let limit = 0;
+  var tryAtDepth = (c, limit) => {
+    const proofs = head(brute0(premise(c.goal), c.rules, limit));
+    return isNonEmptyArray(proofs) ? proofs[0] : void 0;
+  };
+  function* bruteSearch(c) {
+    for (let limit = 0; ; limit++) {
+      const proof = tryAtDepth(c, limit);
+      if (proof) return [proof, limit];
+      yield;
+    }
+  }
+  var brute = (c) => {
+    const gen = bruteSearch(c);
     while (true) {
-      const proofs = head(brute0(premise(s), limit));
-      if (isNonEmptyArray(proofs)) {
-        return [proofs[0], limit];
-      }
-      limit += 1;
+      const { done, value } = gen.next();
+      if (done === true) return value;
     }
   };
 
   // src/model/challenge.ts
   var random2 = (size = 10, minDifficulty = 8) => () => {
+    const rules = [
+      "i",
+      "f",
+      "v",
+      "swl",
+      "swr",
+      "sRotLF",
+      "sRotRF",
+      "sRotLB",
+      "sRotRB",
+      "nl",
+      "nr",
+      "cl",
+      "cr",
+      "dl",
+      "dr",
+      "il",
+      "ir"
+    ];
     let solution;
-    while (!solution) {
+    while (typeof solution === "undefined") {
       ;
       [solution] = head(
         flatMap(
           filter(repeatIO(random(size)), isTautology),
           (tautology) => {
-            const [proof2, difficulty] = brute(conclusion(tautology));
-            return difficulty < minDifficulty ? empty() : of(proof2);
+            const [proof, difficulty] = brute({
+              goal: conclusion(tautology),
+              rules
+            });
+            return difficulty < minDifficulty ? empty() : of(proof);
           }
         )
       );
     }
     return {
-      rules: [
-        "i",
-        "f",
-        "v",
-        "swl",
-        "swr",
-        "sRotLF",
-        "sRotRF",
-        "sRotLB",
-        "sRotRB",
-        "nl",
-        "nr",
-        "cl",
-        "cr",
-        "dl",
-        "dr",
-        "il",
-        "ir"
-      ],
+      rules,
       goal: solution.result,
       solution
     };
