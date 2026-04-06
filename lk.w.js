@@ -826,6 +826,210 @@
     example: exampleDL
   };
 
+  // src/rules/fcr.ts
+  var isFCRResult = (s) => {
+    const first = s.succedent.at(0);
+    return first !== void 0 && isConjunction(first);
+  };
+  var isFCRResultDerivation = refineDerivation(isFCRResult);
+  var fcr = (result, deps) => {
+    return transformation(result, deps, "fcr");
+  };
+  var applyFCR = (...deps) => {
+    const [dep1, dep2] = deps;
+    const \u03B3 = dep1.result.antecedent;
+    const \u03C2 = dep2.result.antecedent;
+    const a = head2(dep1.result.succedent);
+    const b = head2(dep2.result.succedent);
+    const \u03B4 = tail(dep1.result.succedent);
+    const \u03C0 = tail(dep2.result.succedent);
+    return fcr(sequent([...\u03B3, ...\u03C2], [conjunction(a, b), ...\u03B4, ...\u03C0]), deps);
+  };
+  var reverseFCR = (p, splitAnt, splitSuc) => {
+    const acb = head2(p.result.succedent);
+    const rest = tail(p.result.succedent);
+    const [\u03B3, \u03C2] = splitAnt(p.result.antecedent);
+    const a = acb.leftConjunct;
+    const b = acb.rightConjunct;
+    const [\u03B4, \u03C0] = splitSuc(rest);
+    return fcr(p.result, [
+      premise(sequent(\u03B3, [a, ...\u03B4])),
+      premise(sequent(\u03C2, [b, ...\u03C0]))
+    ]);
+  };
+  var tryReverseFCR = (splitAnt, splitSuc) => (d) => {
+    if (!isFCRResultDerivation(d)) return null;
+    return reverseFCR(d, splitAnt, splitSuc);
+  };
+  var exampleFCR = applyFCR(
+    premise(sequent([atom("\u0393")], [atom("A"), atom("\u0394")])),
+    premise(sequent([atom("\u03A3")], [atom("B"), atom("\u03A0")]))
+  );
+  var ruleFCR = {
+    id: "fcr",
+    connectives: ["conjunction"],
+    isResult: isFCRResult,
+    isResultDerivation: isFCRResultDerivation,
+    make: fcr,
+    apply: applyFCR,
+    reverse: reverseFCR,
+    tryReverse: tryReverseFCR,
+    example: exampleFCR
+  };
+
+  // src/rules/fcut.ts
+  var isFCutResult = (s) => {
+    return true;
+  };
+  var isFCutResultDerivation = refineDerivation(isFCutResult);
+  var fcut = (result, deps) => {
+    return transformation(result, deps, "fcut");
+  };
+  var applyFCut = (...deps) => {
+    const [dep1, dep2] = deps;
+    const \u03B3 = dep1.result.antecedent;
+    const \u03B4 = init(dep1.result.succedent);
+    const \u03C2 = tail(dep2.result.antecedent);
+    const \u03C0 = dep2.result.succedent;
+    return fcut(sequent([...\u03B3, ...\u03C2], [...\u03B4, ...\u03C0]), deps);
+  };
+  var reverseFCut = (p, a, splitAnt, splitSuc) => {
+    const [\u03B3, \u03C2] = splitAnt(p.result.antecedent);
+    const [\u03B4, \u03C0] = splitSuc(p.result.succedent);
+    return fcut(p.result, [
+      premise(sequent(\u03B3, [...\u03B4, a])),
+      premise(sequent([a, ...\u03C2], \u03C0))
+    ]);
+  };
+  var tryReverseFCut = (a) => (d) => {
+    if (!isFCutResultDerivation(d)) return null;
+    const antLen = d.result.antecedent.length;
+    const sucLen = d.result.succedent.length;
+    return reverseFCut(
+      d,
+      a,
+      (arr) => [arr.slice(0, antLen), arr.slice(antLen)],
+      (arr) => [arr.slice(0, sucLen), arr.slice(sucLen)]
+    );
+  };
+  var exampleFCut = applyFCut(
+    premise(sequent([atom("\u0393")], [atom("\u0394"), atom("A")])),
+    premise(sequent([atom("A"), atom("\u03A3")], [atom("\u03A0")]))
+  );
+  var ruleFCut = {
+    id: "fcut",
+    connectives: [],
+    isResult: isFCutResult,
+    isResultDerivation: isFCutResultDerivation,
+    make: fcut,
+    apply: applyFCut,
+    reverse: reverseFCut,
+    tryReverse: tryReverseFCut,
+    example: exampleFCut
+  };
+
+  // src/rules/fdl.ts
+  var isFDLResult = (s) => {
+    const last2 = s.antecedent.at(-1);
+    return last2 !== void 0 && isDisjunction(last2);
+  };
+  var isFDLResultDerivation = refineDerivation(isFDLResult);
+  var fdl = (result, deps) => {
+    return transformation(result, deps, "fdl");
+  };
+  var applyFDL = (...deps) => {
+    const [dep1, dep2] = deps;
+    const \u03B3 = init(dep1.result.antecedent);
+    const \u03C2 = init(dep2.result.antecedent);
+    const a = last(dep1.result.antecedent);
+    const b = last(dep2.result.antecedent);
+    const \u03B4 = dep1.result.succedent;
+    const \u03C0 = dep2.result.succedent;
+    return fdl(sequent([...\u03B3, ...\u03C2, disjunction(a, b)], [...\u03B4, ...\u03C0]), deps);
+  };
+  var reverseFDL = (p, splitAnt, splitSuc) => {
+    const adb = last(p.result.antecedent);
+    const rest = init(p.result.antecedent);
+    const [\u03B3, \u03C2] = splitAnt(rest);
+    const a = adb.leftDisjunct;
+    const b = adb.rightDisjunct;
+    const [\u03B4, \u03C0] = splitSuc(p.result.succedent);
+    return fdl(p.result, [
+      premise(sequent([...\u03B3, a], \u03B4)),
+      premise(sequent([...\u03C2, b], \u03C0))
+    ]);
+  };
+  var tryReverseFDL = (splitAnt, splitSuc) => (d) => {
+    if (!isFDLResultDerivation(d)) return null;
+    return reverseFDL(d, splitAnt, splitSuc);
+  };
+  var exampleFDL = applyFDL(
+    premise(sequent([atom("\u0393"), atom("A")], [atom("\u0394")])),
+    premise(sequent([atom("\u03A3"), atom("B")], [atom("\u03A0")]))
+  );
+  var ruleFDL = {
+    id: "fdl",
+    connectives: ["disjunction"],
+    isResult: isFDLResult,
+    isResultDerivation: isFDLResultDerivation,
+    make: fdl,
+    apply: applyFDL,
+    reverse: reverseFDL,
+    tryReverse: tryReverseFDL,
+    example: exampleFDL
+  };
+
+  // src/rules/fil.ts
+  var isFILResult = (s) => {
+    const last2 = s.antecedent.at(-1);
+    return last2 !== void 0 && isImplication(last2);
+  };
+  var isFILResultDerivation = refineDerivation(isFILResult);
+  var fil = (result, deps) => {
+    return transformation(result, deps, "fil");
+  };
+  var applyFIL = (...deps) => {
+    const [dep1, dep2] = deps;
+    const \u03B3 = dep1.result.antecedent;
+    const \u03C2 = init(dep2.result.antecedent);
+    const a = head2(dep1.result.succedent);
+    const b = last(dep2.result.antecedent);
+    const \u03B4 = tail(dep1.result.succedent);
+    const \u03C0 = dep2.result.succedent;
+    return fil(sequent([...\u03B3, ...\u03C2, implication(a, b)], [...\u03B4, ...\u03C0]), deps);
+  };
+  var reverseFIL = (p, splitAnt, splitSuc) => {
+    const aib = last(p.result.antecedent);
+    const rest = init(p.result.antecedent);
+    const [\u03B3, \u03C2] = splitAnt(rest);
+    const a = aib.antecedent;
+    const b = aib.consequent;
+    const [\u03B4, \u03C0] = splitSuc(p.result.succedent);
+    return fil(p.result, [
+      premise(sequent(\u03B3, [a, ...\u03B4])),
+      premise(sequent([...\u03C2, b], \u03C0))
+    ]);
+  };
+  var tryReverseFIL = (splitAnt, splitSuc) => (d) => {
+    if (!isFILResultDerivation(d)) return null;
+    return reverseFIL(d, splitAnt, splitSuc);
+  };
+  var exampleFIL = applyFIL(
+    premise(sequent([atom("\u0393")], [atom("A"), atom("\u0394")])),
+    premise(sequent([atom("\u03A3"), atom("B")], [atom("\u03A0")]))
+  );
+  var ruleFIL = {
+    id: "fil",
+    connectives: ["implication"],
+    isResult: isFILResult,
+    isResultDerivation: isFILResultDerivation,
+    make: fil,
+    apply: applyFIL,
+    reverse: reverseFIL,
+    tryReverse: tryReverseFIL,
+    example: exampleFIL
+  };
+
   // src/rules/dr.ts
   var isDRResult = (s) => {
     return s.succedent.at(0)?.kind === "disjunction";
@@ -1673,11 +1877,18 @@
   };
   var reverse1 = {
     cut: ruleCut,
+    fcut: ruleFCut,
     mp: ruleMP
+  };
+  var reverseSplit2 = {
+    fcr: ruleFCR,
+    fdl: ruleFDL,
+    fil: ruleFIL
   };
   var _reverse = {
     ...reverse0,
-    ...reverse1
+    ...reverse1,
+    ...reverseSplit2
   };
   var center = {
     a1: ruleA1,
@@ -1685,6 +1896,7 @@
     a3: ruleA3,
     f: ruleF,
     cut: ruleCut,
+    fcut: ruleFCut,
     i: ruleI,
     mp: ruleMP,
     v: ruleV
@@ -1702,7 +1914,9 @@
     cl1: ruleCL1,
     cl2: ruleCL2,
     dl: ruleDL,
-    il: ruleIL
+    fdl: ruleFDL,
+    il: ruleIL,
+    fil: ruleFIL
   };
   var left = {
     ...leftStructural,
@@ -1721,6 +1935,7 @@
     dr1: ruleDR1,
     dr2: ruleDR2,
     cr: ruleCR,
+    fcr: ruleFCR,
     ir: ruleIR
   };
   var right = {
@@ -1748,6 +1963,7 @@
     let found = false;
     outer: while (queue.length > 0) {
       const current = queue.shift();
+      if (!current) break;
       const currentKey = seqKey(current.result);
       for (const [rId, rule] of entries(reverseStructure0)) {
         const ruleId = rId;
@@ -1773,7 +1989,9 @@
     let key = target;
     while (key !== startKey) {
       const edge = parent.get(key);
+      if (!edge) break;
       const parentNode = nodes.get(edge.parentKey);
+      if (!parentNode) break;
       proof = proofUsing(parentNode.result, [proof], edge.ruleId);
       key = edge.parentKey;
     }
@@ -1864,7 +2082,7 @@
         yield negation(p);
       }
     }
-    for (let leftOps = 0; leftOps < opCount; leftOps++) {
+    for (let leftOps = 0; leftOps < opCount; leftOps += 1) {
       const rightOps = opCount - 1 - leftOps;
       for (const l of formulasOfOpCount(leftOps, atoms2, connectives2)()) {
         for (const r of formulasOfOpCount(rightOps, atoms2, connectives2)()) {
@@ -1885,7 +2103,7 @@
       ...d.result.succedent.flatMap(atoms)
     ]);
     const connectives2 = candidateConnectives(rules, d.result);
-    for (let opCount = 0; opCount <= limit * 2; opCount++) {
+    for (let opCount = 0; opCount <= limit * 2; opCount += 1) {
       for (const formula of formulasOfOpCount(opCount, atoms2, connectives2)()) {
         for (const [, rule] of applicableRules) {
           const result = rule.tryReverse(formula)(d);
@@ -1920,6 +2138,7 @@
     const queue = [d];
     while (queue.length > 0) {
       const current = queue.shift();
+      if (!current) break;
       const key = seqKey(current.result);
       if (visited.has(key)) continue;
       visited.add(key);
@@ -1978,7 +2197,7 @@
     return isNonEmptyArray(proofs) ? proofs[0] : void 0;
   };
   function* bruteSearch(c) {
-    for (let limit = 0; ; limit++) {
+    for (let limit = 0; ; limit += 1) {
       const proof = tryAtDepth(c, limit);
       if (proof) return [proof, limit];
       yield;
@@ -1992,7 +2211,7 @@
     }
   };
 
-  // src/model/challenge.ts
+  // src/random/challenge.ts
   var random2 = (size = 10, minDifficulty = 8) => () => {
     const rules = [
       "i",
