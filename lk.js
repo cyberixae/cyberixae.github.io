@@ -2168,6 +2168,8 @@ var reverse02 = (rev) => ({
 });
 var undo = () => ({ kind: "undo" });
 var reset = () => ({ kind: "reset" });
+var nextBranch = () => ({ kind: "nextBranch" });
+var prevBranch = () => ({ kind: "prevBranch" });
 var parseEvent = (str) => {
   switch (str) {
     case "undo":
@@ -2314,10 +2316,9 @@ var zeta = {
   sRotLF: ruleSRotLF.apply,
   sRotLB: ruleSRotLB.apply,
   sRotRF: ruleSRotRF.apply,
-  sRotRB: ruleSRotRB.apply,
-  sxl: ruleSXL.apply,
-  sxr: ruleSXR.apply
+  sRotRB: ruleSRotRB.apply
 };
+var name = "RK";
 var rk = {
   a: alpha,
   o: omega,
@@ -4850,6 +4851,7 @@ function treeAuto(root, branches2, note) {
   );
   return tree(root, branches2, note, contentWidth);
 }
+var underline = (char) => (str) => [...str.split("\n"), char.repeat(width(str))].join("\n");
 
 // src/model/rule.ts
 var ruleId = {
@@ -4893,10 +4895,13 @@ var isRuleId = (u) => typeof u === "string" && u in ruleId;
 
 // src/render/segment.ts
 function of2(text) {
-  return { text, active: false };
+  return { text, active: false, connective: false };
 }
 function active(text) {
-  return { text, active: true };
+  return { text, active: true, connective: false };
+}
+function connective(text, active2) {
+  return { text, active: active2, connective: true };
 }
 function plain(segments) {
   return segments.map((s) => s.text).join("");
@@ -4905,9 +4910,13 @@ function escape(text) {
   return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 function html(segments) {
-  return segments.map(
-    (s) => s.active ? `<span class="connective-active">${escape(s.text)}</span>` : escape(s.text)
-  ).join("");
+  return segments.map((s) => {
+    if (s.connective) {
+      const cls = s.active ? "connective active" : "connective";
+      return `<span class="${cls}">${escape(s.text)}</span>`;
+    }
+    return escape(s.text);
+  }).join("");
 }
 function trim(segments) {
   const result = [...segments];
@@ -4969,23 +4978,23 @@ function printNullary(key) {
     return [of2(s0)];
   };
 }
-function printUnary(key, activeConn = false) {
+function printUnary(key, activeConn = false, markConnective = false) {
   return (a91) => (theme) => {
     const [s0, s1] = theme[key];
     return [
-      activeConn ? active(s0) : of2(s0),
+      markConnective ? connective(s0, activeConn) : activeConn ? active(s0) : of2(s0),
       ...a91(theme),
       of2(s1)
     ];
   };
 }
-function printBinary(key, activeConn = false) {
+function printBinary(key, activeConn = false, markConnective = false) {
   return (a91, b) => (theme) => {
     const [s0, s1, s2] = theme[key];
     return [
       of2(s0),
       ...a91(theme),
-      activeConn ? active(s1) : of2(s1),
+      markConnective ? connective(s1, activeConn) : activeConn ? active(s1) : of2(s1),
       ...b(theme),
       of2(s2)
     ];
@@ -5047,7 +5056,7 @@ function fromNegation({ negand }, activeConnective = false) {
       implication: parenthesized
     });
   };
-  return printUnary("negation", activeConnective)(expand(negand));
+  return printUnary("negation", activeConnective, true)(expand(negand));
 }
 function fromConjunction({ leftConjunct, rightConjunct }, activeConnective = false) {
   const expand = (operand) => {
@@ -5063,7 +5072,7 @@ function fromConjunction({ leftConjunct, rightConjunct }, activeConnective = fal
       implication: parenthesized
     });
   };
-  return printBinary("conjunction", activeConnective)(
+  return printBinary("conjunction", activeConnective, true)(
     expand(leftConjunct),
     expand(rightConjunct)
   );
@@ -5082,7 +5091,7 @@ function fromDisjunction({ leftDisjunct, rightDisjunct }, activeConnective = fal
       implication: parenthesized
     });
   };
-  return printBinary("disjunction", activeConnective)(
+  return printBinary("disjunction", activeConnective, true)(
     expand(leftDisjunct),
     expand(rightDisjunct)
   );
@@ -5101,7 +5110,7 @@ function fromImplication({ antecedent, consequent }, activeConnective = false) {
       implication: parenthesized
     });
   };
-  return printBinary("implication", activeConnective)(
+  return printBinary("implication", activeConnective, true)(
     expand(antecedent),
     expand(consequent)
   );
@@ -5209,6 +5218,44 @@ function fromDerivation(treelike) {
 var unit = 16;
 var half = center2(2 * unit);
 var full = center2(4 * unit);
+function fromMeta(meta4) {
+  return leftify(
+    br,
+    br,
+    full(underline("*")(meta4.name)),
+    br,
+    ...meta4.propositions.flatMap(({ title, examples }) => [
+      br,
+      title,
+      br,
+      br,
+      ...examples.flatMap((line2) => [
+        half(
+          spaced(
+            line2.map((x) => plain(fromProp(x)(basic))),
+            1
+          )
+        ),
+        br
+      ])
+    ]),
+    br,
+    ...meta4.rules.flatMap(({ title, examples }) => [
+      br,
+      title,
+      br,
+      br,
+      ...examples.flatMap((line2) => [
+        spaced(
+          line2.map((x) => half(fromDerivation(x))),
+          0
+        ),
+        br,
+        br
+      ])
+    ])
+  );
+}
 var fromFocus = (s) => {
   return fromDerivation(s.derivation);
 };
@@ -5277,6 +5324,267 @@ var Workspace = class {
   }
 };
 
+// src/help/rk.ts
+var meta = {
+  name,
+  propositions: [
+    {
+      title: "Variables",
+      examples: [
+        [
+          alpha("p"),
+          alpha("q"),
+          alpha("r"),
+          alpha("s"),
+          alpha("t"),
+          alpha("u")
+        ]
+      ]
+    },
+    {
+      title: "Connectives",
+      examples: [
+        [
+          falsum,
+          verum,
+          negation(atom("A")),
+          implication(atom("A"), atom("B")),
+          conjunction(atom("A"), atom("B")),
+          disjunction(atom("A"), atom("B"))
+        ]
+      ]
+    }
+  ],
+  rules: [
+    {
+      title: "Axiom",
+      examples: [[ruleF.example, ruleV.example], [ruleI.example]]
+    },
+    {
+      title: "Cut",
+      examples: [[ruleCut.example]]
+    },
+    {
+      title: "Logical Rules",
+      examples: [
+        [ruleCL.example, ruleDR.example],
+        [ruleDL.example, ruleCR.example],
+        [ruleIL.example, ruleIR.example],
+        [ruleNL.example, ruleNR.example]
+      ]
+    },
+    {
+      title: "Structural Rules",
+      examples: [
+        [ruleSWL.example, ruleSWR.example],
+        [ruleSRotLF.example, ruleSRotRF.example],
+        [ruleSRotLB.example, ruleSRotRB.example]
+      ]
+    }
+  ]
+};
+var exampleProof = rk.z.ir(
+  rk.z.swl(
+    rk.o.p2.implication(
+      rk.a("p"),
+      rk.o.p2.implication(rk.a("q"), rk.o.p1.negation(rk.a("p")))
+    ),
+    rk.z.ir(rk.i.i(rk.a("p")))
+  )
+);
+
+// src/systems/fk.ts
+var alpha2 = (s) => atom(s);
+var omega2 = {
+  p0: { falsum, verum },
+  p1: { negation },
+  p2: { implication, conjunction, disjunction }
+};
+var iota2 = {
+  i: ruleI.apply,
+  v: ruleV.apply,
+  f: ruleF.apply
+};
+var zeta2 = {
+  fcut: ruleFCut.apply,
+  cl1: ruleCL1.apply,
+  dr1: ruleDR1.apply,
+  cl2: ruleCL2.apply,
+  dr2: ruleDR2.apply,
+  fdl: ruleFDL.apply,
+  fcr: ruleFCR.apply,
+  fil: ruleFIL.apply,
+  ir: ruleIR.apply,
+  nl: ruleNL.apply,
+  nr: ruleNR.apply,
+  swl: ruleSWL.apply,
+  swr: ruleSWR.apply,
+  scl: ruleSCL.apply,
+  scr: ruleSCR.apply,
+  sRotLF: ruleSRotLF.apply,
+  sRotLB: ruleSRotLB.apply,
+  sRotRF: ruleSRotRF.apply,
+  sRotRB: ruleSRotRB.apply,
+  sxl: ruleSXL.apply,
+  sxr: ruleSXR.apply
+};
+var name2 = "FK";
+var fk = {
+  a: alpha2,
+  o: omega2,
+  i: iota2,
+  z: zeta2
+};
+
+// src/help/fk.ts
+var meta2 = {
+  name: name2,
+  propositions: [
+    {
+      title: "Variables",
+      examples: [
+        [
+          alpha2("p"),
+          alpha2("q"),
+          alpha2("r"),
+          alpha2("s"),
+          alpha2("t"),
+          alpha2("u")
+        ]
+      ]
+    },
+    {
+      title: "Connectives",
+      examples: [
+        [
+          falsum,
+          verum,
+          negation(atom("A")),
+          implication(atom("A"), atom("B")),
+          conjunction(atom("A"), atom("B")),
+          disjunction(atom("A"), atom("B"))
+        ]
+      ]
+    }
+  ],
+  rules: [
+    {
+      title: "Axiom",
+      examples: [[ruleF.example, ruleV.example], [ruleI.example]]
+    },
+    {
+      title: "Logical Rules",
+      examples: [
+        [ruleCL1.example, ruleDR1.example],
+        [ruleCL2.example, ruleDR2.example],
+        [ruleFIL.example, ruleIR.example],
+        [ruleFDL.example, ruleFCR.example],
+        [ruleNL.example, ruleNR.example],
+        [ruleFCut.example]
+      ]
+    },
+    {
+      title: "Structural Rules",
+      examples: [
+        [ruleSWL.example, ruleSWR.example],
+        [ruleSCL.example, ruleSCR.example],
+        [ruleSRotLF.example, ruleSRotRF.example],
+        [ruleSRotLB.example, ruleSRotRB.example],
+        [ruleSXL.example, ruleSXR.example]
+      ]
+    }
+  ]
+};
+var exampleProof2 = fk.z.ir(
+  fk.z.swl(
+    fk.o.p2.implication(
+      fk.a("p"),
+      fk.o.p2.implication(fk.a("q"), fk.o.p1.negation(fk.a("p")))
+    ),
+    fk.z.ir(fk.i.i(fk.a("p")))
+  )
+);
+
+// src/systems/la3.ts
+var alpha3 = (s) => atom(s);
+var omega3 = {
+  p0: {},
+  p1: { negation },
+  p2: { implication }
+};
+var iota3 = {
+  a1: ruleA1.apply,
+  a2: ruleA2.apply,
+  a3: ruleA3.apply
+};
+var zeta3 = {
+  mp: ruleMP.apply
+};
+var name3 = "\u0141ukasiewicz Axioms 3";
+var la3 = {
+  a: alpha3,
+  o: omega3,
+  i: iota3,
+  z: zeta3
+};
+
+// src/help/la3.ts
+var meta3 = {
+  name: name3,
+  propositions: [
+    {
+      title: "Variables",
+      examples: [
+        [
+          alpha3("p"),
+          alpha3("q"),
+          alpha3("r"),
+          alpha3("s"),
+          alpha3("t"),
+          alpha3("u")
+        ]
+      ]
+    },
+    {
+      title: "Connectives",
+      examples: [[negation(atom("A")), implication(atom("A"), atom("B"))]]
+    }
+  ],
+  rules: [
+    {
+      title: "Axioms",
+      examples: [[ruleA1.example, ruleA2.example, ruleA3.example]]
+    },
+    {
+      title: "Rule",
+      examples: [[ruleMP.example]]
+    }
+  ]
+};
+var exampleProof3 = la3.z.mp(
+  la3.i.a2(
+    la3.a("p"),
+    la3.o.p2.implication(la3.a("q"), la3.o.p1.negation(la3.a("p"))),
+    la3.a("p")
+  ),
+  la3.i.a1(
+    la3.a("p"),
+    la3.o.p2.implication(la3.a("q"), la3.o.p1.negation(la3.a("p")))
+  )
+);
+
+// src/help/index.ts
+var helpSystems = {
+  rk: { id: "rk", name: meta.name, meta, exampleProof },
+  fk: { id: "fk", name: meta2.name, meta: meta2, exampleProof: exampleProof2 },
+  la3: { id: "la3", name: meta3.name, meta: meta3, exampleProof: exampleProof3 }
+};
+var isHelpSystemId = (s) => s in helpSystems;
+var renderSystemHelp = (id) => {
+  const sys = helpSystems[id];
+  return fromMeta(sys.meta) + "\n\nSandbox\n\n" + fromDerivation(sys.exampleProof) + "\n";
+};
+
 // src/interactive/repl.ts
 function* repl(workspace) {
   let output = [of2('\nWelcome!\n\nType "help" for help')];
@@ -5291,7 +5599,7 @@ function* repl(workspace) {
         if (arg == null) {
           output = [
             of2(
-              "\nSystem commands:\n  help - display this manual\n  help <rule> - display rule description\n  list - list all conjectures\n  prev - select previous conjecture\n  next - select next conjecture\n  undo - undo applied rule in current conjecture\n  reset - undo all applied rules of current conjecture\n  select <conjecture> - select active conjecture"
+              "\nSystem commands:\n  help - display this manual\n  help <rule> - display rule description\n  systems - list available logic systems\n  system <id> - display logic system documentation\n  list - list all conjectures\n  prev - select previous conjecture\n  next - select next conjecture\n  undo - undo applied rule in current conjecture\n  reset - undo all applied rules of current conjecture\n  select <conjecture> - select active conjecture"
             )
           ];
           break;
@@ -5305,6 +5613,22 @@ function* repl(workspace) {
           break;
         }
         output = [of2('\nUnknown rule "' + arg + '"')];
+        break;
+      }
+      case "systems":
+        output = [
+          of2(
+            "\nSystems:\n" + Object.values(helpSystems).map((s) => "  " + s.id + " - " + s.name).join("\n")
+          )
+        ];
+        break;
+      case "system": {
+        const [arg] = args;
+        if (arg == null || !isHelpSystemId(arg)) {
+          output = [of2('\nUnknown system "' + arg + '"')];
+          break;
+        }
+        output = [of2("\n" + renderSystemHelp(arg))];
         break;
       }
       case "list":
@@ -5355,7 +5679,7 @@ var status = (s) => {
     of2("\nRules: " + rules90.join(", ")),
     of2("\nProof: undo, reset"),
     of2("\nConjectures: prev, next, select, list"),
-    of2("\nSystem: quit, help\n"),
+    of2("\nSystem: quit, help, systems\n"),
     ...isProof(s.derivation) ? [of2("\nConglaturations!\n")] : []
   ];
 };
@@ -5383,32 +5707,28 @@ var renderDerivation = (derivation, activePath2, applicableRules3, currentPath =
   const isActive = derivation.kind === "premise" && equalPaths(currentPath, activePath2);
   const node = document.createElement("div");
   node.setAttribute("class", "tree-node" + (isActive ? " tree-active" : ""));
+  let leafDepth = 0;
   if (derivation.kind === "transformation") {
     const premises = document.createElement("div");
     premises.setAttribute("class", "tree-premises");
+    let maxChildDepth = -1;
     derivation.deps.forEach((dep, i90) => {
-      premises.appendChild(
-        renderDerivation(dep, activePath2, applicableRules3, [...currentPath, i90])
-      );
+      const child = renderDerivation(dep, activePath2, applicableRules3, [
+        ...currentPath,
+        i90
+      ]);
+      const childDepth = Number(child.dataset["leafDepth"] ?? "0");
+      if (childDepth > maxChildDepth) maxChildDepth = childDepth;
+      premises.appendChild(child);
     });
+    leafDepth = maxChildDepth < 0 ? 0 : maxChildDepth + 1;
     node.appendChild(premises);
-    const conclusion2 = document.createElement("div");
-    conclusion2.setAttribute("class", "tree-conclusion");
-    conclusion2.appendChild(renderInferenceLine(derivation.rule));
-    conclusion2.appendChild(renderSequent(derivation, applicableRules3, isActive));
-    node.appendChild(conclusion2);
+    node.appendChild(renderInferenceLine(derivation.rule));
+    node.appendChild(renderSequent(derivation, applicableRules3, isActive));
   } else {
     node.appendChild(renderSequent(derivation, applicableRules3, isActive));
   }
-  if (isActive) {
-    requestAnimationFrame(() => {
-      node.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-        inline: "center"
-      });
-    });
-  }
+  node.dataset["leafDepth"] = String(leafDepth);
   if (currentPath.length === 0) {
     node.addEventListener("copy", (e) => {
       e.preventDefault();
@@ -5417,11 +5737,65 @@ var renderDerivation = (derivation, activePath2, applicableRules3, currentPath =
   }
   return node;
 };
+var LINE_PAD = 16;
+var stabilizeWidths = (node) => {
+  const sequent2 = node.querySelector(
+    ":scope > .tree-sequent"
+  );
+  const sequentWidth = sequent2 ? sequent2.getBoundingClientRect().width : 0;
+  const premises = node.querySelector(
+    ":scope > .tree-premises"
+  );
+  const inference = node.querySelector(
+    ":scope > .tree-inference"
+  );
+  let childSequentSum = 0;
+  let childSubtreeSum = 0;
+  let gap = 0;
+  let count = 0;
+  if (premises) {
+    const children = Array.from(premises.children);
+    count = children.length;
+    gap = parseFloat(getComputedStyle(premises).gap) || 0;
+    for (const child of children) {
+      const cw = stabilizeWidths(child);
+      childSequentSum += cw.sequent;
+      childSubtreeSum += cw.subtree;
+    }
+  }
+  const totalGap = Math.max(0, count - 1) * gap;
+  const lineWidth = Math.ceil(
+    Math.max(sequentWidth, childSequentSum + totalGap) + LINE_PAD * 2
+  );
+  if (inference) {
+    inference.style.width = `${lineWidth}px`;
+    inference.style.alignSelf = "center";
+  }
+  const subtreeWidth = Math.ceil(
+    Math.max(lineWidth, childSubtreeSum + totalGap)
+  );
+  node.style.width = `${subtreeWidth}px`;
+  return { sequent: sequentWidth, subtree: subtreeWidth };
+};
+var layoutTree = (root, opts = {}) => {
+  stabilizeWidths(root);
+  if (opts.skipActiveScroll === true) return;
+  const active2 = root.querySelector(".tree-active");
+  if (active2) {
+    active2.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+      inline: "nearest"
+    });
+  }
+};
 
 // src/web/game.ts
 var qwertyKeyMap = {
   Escape: "menu",
   Backquote: "level",
+  KeyW: "prevBranch",
+  KeyO: "nextBranch",
   KeyR: "reset",
   KeyA: "leftRotateLeft",
   KeyS: "leftWeakening",
@@ -5514,16 +5888,119 @@ var createButton = (label, disabled, onClick, hint) => {
   }
   return el;
 };
+var treeZoom = 1;
+var ZOOM_MIN = 0.4;
+var ZOOM_MAX = 2;
+var ZOOM_STEP = 0.2;
+var AUTO_ZOOM_MAX = 1.4;
+var AUTO_ZOOM_PAD = 0.9;
+var CHECK_STEP_MS = 120;
+var CHECK_HOLD_MS = 260;
+var runProofCheckSweep = (tree2) => {
+  if (typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    return;
+  }
+  const nodes = Array.from(
+    tree2.querySelectorAll(".tree-node")
+  );
+  if (nodes.length === 0) return;
+  const byDepth = /* @__PURE__ */ new Map();
+  let maxDepth = 0;
+  for (const n of nodes) {
+    const d = Number(n.dataset["leafDepth"] ?? "0");
+    if (d > maxDepth) maxDepth = d;
+    const list = byDepth.get(d);
+    if (list) list.push(n);
+    else byDepth.set(d, [n]);
+  }
+  for (let d = 0; d <= maxDepth; d++) {
+    const level = byDepth.get(d);
+    if (!level) continue;
+    setTimeout(() => {
+      for (const n of level) n.classList.add("tree-checking");
+      setTimeout(() => {
+        for (const n of level) n.classList.remove("tree-checking");
+      }, CHECK_HOLD_MS);
+    }, d * CHECK_STEP_MS);
+  }
+};
+var lastScrollTop = 0;
 var createPlayArea = (workspace) => {
   const panel = document.createElement("div");
   panel.setAttribute("class", "playarea");
+  panel.style.setProperty("--tree-zoom", String(treeZoom));
+  panel.addEventListener("scroll", () => {
+    lastScrollTop = panel.scrollTop;
+  });
+  const startTop = lastScrollTop;
   const focus2 = workspace.currentConjecture();
   const tree2 = renderDerivation(
     focus2.derivation,
     activePath(focus2),
     workspace.applicableRules()
   );
+  const solved = workspace.isSolved();
+  const isFresh = focus2.derivation.kind === "premise";
+  tree2.style.visibility = "hidden";
   panel.appendChild(tree2);
+  requestAnimationFrame(() => {
+    panel.scrollTo({ top: startTop, behavior: "instant" });
+    layoutTree(tree2, { skipActiveScroll: solved });
+    if (isFresh && !solved) {
+      const rootSequent = tree2.querySelector(
+        ":scope > .tree-sequent"
+      );
+      if (rootSequent) {
+        const sequentRect = rootSequent.getBoundingClientRect();
+        const areaRect = panel.getBoundingClientRect();
+        const fontPx = parseFloat(getComputedStyle(panel).fontSize);
+        const availW = areaRect.width - 2 * 8 * fontPx;
+        if (sequentRect.width > 0 && availW > 0) {
+          const target = Math.max(
+            ZOOM_MIN,
+            Math.min(
+              AUTO_ZOOM_MAX,
+              treeZoom * availW * AUTO_ZOOM_PAD / sequentRect.width
+            )
+          );
+          if (Math.abs(target - treeZoom) > 0.01) {
+            treeZoom = target;
+            panel.style.setProperty("--tree-zoom", String(treeZoom));
+            layoutTree(tree2, { skipActiveScroll: solved });
+          }
+        }
+      }
+    }
+    tree2.style.visibility = "";
+    if (solved) {
+      const treeRect = tree2.getBoundingClientRect();
+      const areaRect = panel.getBoundingClientRect();
+      const fontPx = parseFloat(getComputedStyle(panel).fontSize);
+      const availW = areaRect.width - 2 * 8 * fontPx;
+      const availH = areaRect.height - (8 + 6) * fontPx;
+      const scale = Math.min(
+        1,
+        availW / treeRect.width,
+        availH / treeRect.height
+      );
+      tree2.style.transformOrigin = "center bottom";
+      tree2.style.transition = "transform 1.2s ease-in-out";
+      const onZoomEnd = (e) => {
+        if (e.propertyName !== "transform") return;
+        tree2.removeEventListener("transitionend", onZoomEnd);
+        runProofCheckSweep(tree2);
+      };
+      tree2.addEventListener("transitionend", onZoomEnd);
+      requestAnimationFrame(() => {
+        tree2.style.transform = `scale(${scale})`;
+        tree2.scrollIntoView({
+          behavior: "smooth",
+          block: "end",
+          inline: "center"
+        });
+      });
+    }
+  });
   return panel;
 };
 var createPanel = (className, ruleRecord, ls, rules90, solved, onApply) => {
@@ -5567,6 +6044,21 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
   }
   panel.appendChild(createPanel("right", right, ls, rules90, solved, apply2));
   panel.appendChild(createPlayArea(workspace));
+  const zoomOut = createButton("\u2212", false, () => {
+    treeZoom = Math.max(ZOOM_MIN, treeZoom - ZOOM_STEP);
+    rerender();
+  });
+  const zoomReset = createButton("\u2299", false, () => {
+    treeZoom = 1;
+    rerender();
+  });
+  const zoomIn = createButton("+", false, () => {
+    treeZoom = Math.min(ZOOM_MAX, treeZoom + ZOOM_STEP);
+    rerender();
+  });
+  controlsEl.appendChild(zoomOut);
+  controlsEl.appendChild(zoomReset);
+  controlsEl.appendChild(zoomIn);
   panel.appendChild(controlsEl);
   return panel;
 };
@@ -5619,6 +6111,12 @@ var createDispatch = (getWorkspace, rerender, navigate2, onSolved, onLevel) => (
       break;
     case "rightConnective":
       autoRule(workspace, keys(rightLogical));
+      break;
+    case "prevBranch":
+      workspace.applyEvent(prevBranch());
+      break;
+    case "nextBranch":
+      workspace.applyEvent(nextBranch());
       break;
     case "axiom":
       autoRule(workspace, keys(center));
@@ -6289,6 +6787,61 @@ var mountRandom = (container, navigate2) => {
   };
 };
 
+// src/web/system.ts
+var mountSystem = (container, _navigate) => {
+  const render = () => {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    container.innerHTML = "";
+    const panel = document.createElement("div");
+    panel.setAttribute("class", "system");
+    if (id != null && isHelpSystemId(id)) {
+      const back = document.createElement("a");
+      back.setAttribute("class", "button system-back");
+      back.setAttribute("href", "?mode=system");
+      back.innerHTML = "&larr; Systems";
+      back.onclick = (e) => {
+        e.preventDefault();
+        history.pushState({ screen: "system" }, "", "?mode=system");
+        render();
+      };
+      panel.appendChild(back);
+      const pre = document.createElement("pre");
+      pre.setAttribute("class", "system-doc");
+      pre.textContent = renderSystemHelp(id);
+      panel.appendChild(pre);
+    } else {
+      const title = document.createElement("div");
+      title.setAttribute("class", "system-title");
+      title.innerHTML = "Systems";
+      panel.appendChild(title);
+      const list = document.createElement("div");
+      list.setAttribute("class", "system-list");
+      for (const sys of Object.values(helpSystems)) {
+        const link = document.createElement("a");
+        link.setAttribute("class", "button system-item");
+        link.setAttribute("href", `?mode=system&id=${sys.id}`);
+        link.innerHTML = sys.name;
+        link.onclick = (e) => {
+          e.preventDefault();
+          history.pushState(
+            { screen: "system" },
+            "",
+            `?mode=system&id=${sys.id}`
+          );
+          render();
+        };
+        list.appendChild(link);
+      }
+      panel.appendChild(list);
+    }
+    container.appendChild(panel);
+  };
+  render();
+  return () => {
+  };
+};
+
 // src/web.ts
 var cleanup = () => {
 };
@@ -6314,12 +6867,15 @@ var mount = (screen) => {
     case "random":
       cleanup = mountRandom(body, navigate);
       break;
+    case "system":
+      cleanup = mountSystem(body, navigate);
+      break;
   }
 };
 var init3 = () => {
   const params = new URLSearchParams(window.location.search);
   const mode = params.get("mode");
-  if (mode === "campaign" || mode === "random") {
+  if (mode === "campaign" || mode === "random" || mode === "system") {
     mount(mode);
   } else if (params.get("level") !== null) {
     mount("campaign");

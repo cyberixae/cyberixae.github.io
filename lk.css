@@ -1,6 +1,12 @@
-#body {
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Math&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+
+body {
   background-color: #ffeedd;
-  font-family: sans-serif;
+  font-family: "Noto Sans", "Noto Sans Math", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  font-variation-settings: "wdth" 100;
   font-size: 1.2em;
   height: 100%;
   overflow: hidden;
@@ -55,9 +61,24 @@
   display: flex;
   flex-direction: column;
   overflow: auto;
-  align-items: center;
-  justify-content: end;
+  align-items: safe center;
+  justify-content: safe end;
   min-height: 0;
+  scroll-behavior: smooth;
+  padding: 8em 8em 6em 8em;
+  scroll-padding: 8em 8em 6em 8em;
+  scrollbar-width: none;
+  mask-image:
+    linear-gradient(to right, transparent, black 6em, black calc(100% - 6em), transparent),
+    linear-gradient(to bottom, transparent, black 6em, black calc(100% - 6em), transparent);
+  mask-composite: intersect;
+  -webkit-mask-image:
+    linear-gradient(to right, transparent, black 6em, black calc(100% - 6em), transparent),
+    linear-gradient(to bottom, transparent, black 6em, black calc(100% - 6em), transparent);
+  -webkit-mask-composite: source-in;
+}
+.playarea::-webkit-scrollbar {
+  display: none;
 }
 .rule {
   position: relative;
@@ -211,6 +232,47 @@
   justify-content: center;
   gap: 2em;
 }
+.system {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  box-sizing: border-box;
+  padding: 1em;
+  gap: 1em;
+  overflow: hidden;
+}
+.system-title {
+  font-size: 2em;
+  font-weight: bold;
+  text-align: center;
+}
+.system-list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1em;
+}
+.system-item {
+  font-size: 1.5em;
+  padding: 0.6em 1.5em;
+}
+.system-back {
+  align-self: flex-start;
+  padding: 0.4em 1em;
+  text-decoration: none;
+}
+.system-doc {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  margin: 0;
+  white-space: pre;
+  font-size: 1.4em;
+  line-height: 1.4;
+  padding: 0.5em 1em 8em 1em;
+}
 .menu-title {
   font-size: 5em;
   font-weight: bold;
@@ -236,11 +298,6 @@
   justify-content: center;
   align-items: flex-end;
 }
-.tree-conclusion {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
 .tree-inference {
   position: relative;
   align-self: stretch;
@@ -249,7 +306,8 @@
 }
 .tree-rule-label {
   position: absolute;
-  right: -2em;
+  left: 100%;
+  margin-left: 0.3em;
   top: -0.7em;
   font-size: 0.8em;
   white-space: nowrap;
@@ -257,23 +315,28 @@
 }
 .tree-sequent {
   white-space: nowrap;
-  padding: 0.1em 0;
+  padding: 0.1em 0.5em;
+  border-radius: 10px;
+  background-color: transparent;
 }
 .playarea > .tree-node {
   padding-bottom: 1.5em;
-  font-size: 2em;
+  font-size: calc(2em * var(--tree-zoom, 1));
 }
 .tree-active > .tree-sequent {
   background-color: #fcaa;
-  border-radius: 10px;
-  padding: 0.1em 0.5em;
 }
-.connective-active {
-  background-color: #d005;
-  display: inline-block;
-  width: 1.4em;
-  height: 1.4em;
-  margin: 0.2em 0.1em;
+.tree-node > .tree-sequent {
+  transition: color 0.25s ease-out;
+}
+.tree-node.tree-checking > .tree-sequent {
+  color: #fff;
+}
+.connective {
   text-align: center;
-  border-radius: 10px;
+  border-radius: 6px;
+  background-color: transparent;
+}
+.connective.active {
+  background-color: #d003;
 }
