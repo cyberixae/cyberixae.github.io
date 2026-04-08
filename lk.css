@@ -1,12 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Math&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
 
+:root {
+  --gaze-color: #2a8;
+}
+
 body {
   background-color: #ffeedd;
-  font-family: "Noto Sans", "Noto Sans Math", sans-serif;
+  font-family: 'Noto Sans', 'Noto Sans Math', sans-serif;
   font-optical-sizing: auto;
   font-weight: 400;
   font-style: normal;
-  font-variation-settings: "wdth" 100;
+  font-variation-settings: 'wdth' 100;
   font-size: 1.2em;
   height: 100%;
   overflow: hidden;
@@ -69,12 +73,36 @@ body {
   scroll-padding: 8em 8em 6em 8em;
   scrollbar-width: none;
   mask-image:
-    linear-gradient(to right, transparent, black 6em, black calc(100% - 6em), transparent),
-    linear-gradient(to bottom, transparent, black 6em, black calc(100% - 6em), transparent);
+    linear-gradient(
+      to right,
+      transparent,
+      black 6em,
+      black calc(100% - 6em),
+      transparent
+    ),
+    linear-gradient(
+      to bottom,
+      transparent,
+      black 6em,
+      black calc(100% - 6em),
+      transparent
+    );
   mask-composite: intersect;
   -webkit-mask-image:
-    linear-gradient(to right, transparent, black 6em, black calc(100% - 6em), transparent),
-    linear-gradient(to bottom, transparent, black 6em, black calc(100% - 6em), transparent);
+    linear-gradient(
+      to right,
+      transparent,
+      black 6em,
+      black calc(100% - 6em),
+      transparent
+    ),
+    linear-gradient(
+      to bottom,
+      transparent,
+      black 6em,
+      black calc(100% - 6em),
+      transparent
+    );
   -webkit-mask-composite: source-in;
 }
 .playarea::-webkit-scrollbar {
@@ -100,15 +128,41 @@ body {
   box-sizing: border-box;
   vertical-align: middle;
 }
-.left .rule .key-hint {
+.left .rule > .key-hint {
   position: absolute;
-  top: 20px;
+  top: 0;
   right: -20px;
 }
-.right .rule .key-hint {
+.left .rule .gaze-hint-stack {
   position: absolute;
-  top: 20px;
+  top: 45px;
+  left: 100%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+}
+.right .rule > .key-hint {
+  position: absolute;
+  top: 0;
   left: -20px;
+}
+.right .rule .gaze-hint-stack {
+  position: absolute;
+  top: 45px;
+  right: 100%;
+  transform: translateX(50%);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+}
+.key-hint.gaze {
+  background: var(--gaze-color);
+}
+.key-hint.gaze.ghost {
+  opacity: 0.35;
 }
 .main .rule .key-hint {
   position: absolute;
@@ -126,7 +180,7 @@ body {
   top: 8px;
   left: -15px;
 }
-.button.disabled .key-hint {
+.button.disabled > .key-hint {
   visibility: hidden;
 }
 .button {
@@ -170,6 +224,17 @@ body {
 .congrabuttons {
   display: flex;
   gap: 1em;
+}
+.congrabuttons .button {
+  position: relative;
+}
+.congrabuttons .button .key-hint {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+  top: 8px;
+  left: -15px;
 }
 .shroud {
   position: absolute;
@@ -339,4 +404,27 @@ body {
 }
 .connective.active {
   background-color: #d003;
+}
+.gazed {
+  border-bottom: 0.15em solid var(--gaze-color);
+}
+.tree-active {
+  position: relative;
+}
+.ghost-tree {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  opacity: 0.35;
+  pointer-events: none;
+}
+.tree-sequent.ghost {
+  background-color: transparent;
+}
+.tree-inference.ghost > .tree-rule-label {
+  opacity: 0.7;
 }

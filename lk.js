@@ -4903,14 +4903,20 @@ function active(text) {
 function connective(text, active2) {
   return { text, active: active2, connective: true };
 }
+function raw(html2) {
+  return { text: html2, active: false, connective: false, raw: true };
+}
 function plain(segments) {
-  return segments.map((s) => s.text).join("");
+  return segments.map((s) => s.raw === true ? "" : s.text).join("");
 }
 function escape(text) {
   return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 function html(segments) {
   return segments.map((s) => {
+    if (s.raw === true) {
+      return s.text;
+    }
     if (s.connective) {
       const cls = s.active ? "connective active" : "connective";
       return `<span class="${cls}">${escape(s.text)}</span>`;
@@ -4923,6 +4929,7 @@ function trim(segments) {
   for (let i90 = 0; i90 < result.length; i90 += 1) {
     const s = result[i90];
     if (s === void 0) break;
+    if (s.raw === true) continue;
     const trimmed = s.text.trimStart();
     result[i90] = { ...s, text: trimmed };
     if (trimmed.length > 0) break;
@@ -4930,6 +4937,7 @@ function trim(segments) {
   for (let i90 = result.length - 1; i90 >= 0; i90 -= 1) {
     const s = result[i90];
     if (s === void 0) break;
+    if (s.raw === true) continue;
     const trimmed = s.text.trimEnd();
     result[i90] = { ...s, text: trimmed };
     if (trimmed.length > 0) break;
@@ -5072,10 +5080,11 @@ function fromConjunction({ leftConjunct, rightConjunct }, activeConnective = fal
       implication: parenthesized
     });
   };
-  return printBinary("conjunction", activeConnective, true)(
-    expand(leftConjunct),
-    expand(rightConjunct)
-  );
+  return printBinary(
+    "conjunction",
+    activeConnective,
+    true
+  )(expand(leftConjunct), expand(rightConjunct));
 }
 function fromDisjunction({ leftDisjunct, rightDisjunct }, activeConnective = false) {
   const expand = (operand) => {
@@ -5091,10 +5100,11 @@ function fromDisjunction({ leftDisjunct, rightDisjunct }, activeConnective = fal
       implication: parenthesized
     });
   };
-  return printBinary("disjunction", activeConnective, true)(
-    expand(leftDisjunct),
-    expand(rightDisjunct)
-  );
+  return printBinary(
+    "disjunction",
+    activeConnective,
+    true
+  )(expand(leftDisjunct), expand(rightDisjunct));
 }
 function fromImplication({ antecedent, consequent }, activeConnective = false) {
   const expand = (operand) => {
@@ -5110,10 +5120,11 @@ function fromImplication({ antecedent, consequent }, activeConnective = false) {
       implication: parenthesized
     });
   };
-  return printBinary("implication", activeConnective, true)(
-    expand(antecedent),
-    expand(consequent)
-  );
+  return printBinary(
+    "implication",
+    activeConnective,
+    true
+  )(expand(antecedent), expand(consequent));
 }
 function fromProp(proposition, activeConnective = false) {
   return matchRaw(proposition, {
@@ -5126,7 +5137,8 @@ function fromProp(proposition, activeConnective = false) {
     implication: (p) => fromImplication(p, activeConnective)
   });
 }
-function fromSequent(judgement, ruleIds = []) {
+var wrapGazed = (p) => (t) => [raw('<span class="gazed">'), ...p(t), raw("</span>")];
+function fromSequent(judgement, ruleIds = [], gaze = null) {
   const { antecedent, succedent } = judgement;
   const activeLeft = ruleIds.some(
     (id) => id in leftLogical && rules[id].isResult(judgement)
@@ -5134,12 +5146,14 @@ function fromSequent(judgement, ruleIds = []) {
   const activeRight = ruleIds.some(
     (id) => id in rightLogical && rules[id].isResult(judgement)
   );
-  const antPrinters = antecedent.map(
-    (f2, i90) => activeLeft && i90 === antecedent.length - 1 ? fromProp(f2, true) : fromProp(f2)
-  );
-  const sucPrinters = succedent.map(
-    (f2, i90) => activeRight && i90 === 0 ? fromProp(f2, true) : fromProp(f2)
-  );
+  const antPrinters = antecedent.map((f2, i90) => {
+    const p = activeLeft && i90 === antecedent.length - 1 ? fromProp(f2, true) : fromProp(f2);
+    return gaze && gaze.side === "left" && gaze.index === i90 ? wrapGazed(p) : p;
+  });
+  const sucPrinters = succedent.map((f2, i90) => {
+    const p = activeRight && i90 === 0 ? fromProp(f2, true) : fromProp(f2);
+    return gaze && gaze.side === "right" && gaze.index === i90 ? wrapGazed(p) : p;
+  });
   return (t) => trim(
     print("sequent")(
       printArray("formulas")(antPrinters),
@@ -5266,6 +5280,8 @@ var Workspace = class {
   conjectures = {};
   theoremKeys;
   selected;
+  _gaze = null;
+  _gazeKind = "connective";
   isSolved() {
     return isProof(this.currentConjecture().derivation);
   }
@@ -5321,6 +5337,50 @@ var Workspace = class {
     const cursor = this.currentConjecture();
     const update = applyEvent(cursor, ev);
     this.conjectures[this.selected] = update;
+    this._gaze = null;
+    this._gazeKind = "connective";
+  }
+  applyEventWithGaze(ev, nextGaze) {
+    const cursor = this.currentConjecture();
+    const update = applyEvent(cursor, ev);
+    this.conjectures[this.selected] = update;
+    this._gaze = nextGaze;
+  }
+  gazeKind() {
+    return this._gazeKind;
+  }
+  setGazeKind(kind) {
+    this._gazeKind = kind;
+  }
+  gaze() {
+    if (this._gaze) return this._gaze;
+    return this.defaultGaze();
+  }
+  defaultGaze() {
+    const seq = activeSequent(this.currentConjecture());
+    if (seq.antecedent.length > 0) {
+      return { side: "left", index: seq.antecedent.length - 1 };
+    }
+    if (seq.succedent.length > 0) {
+      return { side: "right", index: 0 };
+    }
+    return { side: "left", index: 0 };
+  }
+  moveGaze(direction) {
+    const seq = activeSequent(this.currentConjecture());
+    const ant = seq.antecedent.length;
+    const suc = seq.succedent.length;
+    const total = ant + suc;
+    if (total === 0) {
+      this._gaze = null;
+      this._gazeKind = "connective";
+      return;
+    }
+    const current = this._gaze ?? this.defaultGaze();
+    const linear = current.side === "left" ? current.index : ant + current.index;
+    const next2 = (linear + direction + total) % total;
+    this._gaze = next2 < ant ? { side: "left", index: next2 } : { side: "right", index: next2 - ant };
+    this._gazeKind = "connective";
   }
 };
 
@@ -5575,9 +5635,24 @@ var exampleProof3 = la3.z.mp(
 
 // src/help/index.ts
 var helpSystems = {
-  rk: { id: "rk", name: meta.name, meta, exampleProof },
-  fk: { id: "fk", name: meta2.name, meta: meta2, exampleProof: exampleProof2 },
-  la3: { id: "la3", name: meta3.name, meta: meta3, exampleProof: exampleProof3 }
+  rk: {
+    id: "rk",
+    name: meta.name,
+    meta,
+    exampleProof
+  },
+  fk: {
+    id: "fk",
+    name: meta2.name,
+    meta: meta2,
+    exampleProof: exampleProof2
+  },
+  la3: {
+    id: "la3",
+    name: meta3.name,
+    meta: meta3,
+    exampleProof: exampleProof3
+  }
 };
 var isHelpSystemId = (s) => s in helpSystems;
 var renderSystemHelp = (id) => {
@@ -5686,13 +5761,37 @@ var status = (s) => {
 
 // src/web/tree.ts
 var equalPaths = (a91, b) => a91.length === b.length && a91.every((v2, i90) => v2 === b[i90]);
-var renderSequent = (derivation, ruleIds, isActive) => {
+var renderSequent = (derivation, ruleIds, isActive, gaze) => {
   const el = document.createElement("div");
   el.setAttribute("class", "tree-sequent");
   el.innerHTML = html(
-    fromSequent(derivation.result, isActive ? ruleIds : [])(basic)
+    fromSequent(
+      derivation.result,
+      isActive ? ruleIds : [],
+      isActive ? gaze : null
+    )(basic)
   );
   return el;
+};
+var renderGhost = (chain) => {
+  const wrap = document.createElement("div");
+  wrap.setAttribute("class", "ghost-tree");
+  for (let i90 = chain.length - 1; i90 >= 0; i90 -= 1) {
+    const step = chain[i90];
+    if (!step) continue;
+    const sequent2 = document.createElement("div");
+    sequent2.setAttribute("class", "tree-sequent ghost");
+    sequent2.innerHTML = html(fromSequent(step.sequent, [], null)(basic));
+    wrap.appendChild(sequent2);
+    const inference = document.createElement("div");
+    inference.setAttribute("class", "tree-inference ghost");
+    const label = document.createElement("div");
+    label.setAttribute("class", "tree-rule-label");
+    label.innerHTML = html(fromRuleId(step.rule)(basic));
+    inference.appendChild(label);
+    wrap.appendChild(inference);
+  }
+  return wrap;
 };
 var renderInferenceLine = (ruleId2) => {
   const container = document.createElement("div");
@@ -5703,7 +5802,7 @@ var renderInferenceLine = (ruleId2) => {
   container.appendChild(label);
   return container;
 };
-var renderDerivation = (derivation, activePath2, applicableRules3, currentPath = []) => {
+var renderDerivation = (derivation, activePath2, applicableRules3, gaze = null, ghost = null, currentPath = []) => {
   const isActive = derivation.kind === "premise" && equalPaths(currentPath, activePath2);
   const node = document.createElement("div");
   node.setAttribute("class", "tree-node" + (isActive ? " tree-active" : ""));
@@ -5713,10 +5812,14 @@ var renderDerivation = (derivation, activePath2, applicableRules3, currentPath =
     premises.setAttribute("class", "tree-premises");
     let maxChildDepth = -1;
     derivation.deps.forEach((dep, i90) => {
-      const child = renderDerivation(dep, activePath2, applicableRules3, [
-        ...currentPath,
-        i90
-      ]);
+      const child = renderDerivation(
+        dep,
+        activePath2,
+        applicableRules3,
+        gaze,
+        ghost,
+        [...currentPath, i90]
+      );
       const childDepth = Number(child.dataset["leafDepth"] ?? "0");
       if (childDepth > maxChildDepth) maxChildDepth = childDepth;
       premises.appendChild(child);
@@ -5724,9 +5827,12 @@ var renderDerivation = (derivation, activePath2, applicableRules3, currentPath =
     leafDepth = maxChildDepth < 0 ? 0 : maxChildDepth + 1;
     node.appendChild(premises);
     node.appendChild(renderInferenceLine(derivation.rule));
-    node.appendChild(renderSequent(derivation, applicableRules3, isActive));
+    node.appendChild(renderSequent(derivation, applicableRules3, isActive, gaze));
   } else {
-    node.appendChild(renderSequent(derivation, applicableRules3, isActive));
+    if (isActive && ghost && ghost.length > 0) {
+      node.appendChild(renderGhost(ghost));
+    }
+    node.appendChild(renderSequent(derivation, applicableRules3, isActive, gaze));
   }
   node.dataset["leafDepth"] = String(leafDepth);
   if (currentPath.length === 0) {
@@ -5790,6 +5896,66 @@ var layoutTree = (root, opts = {}) => {
   }
 };
 
+// src/interactive/ghost.ts
+var MAX_STEPS = 64;
+var findConnectiveRule = (seq, side, available) => {
+  const candidates = side === "left" ? ["nl", "cl", "cl1", "cl2", "dl", "il"] : ["nr", "dr", "dr1", "dr2", "cr", "ir"];
+  for (const id of candidates) {
+    if (!available.has(id)) continue;
+    if (reverseLogic0[id].isResult(seq)) return id;
+  }
+  return null;
+};
+var stepRotation = (seq, side, available) => {
+  const rule = side === "left" ? reverseStructure0.sRotLB : reverseStructure0.sRotRB;
+  if (!available.has(rule.id)) return null;
+  const t = rule.tryReverse(premise(seq));
+  if (!t || t.kind !== "transformation") return null;
+  const dep = t.deps[0];
+  if (!dep) return null;
+  return { id: rule.id, next: dep.result };
+};
+var stepFinal = (seq, side, kind, available) => {
+  if (kind === "weakening") {
+    const rule2 = side === "left" ? reverseStructure0.swl : reverseStructure0.swr;
+    if (!available.has(rule2.id)) return null;
+    const t2 = rule2.tryReverse(premise(seq));
+    if (!t2 || t2.kind !== "transformation") return null;
+    const dep2 = t2.deps[0];
+    if (!dep2) return null;
+    return { id: rule2.id, next: dep2.result };
+  }
+  const id = findConnectiveRule(seq, side, available);
+  if (!id) return null;
+  const rule = reverseLogic0[id];
+  const t = rule.tryReverse(premise(seq));
+  if (!t || t.kind !== "transformation") return null;
+  const dep = t.deps[0];
+  if (!dep) return null;
+  return { id, next: dep.result };
+};
+var computeGhostChain = (current, gaze, kind, availableRules) => {
+  const available = new Set(availableRules);
+  const chain = [];
+  let seq = current;
+  let g = gaze;
+  for (let i90 = 0; i90 < MAX_STEPS; i90 += 1) {
+    const ant = seq.antecedent.length;
+    const suc = seq.succedent.length;
+    if (g.side === "left" && (ant === 0 || g.index === ant - 1)) break;
+    if (g.side === "right" && (suc === 0 || g.index === 0)) break;
+    const step = stepRotation(seq, g.side, available);
+    if (!step) return null;
+    chain.push({ rule: step.id, sequent: step.next });
+    seq = step.next;
+    g = g.side === "left" ? { side: "left", index: g.index + 1 } : { side: "right", index: g.index - 1 };
+  }
+  const final = stepFinal(seq, g.side, kind, available);
+  if (!final) return null;
+  chain.push({ rule: final.id, sequent: final.next });
+  return chain;
+};
+
 // src/web/game.ts
 var qwertyKeyMap = {
   Escape: "menu",
@@ -5807,7 +5973,11 @@ var qwertyKeyMap = {
   Semicolon: "rightRotateRight",
   Space: "axiom",
   Enter: "axiom",
-  Backspace: "undo"
+  Backspace: "undo",
+  ArrowLeft: "gazeLeft",
+  ArrowRight: "gazeRight",
+  ArrowUp: "gazeConnective",
+  ArrowDown: "gazeWeakening"
 };
 var codeToLabel = (code) => {
   const special = {
@@ -5816,7 +5986,11 @@ var codeToLabel = (code) => {
     Space: "\u23B5",
     Enter: "\u21B5",
     Backspace: "\u232B",
-    Escape: "\u238B"
+    Escape: "\u238B",
+    ArrowLeft: "\u2190",
+    ArrowRight: "\u2192",
+    ArrowUp: "\u2191",
+    ArrowDown: "\u2193"
   };
   const char = special[code] ?? String();
   if (char) return char;
@@ -5858,30 +6032,37 @@ var ruleAction = {
   a2: "axiom",
   a3: "axiom"
 };
-var keyHintBadge = (hint) => {
+var keyHintBadge = (hint, variant = "arrow") => {
   const badge = document.createElement("span");
-  badge.setAttribute("class", "key-hint");
+  const cls = variant === "gaze" ? "key-hint gaze" : variant === "gazeGhost" ? "key-hint gaze ghost" : "key-hint";
+  badge.setAttribute("class", cls);
   badge.textContent = hint;
   return badge;
 };
 var ps5KeyMap = {
-  12: "leftWeakening",
-  14: "leftRotateLeft",
-  15: "leftRotateRight",
-  13: "leftConnective",
-  3: "rightWeakening",
-  2: "rightRotateLeft",
-  1: "rightRotateRight",
-  0: "rightConnective",
-  5: "axiom",
-  4: "undo"
+  0: "axiom",
+  // Cross — confirm
+  1: "undo",
+  // Circle — cancel
+  2: "gazeWeakening",
+  // Square
+  3: "gazeConnective",
+  // Triangle
+  4: "prevBranch",
+  // L1
+  5: "nextBranch",
+  // R1
+  14: "gazeLeft",
+  // D-pad left
+  15: "gazeRight"
+  // D-pad right
 };
-var createButton = (label, disabled, onClick, hint) => {
+var createButton = (label, disabled, onClick, hint, gazeHint = false) => {
   const el = document.createElement("pre");
   el.setAttribute("class", "button" + (disabled ? " disabled" : ""));
   if (!disabled && onClick) el.onclick = onClick;
   if (hint !== void 0) {
-    el.appendChild(keyHintBadge(hint));
+    el.appendChild(keyHintBadge(hint, gazeHint ? "gaze" : "arrow"));
     el.appendChild(document.createTextNode(" " + label));
   } else {
     el.innerHTML = label;
@@ -5892,17 +6073,25 @@ var treeZoom = 1;
 var ZOOM_MIN = 0.4;
 var ZOOM_MAX = 2;
 var ZOOM_STEP = 0.2;
-var AUTO_ZOOM_MAX = 1.4;
+var autoZoomedDerivation = null;
+var zoomTreeOut = () => {
+  treeZoom = Math.max(ZOOM_MIN, treeZoom - ZOOM_STEP);
+};
+var zoomTreeReset = () => {
+  treeZoom = 1;
+};
+var zoomTreeIn = () => {
+  treeZoom = Math.min(ZOOM_MAX, treeZoom + ZOOM_STEP);
+};
+var AUTO_ZOOM_MAX = 1.2;
 var AUTO_ZOOM_PAD = 0.9;
 var CHECK_STEP_MS = 120;
 var CHECK_HOLD_MS = 260;
 var runProofCheckSweep = (tree2) => {
-  if (typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     return;
   }
-  const nodes = Array.from(
-    tree2.querySelectorAll(".tree-node")
-  );
+  const nodes = Array.from(tree2.querySelectorAll(".tree-node"));
   if (nodes.length === 0) return;
   const byDepth = /* @__PURE__ */ new Map();
   let maxDepth = 0;
@@ -5913,7 +6102,7 @@ var runProofCheckSweep = (tree2) => {
     if (list) list.push(n);
     else byDepth.set(d, [n]);
   }
-  for (let d = 0; d <= maxDepth; d++) {
+  for (let d = 0; d <= maxDepth; d += 1) {
     const level = byDepth.get(d);
     if (!level) continue;
     setTimeout(() => {
@@ -5934,10 +6123,19 @@ var createPlayArea = (workspace) => {
   });
   const startTop = lastScrollTop;
   const focus2 = workspace.currentConjecture();
+  const gaze = workspace.gaze();
+  const ghost = computeGhostChain(
+    activeSequent(focus2),
+    gaze,
+    workspace.gazeKind(),
+    workspace.availableRules()
+  );
   const tree2 = renderDerivation(
     focus2.derivation,
     activePath(focus2),
-    workspace.applicableRules()
+    workspace.applicableRules(),
+    gaze,
+    ghost
   );
   const solved = workspace.isSolved();
   const isFresh = focus2.derivation.kind === "premise";
@@ -5946,7 +6144,8 @@ var createPlayArea = (workspace) => {
   requestAnimationFrame(() => {
     panel.scrollTo({ top: startTop, behavior: "instant" });
     layoutTree(tree2, { skipActiveScroll: solved });
-    if (isFresh && !solved) {
+    if (isFresh && !solved && autoZoomedDerivation !== focus2.derivation) {
+      autoZoomedDerivation = focus2.derivation;
       const rootSequent = tree2.querySelector(
         ":scope > .tree-sequent"
       );
@@ -6003,7 +6202,17 @@ var createPlayArea = (workspace) => {
   });
   return panel;
 };
-var createPanel = (className, ruleRecord, ls, rules90, solved, onApply) => {
+var gazeHintBadgeForKind = (key, hints) => {
+  if (!hints) return null;
+  if (key === hints.immediateRule) {
+    return keyHintBadge(hints.hintChar, "gaze");
+  }
+  if (key === hints.eventualRule && hints.eventualRule !== hints.immediateRule) {
+    return keyHintBadge(hints.hintChar, "gazeGhost");
+  }
+  return null;
+};
+var createPanel = (className, ruleRecord, ls, rules90, solved, onApply, gazeHints) => {
   const panel = document.createElement("div");
   panel.setAttribute("class", className);
   entries(ruleRecord).forEach(([key, rule]) => {
@@ -6016,6 +6225,16 @@ var createPanel = (className, ruleRecord, ls, rules90, solved, onApply) => {
     const action = ruleAction[key];
     const hint = action !== void 0 ? actionKeyHint[action] : void 0;
     if (hint !== void 0) pre.appendChild(keyHintBadge(hint));
+    const gazeBadges = [
+      gazeHintBadgeForKind(key, gazeHints.connective),
+      gazeHintBadgeForKind(key, gazeHints.weakening)
+    ].filter((b) => b !== null);
+    if (gazeBadges.length > 0) {
+      const stack = document.createElement("span");
+      stack.setAttribute("class", "gaze-hint-stack");
+      for (const b of gazeBadges) stack.appendChild(b);
+      pre.appendChild(stack);
+    }
     panel.appendChild(pre);
   });
   return panel;
@@ -6032,30 +6251,89 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
     if (isReverseId0(key)) workspace.applyEvent(reverse02(key));
     rerender();
   };
+  const gaze = workspace.gaze();
+  const seq = activeSequent(workspace.currentConjecture());
+  const available = workspace.availableRules();
+  const buildKindHints = (kind, hintChar) => {
+    if (hintChar === void 0) return null;
+    const chain = computeGhostChain(seq, gaze, kind, available);
+    if (!chain || chain.length === 0) return null;
+    return {
+      immediateRule: chain[0]?.rule ?? null,
+      eventualRule: chain[chain.length - 1]?.rule ?? null,
+      hintChar
+    };
+  };
+  const gazeHints = {
+    connective: buildKindHints("connective", actionKeyHint["gazeConnective"]),
+    weakening: buildKindHints("weakening", actionKeyHint["gazeWeakening"])
+  };
   const panel = document.createElement("div");
   panel.setAttribute("class", "bench");
-  panel.appendChild(createPanel("left", left, ls, rules90, solved, apply2));
+  panel.appendChild(
+    createPanel("left", left, ls, rules90, solved, apply2, gazeHints)
+  );
   if (solved) {
     panel.appendChild(makeCongrats());
   } else {
     panel.appendChild(
-      createPanel("main", center, ls, rules90, solved, applyCenter)
+      createPanel("main", center, ls, rules90, solved, applyCenter, gazeHints)
     );
   }
-  panel.appendChild(createPanel("right", right, ls, rules90, solved, apply2));
+  panel.appendChild(
+    createPanel("right", right, ls, rules90, solved, apply2, gazeHints)
+  );
   panel.appendChild(createPlayArea(workspace));
-  const zoomOut = createButton("\u2212", false, () => {
-    treeZoom = Math.max(ZOOM_MIN, treeZoom - ZOOM_STEP);
-    rerender();
-  });
-  const zoomReset = createButton("\u2299", false, () => {
-    treeZoom = 1;
-    rerender();
-  });
-  const zoomIn = createButton("+", false, () => {
-    treeZoom = Math.min(ZOOM_MAX, treeZoom + ZOOM_STEP);
-    rerender();
-  });
+  const zoomOut = createButton(
+    "\u2212",
+    false,
+    () => {
+      zoomTreeOut();
+      rerender();
+    },
+    "-"
+  );
+  const zoomReset = createButton(
+    "\u2299",
+    false,
+    () => {
+      zoomTreeReset();
+      rerender();
+    },
+    "0"
+  );
+  const zoomIn = createButton(
+    "+",
+    false,
+    () => {
+      zoomTreeIn();
+      rerender();
+    },
+    "+"
+  );
+  const gazeMovable = !solved && seq.antecedent.length + seq.succedent.length > 1;
+  const gazeLeftBtn = createButton(
+    "\u2190",
+    !gazeMovable,
+    () => {
+      workspace.moveGaze(-1);
+      rerender();
+    },
+    actionKeyHint["gazeLeft"],
+    true
+  );
+  const gazeRightBtn = createButton(
+    "\u2192",
+    !gazeMovable,
+    () => {
+      workspace.moveGaze(1);
+      rerender();
+    },
+    actionKeyHint["gazeRight"],
+    true
+  );
+  controlsEl.appendChild(gazeLeftBtn);
+  controlsEl.appendChild(gazeRightBtn);
   controlsEl.appendChild(zoomOut);
   controlsEl.appendChild(zoomReset);
   controlsEl.appendChild(zoomIn);
@@ -6124,8 +6402,59 @@ var createDispatch = (getWorkspace, rerender, navigate2, onSolved, onLevel) => (
     case "undo":
       workspace.applyEvent(undo());
       break;
+    case "gazeLeft":
+      workspace.moveGaze(-1);
+      break;
+    case "gazeRight":
+      workspace.moveGaze(1);
+      break;
+    case "gazeConnective":
+      workspace.setGazeKind("connective");
+      applyGazeRule(workspace, "connective");
+      break;
+    case "gazeWeakening":
+      workspace.setGazeKind("weakening");
+      applyGazeRule(workspace, "weakening");
+      break;
   }
   rerender();
+};
+var applyGazeRule = (workspace, kind) => {
+  const gaze = workspace.gaze();
+  const seq = activeSequent(workspace.currentConjecture());
+  const ant = seq.antecedent.length;
+  const suc = seq.succedent.length;
+  if (gaze.side === "left") {
+    if (ant === 0) return;
+    const activeIndex = ant - 1;
+    if (gaze.index === activeIndex) {
+      if (kind === "connective") {
+        autoRule(workspace, keys(leftLogical));
+      } else {
+        workspace.applyEvent(reverse02("swl"));
+      }
+      return;
+    }
+    workspace.applyEventWithGaze(reverse02("sRotLB"), {
+      side: "left",
+      index: gaze.index + 1
+    });
+  } else {
+    if (suc === 0) return;
+    const activeIndex = 0;
+    if (gaze.index === activeIndex) {
+      if (kind === "connective") {
+        autoRule(workspace, keys(rightLogical));
+      } else {
+        workspace.applyEvent(reverse02("swr"));
+      }
+      return;
+    }
+    workspace.applyEventWithGaze(reverse02("sRotRB"), {
+      side: "right",
+      index: gaze.index - 1
+    });
+  }
 };
 var setupGamepad = (dispatch) => {
   const oldPresses = [];
@@ -6259,17 +6588,28 @@ var createCongrats = (ws, selectLevel, rerender) => {
     createButton(
       "Prev Level",
       false,
-      () => selectLevel(ws.previousConjectureId())
+      () => selectLevel(ws.previousConjectureId()),
+      "p"
     )
   );
   buttons.appendChild(
-    createButton("Play Again", false, () => {
-      ws.applyEvent(reset());
-      rerender();
-    })
+    createButton(
+      "Play Again",
+      false,
+      () => {
+        ws.applyEvent(reset());
+        rerender();
+      },
+      "r"
+    )
   );
   buttons.appendChild(
-    createButton("Next Level", false, () => selectLevel(ws.nextConjectureId()))
+    createButton(
+      "Next Level",
+      false,
+      () => selectLevel(ws.nextConjectureId()),
+      "\u2423"
+    )
   );
   panel.appendChild(buttons);
   return panel;
@@ -6327,6 +6667,25 @@ var mountCampaign = (container, navigate2) => {
   rerender();
   const handleKey = (ev) => {
     console.log(ev.code);
+    if (ev.code === "KeyP" && ws.isSolved()) {
+      selectLevel(ws.previousConjectureId());
+      return;
+    }
+    if (ev.code === "Slash" || ev.code === "Equal") {
+      zoomTreeOut();
+      rerender();
+      return;
+    }
+    if (ev.code === "Minus") {
+      zoomTreeIn();
+      rerender();
+      return;
+    }
+    if (ev.code === "Digit0") {
+      zoomTreeReset();
+      rerender();
+      return;
+    }
     const action = qwertyKeyMap[ev.code];
     if (action) dispatch(action);
   };
@@ -6721,7 +7080,7 @@ var createControls2 = (ws, onNew, rerender, navigate2) => {
       actionKeyHint["reset"]
     )
   );
-  panel.appendChild(createButton("new", false, onNew));
+  panel.appendChild(createButton("new", false, onNew, "n"));
   panel.appendChild(
     createButton("menu", false, () => navigate2("menu"), actionKeyHint["menu"])
   );
@@ -6775,6 +7134,25 @@ var mountRandom = (container, navigate2) => {
   const dispatch = createDispatch(() => ws, rerender, navigate2, onSolved);
   rerender();
   const handleKey = (ev) => {
+    if (ev.code === "KeyN") {
+      onNew();
+      return;
+    }
+    if (ev.code === "Slash" || ev.code === "Equal") {
+      zoomTreeOut();
+      rerender();
+      return;
+    }
+    if (ev.code === "Minus") {
+      zoomTreeIn();
+      rerender();
+      return;
+    }
+    if (ev.code === "Digit0") {
+      zoomTreeReset();
+      rerender();
+      return;
+    }
     const action = qwertyKeyMap[ev.code];
     if (action) dispatch(action);
   };
