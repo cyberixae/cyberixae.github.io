@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Math&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
 
 :root {
-  --gaze-color: #2a8;
+  --gaze-color: #48f;
 }
 
 body {
@@ -27,15 +27,42 @@ body {
   grid-template-areas:
     'left main right'
     'left status right'
-    'left controls right';
+    'controls controls controls';
 }
+.bench.rules-hidden .left,
+.bench.rules-hidden .main,
+.bench.rules-hidden .right {
+  display: none;
+}
+
 .controls {
   grid-area: controls;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: end;
+  gap: 1em;
+}
+.controls-group {
   display: flex;
   flex-direction: row;
+  gap: 1em;
+  border-bottom: 0.5em solid rgba(0, 0, 0, 0.3);
+  padding-bottom: 0.5em;
+  width: fit-content;
+}
+.controls-group.gaze {
+  border-bottom-color: var(--gaze-color);
+}
+.controls-center {
+  display: flex;
+  flex-direction: row;
+  align-items: end;
+  gap: 1em;
+}
+.controls-right {
+  display: flex;
+  justify-content: flex-end;
+  align-items: end;
   gap: 1em;
 }
 .main {
@@ -45,6 +72,7 @@ body {
   display: flex;
   flex-direction: row;
   gap: 1em;
+  z-index: 1;
 }
 .left {
   grid-area: left;
@@ -52,6 +80,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1em;
+  z-index: 1;
 }
 .right {
   grid-area: right;
@@ -59,9 +88,11 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1em;
+  z-index: 1;
 }
 .playarea {
-  grid-area: status;
+  grid-column: 1 / -1;
+  grid-row: 1 / 3;
   display: flex;
   flex-direction: column;
   overflow: auto;
@@ -69,8 +100,8 @@ body {
   justify-content: safe end;
   min-height: 0;
   scroll-behavior: smooth;
-  padding: 8em 8em 6em 8em;
-  scroll-padding: 8em 8em 6em 8em;
+  padding: 8em 16em 6em 16em;
+  scroll-padding: 8em 16em 6em 16em;
   scrollbar-width: none;
   mask-image:
     linear-gradient(
@@ -158,10 +189,13 @@ body {
   align-items: center;
   gap: 5px;
 }
-.key-hint.gaze {
-  background: var(--gaze-color);
+.key-hint.hot {
+  background: #c33;
 }
-.key-hint.gaze.ghost {
+.key-hint.cold {
+  background: #36c;
+}
+.key-hint.cold.ghost {
   opacity: 0.35;
 }
 .main .rule .key-hint {
@@ -180,7 +214,8 @@ body {
   top: 8px;
   left: -15px;
 }
-.button.disabled > .key-hint {
+.button.disabled > .key-hint,
+.button.disabled > .gaze-hint-stack {
   visibility: hidden;
 }
 .button {
@@ -196,6 +231,7 @@ body {
   opacity: 0.8;
   text-wrap: nowrap;
   margin: 0;
+  text-transform: capitalize;
 }
 .button:hover {
   background-color: #fff;
@@ -205,16 +241,13 @@ body {
   cursor: default;
   opacity: 0.5;
 }
-.congrats-panel {
-  grid-area: main;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1.5em;
-}
 .hurray {
+  grid-column: 1 / -1;
+  grid-row: 1;
   font-size: 2em;
+  text-align: center;
+  padding-top: 1em;
+  z-index: 1;
 }
 .close {
   position: fixed;
@@ -390,6 +423,16 @@ body {
 }
 .tree-active > .tree-sequent {
   background-color: #fcaa;
+}
+.tree-closed-active {
+  position: relative;
+}
+.tree-closed-marker {
+  width: 2em;
+  height: 1.5em;
+  background-color: #fcaa;
+  border-radius: 10px;
+  margin: 0 auto;
 }
 .tree-node > .tree-sequent {
   transition: color 0.25s ease-out;

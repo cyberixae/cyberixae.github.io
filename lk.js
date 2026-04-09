@@ -60,7 +60,8 @@ var zip = (a91, b) => {
   );
 };
 var mod = (arr, index) => {
-  return arr[Math.floor(index) % arr.length];
+  const len = arr.length;
+  return arr[(Math.floor(index) % len + len) % len];
 };
 var replaceItem = (arr, index, item) => {
   const before = arr.slice(0, index);
@@ -149,10 +150,9 @@ var repeatIO = (io) => function* () {
   }
 };
 
-// src/utils/random.ts
-var split = (x) => () => {
-  const rand = Math.random();
-  const y = Math.floor(rand * x);
+// src/utils/number.ts
+var splitAt = (x, fraction) => {
+  const y = Math.floor(fraction * x);
   return [y, x - y];
 };
 
@@ -369,7 +369,7 @@ var random = (size = 10) => () => {
     return atom("p");
   }
   const next2 = size - 1;
-  const [left4, right3] = split(next2)();
+  const [left4, right3] = splitAt(next2, Math.random());
   if (rand < 0.3) {
     return conjunction(random(left4)(), random(right3)());
   }
@@ -2159,7 +2159,7 @@ var _side = {
 };
 
 // src/utils/string.ts
-var split2 = (s, c) => ensureNonEmpty(s.split(c), s);
+var split = (s, c) => ensureNonEmpty(s.split(c), s);
 
 // src/interactive/event.ts
 var reverse02 = (rev) => ({
@@ -2180,7 +2180,7 @@ var parseEvent = (str) => {
   if (isReverseId0(str)) {
     return reverse02(str);
   }
-  const [cmd, ...args] = split2(str, " ");
+  const [cmd, ...args] = split(str, " ");
   if (isReverseId1(cmd)) {
     console.error("TBD, parse:" + JSON.stringify(args));
   }
@@ -2208,6 +2208,35 @@ var activeSequent = (s) => {
   }
   return (derivation ?? s.derivation).result;
 };
+var nextOpenForward = (s) => {
+  const allPaths = branches(s.derivation);
+  const open = new Set(openBranches(s.derivation).map((p) => p.join(",")));
+  for (let i90 = 1; i90 <= allPaths.length; i90 += 1) {
+    const candidate = mod(allPaths, s.branch + i90);
+    if (open.has(candidate.join(","))) {
+      return focus(s.derivation, s.branch + i90);
+    }
+  }
+  return next(s);
+};
+var forwardThenBackOpen = (s) => {
+  const allPaths = branches(s.derivation);
+  const open = new Set(openBranches(s.derivation).map((p) => p.join(",")));
+  const normalized = (Math.floor(s.branch) % allPaths.length + allPaths.length) % allPaths.length;
+  for (let i90 = normalized + 1; i90 < allPaths.length; i90 += 1) {
+    const p = allPaths[i90];
+    if (p && open.has(p.join(","))) {
+      return focus(s.derivation, s.branch + (i90 - normalized));
+    }
+  }
+  for (let i90 = normalized - 1; i90 >= 0; i90 -= 1) {
+    const p = allPaths[i90];
+    if (p && open.has(p.join(","))) {
+      return focus(s.derivation, s.branch + (i90 - normalized));
+    }
+  }
+  return next(s);
+};
 var apply = (s, edit) => {
   const path = activePath(s);
   const derivation = editDerivation(s.derivation, path, edit);
@@ -2218,7 +2247,12 @@ var apply = (s, edit) => {
   const openBefore = openBranches(s.derivation).length;
   const openAfter = openBranches(derivation).length;
   if (openAfter < openBefore) {
-    return next(cursor);
+    return forwardThenBackOpen(cursor);
+  }
+  const curPath = activePath(cursor);
+  const curDeriv = subDerivation(cursor.derivation, curPath);
+  if (curDeriv && curDeriv.kind === "transformation") {
+    return nextOpenForward(cursor);
   }
   return cursor;
 };
@@ -2246,7 +2280,13 @@ var undo2 = (s) => {
     if (!derivation) {
       return s;
     }
-    return focus(derivation, s.branch);
+    const result = focus(derivation, s.branch);
+    const resultPath = activePath(result);
+    const resultDeriv = subDerivation(result.derivation, resultPath);
+    if (resultDeriv && resultDeriv.kind === "transformation") {
+      return nextOpenForward(result);
+    }
+    return result;
   }
   return s;
 };
@@ -4746,7 +4786,7 @@ var challenges = {
 
 // src/render/block.ts
 var space = " ";
-function split3(s, d) {
+function split2(s, d) {
   const parts = s.split(d);
   if (isNonEmptyArray(parts)) {
     return parts;
@@ -4758,7 +4798,7 @@ function align(a91, b) {
   if (last3.trim().length < 1) {
     return null;
   }
-  const [first, ...rest] = split3(b, "\n");
+  const [first, ...rest] = split2(b, "\n");
   if (first.trim() !== last3.trim()) {
     return null;
   }
@@ -4840,7 +4880,7 @@ function tree(root, branches2, note, lineWidth) {
   return pad(leftify(line1, line2, line3));
 }
 function lastLine(block) {
-  const [first, ...rest] = split3(block, "\n");
+  const [first, ...rest] = split2(block, "\n");
   return rest.at(-1) ?? first;
 }
 function treeAuto(root, branches2, note) {
@@ -5334,10 +5374,24 @@ var Workspace = class {
     return typeof s === "string" && s in this.theorems;
   }
   applyEvent(ev) {
+    const oldGaze = this.gaze();
     const cursor = this.currentConjecture();
     const update = applyEvent(cursor, ev);
     this.conjectures[this.selected] = update;
-    this._gaze = null;
+    if (ev.kind === "nextBranch" || ev.kind === "prevBranch" || ev.kind === "reset") {
+      this._gaze = null;
+    } else {
+      const seq = activeSequent(update);
+      const sideLen = oldGaze.side === "left" ? seq.antecedent.length : seq.succedent.length;
+      if (sideLen > 0) {
+        this._gaze = {
+          side: oldGaze.side,
+          index: Math.min(oldGaze.index, sideLen - 1)
+        };
+      } else {
+        this._gaze = null;
+      }
+    }
     this._gazeKind = "connective";
   }
   applyEventWithGaze(ev, nextGaze) {
@@ -5665,7 +5719,7 @@ function* repl(workspace) {
   let output = [of2('\nWelcome!\n\nType "help" for help')];
   while (true) {
     const input = yield [...output, of2("\n")];
-    const [cmd, ...args] = split2(input, " ");
+    const [cmd, ...args] = split(input, " ");
     switch (cmd) {
       case "quit":
         return [of2("\nExiting...")];
@@ -5803,11 +5857,19 @@ var renderInferenceLine = (ruleId2) => {
   return container;
 };
 var renderDerivation = (derivation, activePath2, applicableRules3, gaze = null, ghost = null, currentPath = []) => {
-  const isActive = derivation.kind === "premise" && equalPaths(currentPath, activePath2);
+  const isActive = equalPaths(currentPath, activePath2);
+  const isOpenActive = isActive && derivation.kind === "premise";
+  const isClosedActive = isActive && derivation.kind === "transformation";
   const node = document.createElement("div");
-  node.setAttribute("class", "tree-node" + (isActive ? " tree-active" : ""));
+  const cls = "tree-node" + (isOpenActive ? " tree-active" : "") + (isClosedActive ? " tree-closed-active" : "");
+  node.setAttribute("class", cls);
   let leafDepth = 0;
   if (derivation.kind === "transformation") {
+    if (isClosedActive) {
+      const marker = document.createElement("div");
+      marker.setAttribute("class", "tree-closed-marker");
+      node.appendChild(marker);
+    }
     const premises = document.createElement("div");
     premises.setAttribute("class", "tree-premises");
     let maxChildDepth = -1;
@@ -5827,12 +5889,14 @@ var renderDerivation = (derivation, activePath2, applicableRules3, gaze = null, 
     leafDepth = maxChildDepth < 0 ? 0 : maxChildDepth + 1;
     node.appendChild(premises);
     node.appendChild(renderInferenceLine(derivation.rule));
-    node.appendChild(renderSequent(derivation, applicableRules3, isActive, gaze));
+    node.appendChild(renderSequent(derivation, applicableRules3, false, null));
   } else {
-    if (isActive && ghost && ghost.length > 0) {
+    if (isOpenActive && ghost && ghost.length > 0) {
       node.appendChild(renderGhost(ghost));
     }
-    node.appendChild(renderSequent(derivation, applicableRules3, isActive, gaze));
+    node.appendChild(
+      renderSequent(derivation, applicableRules3, isOpenActive, gaze)
+    );
   }
   node.dataset["leafDepth"] = String(leafDepth);
   if (currentPath.length === 0) {
@@ -5958,11 +6022,12 @@ var computeGhostChain = (current, gaze, kind, availableRules) => {
 
 // src/web/game.ts
 var qwertyKeyMap = {
+  KeyQ: "menu",
   Escape: "menu",
   Backquote: "level",
   KeyW: "prevBranch",
   KeyO: "nextBranch",
-  KeyR: "reset",
+  KeyY: "reset",
   KeyA: "leftRotateLeft",
   KeyS: "leftWeakening",
   KeyF: "leftConnective",
@@ -5977,7 +6042,8 @@ var qwertyKeyMap = {
   ArrowLeft: "gazeLeft",
   ArrowRight: "gazeRight",
   ArrowUp: "gazeConnective",
-  ArrowDown: "gazeWeakening"
+  ArrowDown: "gazeWeakening",
+  KeyR: "toggleRules"
 };
 var codeToLabel = (code) => {
   const special = {
@@ -6032,9 +6098,9 @@ var ruleAction = {
   a2: "axiom",
   a3: "axiom"
 };
-var keyHintBadge = (hint, variant = "arrow") => {
+var keyHintBadge = (hint, variant = "base") => {
   const badge = document.createElement("span");
-  const cls = variant === "gaze" ? "key-hint gaze" : variant === "gazeGhost" ? "key-hint gaze ghost" : "key-hint";
+  const cls = variant === "hot" ? "key-hint hot" : variant === "cold" ? "key-hint cold" : variant === "coldGhost" ? "key-hint cold ghost" : "key-hint";
   badge.setAttribute("class", cls);
   badge.textContent = hint;
   return badge;
@@ -6057,17 +6123,21 @@ var ps5KeyMap = {
   15: "gazeRight"
   // D-pad right
 };
-var createButton = (label, disabled, onClick, hint, gazeHint = false) => {
+var createButton = (label, disabled, onClick, hint, hintVariant = "base") => {
   const el = document.createElement("pre");
   el.setAttribute("class", "button" + (disabled ? " disabled" : ""));
   if (!disabled && onClick) el.onclick = onClick;
   if (hint !== void 0) {
-    el.appendChild(keyHintBadge(hint, gazeHint ? "gaze" : "arrow"));
+    el.appendChild(keyHintBadge(hint, hintVariant));
     el.appendChild(document.createTextNode(" " + label));
   } else {
     el.innerHTML = label;
   }
   return el;
+};
+var rulesVisible = true;
+var setDefaultRulesVisible = (visible) => {
+  rulesVisible = visible;
 };
 var treeZoom = 1;
 var ZOOM_MIN = 0.4;
@@ -6114,15 +6184,19 @@ var runProofCheckSweep = (tree2) => {
   }
 };
 var lastScrollTop = 0;
+var lastScrollLeft = 0;
 var createPlayArea = (workspace) => {
   const panel = document.createElement("div");
   panel.setAttribute("class", "playarea");
   panel.style.setProperty("--tree-zoom", String(treeZoom));
   panel.addEventListener("scroll", () => {
     lastScrollTop = panel.scrollTop;
+    lastScrollLeft = panel.scrollLeft;
   });
   const startTop = lastScrollTop;
+  const startLeft = lastScrollLeft;
   const focus2 = workspace.currentConjecture();
+  const solved = workspace.isSolved();
   const gaze = workspace.gaze();
   const ghost = computeGhostChain(
     activeSequent(focus2),
@@ -6132,18 +6206,31 @@ var createPlayArea = (workspace) => {
   );
   const tree2 = renderDerivation(
     focus2.derivation,
-    activePath(focus2),
+    solved ? [-1] : activePath(focus2),
     workspace.applicableRules(),
     gaze,
     ghost
   );
-  const solved = workspace.isSolved();
   const isFresh = focus2.derivation.kind === "premise";
   tree2.style.visibility = "hidden";
   panel.appendChild(tree2);
   requestAnimationFrame(() => {
-    panel.scrollTo({ top: startTop, behavior: "instant" });
-    layoutTree(tree2, { skipActiveScroll: solved });
+    layoutTree(tree2, { skipActiveScroll: true });
+    panel.scrollTo({ top: startTop, left: startLeft, behavior: "instant" });
+    if (!solved) {
+      requestAnimationFrame(() => {
+        const active2 = tree2.querySelector(
+          ".tree-active, .tree-closed-active"
+        );
+        if (active2) {
+          active2.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+            inline: "nearest"
+          });
+        }
+      });
+    }
     if (isFresh && !solved && autoZoomedDerivation !== focus2.derivation) {
       autoZoomedDerivation = focus2.derivation;
       const rootSequent = tree2.querySelector(
@@ -6165,7 +6252,7 @@ var createPlayArea = (workspace) => {
           if (Math.abs(target - treeZoom) > 0.01) {
             treeZoom = target;
             panel.style.setProperty("--tree-zoom", String(treeZoom));
-            layoutTree(tree2, { skipActiveScroll: solved });
+            layoutTree(tree2, { skipActiveScroll: true });
           }
         }
       }
@@ -6202,13 +6289,30 @@ var createPlayArea = (workspace) => {
   });
   return panel;
 };
+var ruleConnectiveLabel = {
+  nl: "\xAC",
+  nr: "\xAC",
+  cl: "\u2227",
+  cl1: "\u2227",
+  cl2: "\u2227",
+  cr: "\u2227",
+  fcr: "\u2227",
+  dl: "\u2228",
+  dr: "\u2228",
+  dr1: "\u2228",
+  dr2: "\u2228",
+  il: "\u2192",
+  fil: "\u2192",
+  ir: "\u2192",
+  fdl: "\u2228"
+};
 var gazeHintBadgeForKind = (key, hints) => {
   if (!hints) return null;
   if (key === hints.immediateRule) {
-    return keyHintBadge(hints.hintChar, "gaze");
+    return keyHintBadge(hints.hintChar, "cold");
   }
   if (key === hints.eventualRule && hints.eventualRule !== hints.immediateRule) {
-    return keyHintBadge(hints.hintChar, "gazeGhost");
+    return keyHintBadge(hints.hintChar, "coldGhost");
   }
   return null;
 };
@@ -6224,7 +6328,8 @@ var createPanel = (className, ruleRecord, ls, rules90, solved, onApply, gazeHint
     pre.innerHTML = fromDerivation(rule.example);
     const action = ruleAction[key];
     const hint = action !== void 0 ? actionKeyHint[action] : void 0;
-    if (hint !== void 0) pre.appendChild(keyHintBadge(hint));
+    const ruleHintVariant = className === "main" ? "base" : "hot";
+    if (hint !== void 0) pre.appendChild(keyHintBadge(hint, ruleHintVariant));
     const gazeBadges = [
       gazeHintBadgeForKind(key, gazeHints.connective),
       gazeHintBadgeForKind(key, gazeHints.weakening)
@@ -6243,6 +6348,10 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
   const ls = workspace.applicableRules();
   const rules90 = workspace.availableRules();
   const solved = workspace.isSolved();
+  const focus2 = workspace.currentConjecture();
+  const activeDeriv = subDerivation(focus2.derivation, activePath(focus2));
+  const branchClosed = activeDeriv?.kind === "transformation";
+  const inactive = solved || branchClosed;
   const apply2 = (key) => {
     if (isReverseId0(key)) workspace.applyEvent(reverse02(key));
     rerender();
@@ -6268,20 +6377,22 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
     connective: buildKindHints("connective", actionKeyHint["gazeConnective"]),
     weakening: buildKindHints("weakening", actionKeyHint["gazeWeakening"])
   };
+  const hideRules = !rulesVisible || solved;
   const panel = document.createElement("div");
-  panel.setAttribute("class", "bench");
+  panel.setAttribute("class", "bench" + (hideRules ? " rules-hidden" : ""));
   panel.appendChild(
-    createPanel("left", left, ls, rules90, solved, apply2, gazeHints)
+    createPanel("left", left, ls, rules90, inactive, apply2, gazeHints)
   );
-  if (solved) {
-    panel.appendChild(makeCongrats());
+  const congrats = solved ? makeCongrats() : null;
+  if (congrats) {
+    panel.appendChild(congrats.hurray);
   } else {
     panel.appendChild(
-      createPanel("main", center, ls, rules90, solved, applyCenter, gazeHints)
+      createPanel("main", center, ls, rules90, inactive, applyCenter, gazeHints)
     );
   }
   panel.appendChild(
-    createPanel("right", right, ls, rules90, solved, apply2, gazeHints)
+    createPanel("right", right, ls, rules90, inactive, apply2, gazeHints)
   );
   panel.appendChild(createPlayArea(workspace));
   const zoomOut = createButton(
@@ -6311,33 +6422,128 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
     },
     "+"
   );
-  const gazeMovable = !solved && seq.antecedent.length + seq.succedent.length > 1;
+  const gazeMovable = !inactive && seq.antecedent.length + seq.succedent.length > 1;
   const gazeLeftBtn = createButton(
-    "\u2190",
+    "Left",
     !gazeMovable,
     () => {
       workspace.moveGaze(-1);
       rerender();
     },
-    actionKeyHint["gazeLeft"],
-    true
+    actionKeyHint["gazeLeft"]
   );
   const gazeRightBtn = createButton(
-    "\u2192",
+    "Right",
     !gazeMovable,
     () => {
       workspace.moveGaze(1);
       rerender();
     },
-    actionKeyHint["gazeRight"],
-    true
+    actionKeyHint["gazeRight"]
   );
-  controlsEl.appendChild(gazeLeftBtn);
-  controlsEl.appendChild(gazeRightBtn);
-  controlsEl.appendChild(zoomOut);
-  controlsEl.appendChild(zoomReset);
-  controlsEl.appendChild(zoomIn);
-  panel.appendChild(controlsEl);
+  const gazeWeakeningBtn = createButton(
+    "Drop",
+    inactive,
+    () => {
+      workspace.setGazeKind("weakening");
+      applyGazeRule(workspace, "weakening");
+      rerender();
+    },
+    actionKeyHint["gazeWeakening"]
+  );
+  const connectiveRule = gazeHints.connective?.eventualRule ?? null;
+  const connectiveLabel = connectiveRule !== null ? ruleConnectiveLabel[connectiveRule] ?? "" : "";
+  const connectiveDisabled = inactive || connectiveLabel === "";
+  const gazeConnectiveBtn = createButton(
+    "Destruct",
+    connectiveDisabled,
+    () => {
+      workspace.setGazeKind("connective");
+      applyGazeRule(workspace, "connective");
+      rerender();
+    },
+    actionKeyHint["gazeConnective"]
+  );
+  const makeGroup = (...cls) => {
+    const g = document.createElement("div");
+    g.setAttribute("class", ["controls-group", ...cls].join(" "));
+    return g;
+  };
+  const rulesBtn = createButton(
+    "Rules",
+    false,
+    () => {
+      rulesVisible = !rulesVisible;
+      rerender();
+    },
+    actionKeyHint["toggleRules"]
+  );
+  const axiomBtn = createButton(
+    "Axiom",
+    inactive || !keys(center).some((k) => ls.includes(k)),
+    () => {
+      autoRule(workspace, keys(center));
+      rerender();
+    },
+    actionKeyHint["axiom"]
+  );
+  const gazeGroup = makeGroup("gaze");
+  gazeGroup.appendChild(gazeLeftBtn);
+  gazeGroup.appendChild(gazeWeakeningBtn);
+  gazeGroup.appendChild(gazeConnectiveBtn);
+  gazeGroup.appendChild(gazeRightBtn);
+  const rulesGroup = makeGroup();
+  rulesGroup.appendChild(rulesBtn);
+  const axiomGroup = makeGroup();
+  axiomGroup.appendChild(axiomBtn);
+  const zoomGroup = makeGroup();
+  zoomGroup.appendChild(zoomOut);
+  zoomGroup.appendChild(zoomReset);
+  zoomGroup.appendChild(zoomIn);
+  controlsEl.setAttribute("class", "controls-group");
+  const centerCell = document.createElement("div");
+  centerCell.setAttribute("class", "controls-center");
+  const branchCount = branches(workspace.currentConjecture().derivation).length;
+  const canSwitch = !solved && branchCount > 1;
+  const prevBranchBtn = createButton(
+    "\u21B0",
+    !canSwitch,
+    () => {
+      workspace.applyEvent(prevBranch());
+      rerender();
+    },
+    actionKeyHint["prevBranch"]
+  );
+  const nextBranchBtn = createButton(
+    "\u21B1",
+    !canSwitch,
+    () => {
+      workspace.applyEvent(nextBranch());
+      rerender();
+    },
+    actionKeyHint["nextBranch"]
+  );
+  const branchGroup = makeGroup();
+  branchGroup.appendChild(prevBranchBtn);
+  branchGroup.appendChild(nextBranchBtn);
+  const rightCell = document.createElement("div");
+  rightCell.setAttribute("class", "controls-right");
+  rightCell.appendChild(branchGroup);
+  rightCell.appendChild(zoomGroup);
+  const controlsBar = document.createElement("div");
+  controlsBar.setAttribute("class", "controls");
+  if (congrats) {
+    congrats.buttons.setAttribute("class", "congrabuttons controls-group");
+    centerCell.appendChild(congrats.buttons);
+  } else {
+    centerCell.appendChild(rulesGroup);
+    centerCell.appendChild(gazeGroup);
+    centerCell.appendChild(axiomGroup);
+  }
+  controlsBar.appendChild(controlsEl);
+  controlsBar.appendChild(centerCell);
+  controlsBar.appendChild(rightCell);
+  panel.appendChild(controlsBar);
   return panel;
 };
 var autoRule = (workspace, rules90) => {
@@ -6355,6 +6561,11 @@ var createDispatch = (getWorkspace, rerender, navigate2, onSolved, onLevel) => (
     onLevel?.();
     return;
   }
+  if (action === "toggleRules") {
+    rulesVisible = !rulesVisible;
+    rerender();
+    return;
+  }
   const workspace = getWorkspace();
   if (action === "reset") {
     workspace.applyEvent(reset());
@@ -6363,6 +6574,16 @@ var createDispatch = (getWorkspace, rerender, navigate2, onSolved, onLevel) => (
   }
   if (workspace.isSolved()) {
     onSolved(action);
+    return;
+  }
+  const focusState = workspace.currentConjecture();
+  const activeDeriv = subDerivation(
+    focusState.derivation,
+    activePath(focusState)
+  );
+  const onClosedBranch = activeDeriv?.kind === "transformation";
+  if (onClosedBranch && action !== "prevBranch" && action !== "nextBranch" && action !== "undo") {
+    rerender();
     return;
   }
   switch (action) {
@@ -6422,6 +6643,9 @@ var createDispatch = (getWorkspace, rerender, navigate2, onSolved, onLevel) => (
 var applyGazeRule = (workspace, kind) => {
   const gaze = workspace.gaze();
   const seq = activeSequent(workspace.currentConjecture());
+  const available = workspace.availableRules();
+  const chain = computeGhostChain(seq, gaze, kind, available);
+  if (!chain || chain.length === 0) return;
   const ant = seq.antecedent.length;
   const suc = seq.succedent.length;
   if (gaze.side === "left") {
@@ -6431,10 +6655,12 @@ var applyGazeRule = (workspace, kind) => {
       if (kind === "connective") {
         autoRule(workspace, keys(leftLogical));
       } else {
+        if (!available.includes("swl")) return;
         workspace.applyEvent(reverse02("swl"));
       }
       return;
     }
+    if (!available.includes("sRotLB")) return;
     workspace.applyEventWithGaze(reverse02("sRotLB"), {
       side: "left",
       index: gaze.index + 1
@@ -6446,10 +6672,12 @@ var applyGazeRule = (workspace, kind) => {
       if (kind === "connective") {
         autoRule(workspace, keys(rightLogical));
       } else {
+        if (!available.includes("swr")) return;
         workspace.applyEvent(reverse02("swr"));
       }
       return;
     }
+    if (!available.includes("sRotRB")) return;
     workspace.applyEventWithGaze(reverse02("sRotRB"), {
       side: "right",
       index: gaze.index - 1
@@ -6536,21 +6764,18 @@ var createListing = (ws, onSelect) => {
   shroud.appendChild(panel);
   return shroud;
 };
-var createControls = (ws, listingEl, rerender, navigate2) => {
+var createControls = (ws, _listingEl, rerender, navigate2, showLevelButton, onLevel) => {
   const canUndo = activePath(ws.currentConjecture()).length > 0;
   const panel = document.createElement("div");
   panel.setAttribute("class", "controls");
   panel.appendChild(
-    createButton(
-      "undo",
-      !canUndo,
-      () => {
-        ws.applyEvent({ kind: "undo" });
-        rerender();
-      },
-      actionKeyHint["undo"]
-    )
+    createButton("menu", false, () => navigate2("menu"), actionKeyHint["menu"])
   );
+  if (showLevelButton) {
+    panel.appendChild(
+      createButton("level", false, onLevel, actionKeyHint["level"])
+    );
+  }
   panel.appendChild(
     createButton(
       "reset",
@@ -6564,24 +6789,21 @@ var createControls = (ws, listingEl, rerender, navigate2) => {
   );
   panel.appendChild(
     createButton(
-      "level",
-      false,
-      () => listingEl.removeAttribute("style"),
-      actionKeyHint["level"]
+      "undo",
+      !canUndo,
+      () => {
+        ws.applyEvent({ kind: "undo" });
+        rerender();
+      },
+      actionKeyHint["undo"]
     )
-  );
-  panel.appendChild(
-    createButton("menu", false, () => navigate2("menu"), actionKeyHint["menu"])
   );
   return panel;
 };
 var createCongrats = (ws, selectLevel, rerender) => {
-  const panel = document.createElement("div");
-  panel.setAttribute("class", "congrats-panel");
   const hurray = document.createElement("div");
   hurray.setAttribute("class", "hurray");
   hurray.innerHTML = "\u{1F389} Conglaturations! \u{1F389}";
-  panel.appendChild(hurray);
   const buttons = document.createElement("div");
   buttons.setAttribute("class", "congrabuttons");
   buttons.appendChild(
@@ -6600,7 +6822,7 @@ var createCongrats = (ws, selectLevel, rerender) => {
         ws.applyEvent(reset());
         rerender();
       },
-      "r"
+      actionKeyHint["reset"]
     )
   );
   buttons.appendChild(
@@ -6611,10 +6833,25 @@ var createCongrats = (ws, selectLevel, rerender) => {
       "\u2423"
     )
   );
-  panel.appendChild(buttons);
-  return panel;
+  return { hurray, buttons };
 };
 var mountCampaign = (container, navigate2) => {
+  setDefaultRulesVisible(true);
+  let levelPresses = 0;
+  const toggleLevel = (listingEl2) => {
+    levelPresses += 1;
+    if (levelPresses < 2) return;
+    if (levelPresses === 2) {
+      rerender();
+      return;
+    }
+    const isHidden = listingEl2.style.display === "none";
+    if (isHidden) {
+      listingEl2.removeAttribute("style");
+    } else {
+      listingEl2.setAttribute("style", "display: none;");
+    }
+  };
   const ws = new Workspace(challenges);
   const selectLevel = (id) => {
     if (ws.isConjectureId(id)) {
@@ -6632,7 +6869,14 @@ var mountCampaign = (container, navigate2) => {
     container.innerHTML = "";
     listingEl = createListing(ws, selectLevel);
     container.appendChild(listingEl);
-    const controlsEl = createControls(ws, listingEl, rerender, navigate2);
+    const controlsEl = createControls(
+      ws,
+      listingEl,
+      rerender,
+      navigate2,
+      levelPresses >= 2,
+      () => toggleLevel(listingEl)
+    );
     const makeCongrats = () => createCongrats(ws, selectLevel, rerender);
     container.appendChild(createBench(ws, makeCongrats, controlsEl, rerender));
   };
@@ -6657,7 +6901,7 @@ var mountCampaign = (container, navigate2) => {
     rerender,
     navigate2,
     onSolved,
-    () => listingEl.removeAttribute("style")
+    () => toggleLevel(listingEl)
   );
   const params = new URLSearchParams(window.location.search);
   const level = params.get("level") ?? "";
@@ -7059,16 +7303,9 @@ var createControls2 = (ws, onNew, rerender, navigate2) => {
   const panel = document.createElement("div");
   panel.setAttribute("class", "controls");
   panel.appendChild(
-    createButton(
-      "undo",
-      !canUndo,
-      () => {
-        ws.applyEvent({ kind: "undo" });
-        rerender();
-      },
-      actionKeyHint["undo"]
-    )
+    createButton("menu", false, () => navigate2("menu"), actionKeyHint["menu"])
   );
+  panel.appendChild(createButton("new", false, onNew, "n"));
   panel.appendChild(
     createButton(
       "reset",
@@ -7080,32 +7317,41 @@ var createControls2 = (ws, onNew, rerender, navigate2) => {
       actionKeyHint["reset"]
     )
   );
-  panel.appendChild(createButton("new", false, onNew, "n"));
   panel.appendChild(
-    createButton("menu", false, () => navigate2("menu"), actionKeyHint["menu"])
+    createButton(
+      "undo",
+      !canUndo,
+      () => {
+        ws.applyEvent({ kind: "undo" });
+        rerender();
+      },
+      actionKeyHint["undo"]
+    )
   );
   return panel;
 };
 var createCongrats2 = (ws, onNew, rerender) => {
-  const panel = document.createElement("div");
-  panel.setAttribute("class", "congrats-panel");
   const hurray = document.createElement("div");
   hurray.setAttribute("class", "hurray");
   hurray.innerHTML = "\u{1F389} Conglaturations! \u{1F389}";
-  panel.appendChild(hurray);
   const buttons = document.createElement("div");
   buttons.setAttribute("class", "congrabuttons");
   buttons.appendChild(
-    createButton("Play Again", false, () => {
-      ws.applyEvent(reset());
-      rerender();
-    })
+    createButton(
+      "Play Again",
+      false,
+      () => {
+        ws.applyEvent(reset());
+        rerender();
+      },
+      actionKeyHint["reset"]
+    )
   );
-  buttons.appendChild(createButton("New Challenge", false, onNew));
-  panel.appendChild(buttons);
-  return panel;
+  buttons.appendChild(createButton("New Challenge", false, onNew, "n"));
+  return { hurray, buttons };
 };
 var mountRandom = (container, navigate2) => {
+  setDefaultRulesVisible(false);
   const pool = new ChallengePool();
   let ws = newWorkspace(pool);
   const onNew = () => {

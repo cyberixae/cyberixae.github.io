@@ -106,10 +106,9 @@
     }
   };
 
-  // src/utils/random.ts
-  var split = (x) => () => {
-    const rand = Math.random();
-    const y = Math.floor(rand * x);
+  // src/utils/number.ts
+  var splitAt = (x, fraction) => {
+    const y = Math.floor(fraction * x);
     return [y, x - y];
   };
 
@@ -308,7 +307,7 @@
       return atom("p");
     }
     const next = size - 1;
-    const [left2, right2] = split(next)();
+    const [left2, right2] = splitAt(next, Math.random());
     if (rand < 0.3) {
       return conjunction(random(left2)(), random(right2)());
     }
