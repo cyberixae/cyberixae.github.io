@@ -395,20 +395,40 @@
     return { kind: "transformation", result, deps, rule };
   }
 
-  // src/rules/a1.ts
-  var isAxiom1 = (p) => {
-    const piqip = p;
-    if (piqip.kind !== "implication") {
-      return false;
-    }
-    const p1 = piqip.antecedent;
-    const qip = piqip.consequent;
-    if (qip.kind !== "implication") {
-      return false;
-    }
-    const p2 = qip.consequent;
-    return equals(p1, p2);
+  // src/model/template.ts
+  var Variable = (name) => ({ kind: "var", name });
+  var Implication = (antecedent, consequent) => ({
+    kind: "implication",
+    antecedent,
+    consequent
+  });
+  var Negation = (negand) => ({
+    kind: "negation",
+    negand
+  });
+  var match2 = (t) => {
+    const check = (p, t2, bindings) => {
+      switch (t2.kind) {
+        case "var": {
+          const bound = bindings.get(t2.name);
+          if (bound !== void 0) return equals(bound, p);
+          bindings.set(t2.name, p);
+          return true;
+        }
+        case "implication":
+          return p.kind === "implication" && check(p.antecedent, t2.antecedent, bindings) && check(p.consequent, t2.consequent, bindings);
+        case "negation":
+          return p.kind === "negation" && check(p.negand, t2.negand, bindings);
+      }
+    };
+    return (p) => check(p, t, /* @__PURE__ */ new Map());
   };
+
+  // src/rules/a1.ts
+  var P = Variable("P");
+  var Q = Variable("Q");
+  var Axiom1 = Implication(P, Implication(Q, P));
+  var isAxiom1 = match2(Axiom1);
   var isA1Result = (s) => {
     return isConclusion(s) && isAxiom1(s.succedent[0]);
   };
@@ -439,52 +459,14 @@
   };
 
   // src/rules/a2.ts
-  var isAxiom2 = (p) => {
-    const piqiripiqipir = p;
-    if (piqiripiqipir.kind !== "implication") {
-      return false;
-    }
-    const piqir = piqiripiqipir.antecedent;
-    if (piqir.kind !== "implication") {
-      return false;
-    }
-    const p1 = piqir.antecedent;
-    const qir = piqir.consequent;
-    if (qir.kind !== "implication") {
-      return false;
-    }
-    const q1 = qir.antecedent;
-    const r1 = qir.consequent;
-    const piqipir = piqiripiqipir.consequent;
-    if (piqipir.kind !== "implication") {
-      return false;
-    }
-    const piq = piqipir.antecedent;
-    if (piq.kind !== "implication") {
-      return false;
-    }
-    const p2 = piq.antecedent;
-    const q2 = piq.consequent;
-    const pir = piqipir.consequent;
-    if (pir.kind !== "implication") {
-      return false;
-    }
-    const p3 = pir.antecedent;
-    const r2 = pir.consequent;
-    if (!equals(p1, p2)) {
-      return false;
-    }
-    if (!equals(p2, p3)) {
-      return false;
-    }
-    if (!equals(q1, q2)) {
-      return false;
-    }
-    if (!equals(r1, r2)) {
-      return false;
-    }
-    return true;
-  };
+  var P2 = Variable("P");
+  var Q2 = Variable("Q");
+  var R = Variable("R");
+  var Axiom2 = Implication(
+    Implication(P2, Implication(Q2, R)),
+    Implication(Implication(P2, Q2), Implication(P2, R))
+  );
+  var isAxiom2 = match2(Axiom2);
   var isA2Result = (s) => {
     return isConclusion(s) && isAxiom2(s.succedent[0]);
   };
@@ -520,33 +502,13 @@
   };
 
   // src/rules/a3.ts
-  var isAxiom3 = (p) => {
-    const npinqiqip = p;
-    if (npinqiqip.kind !== "implication") {
-      return false;
-    }
-    const npinq = npinqiqip.antecedent;
-    if (npinq.kind !== "implication") {
-      return false;
-    }
-    const np = npinq.antecedent;
-    if (np.kind !== "negation") {
-      return false;
-    }
-    const p1 = np.negand;
-    const nq = npinq.consequent;
-    if (nq.kind !== "negation") {
-      return false;
-    }
-    const q1 = nq.negand;
-    const qip = npinqiqip.consequent;
-    if (qip.kind !== "implication") {
-      return false;
-    }
-    const q2 = qip.antecedent;
-    const p2 = qip.consequent;
-    return equals(p1, p2) && equals(q1, q2);
-  };
+  var P3 = Variable("P");
+  var Q3 = Variable("Q");
+  var Axiom3 = Implication(
+    Implication(Negation(P3), Negation(Q3)),
+    Implication(Q3, P3)
+  );
+  var isAxiom3 = match2(Axiom3);
   var isA3Result = (s) => {
     return isConclusion(s) && isAxiom3(s.succedent[0]);
   };

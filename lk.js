@@ -567,20 +567,40 @@ var isProof = (d) => {
   return openBranches(d).length < 1;
 };
 
-// src/rules/a1.ts
-var isAxiom1 = (p) => {
-  const piqip = p;
-  if (piqip.kind !== "implication") {
-    return false;
-  }
-  const p1 = piqip.antecedent;
-  const qip = piqip.consequent;
-  if (qip.kind !== "implication") {
-    return false;
-  }
-  const p2 = qip.consequent;
-  return equals(p1, p2);
+// src/model/template.ts
+var Variable = (name4) => ({ kind: "var", name: name4 });
+var Implication = (antecedent, consequent) => ({
+  kind: "implication",
+  antecedent,
+  consequent
+});
+var Negation = (negand) => ({
+  kind: "negation",
+  negand
+});
+var match2 = (t) => {
+  const check = (p, t2, bindings) => {
+    switch (t2.kind) {
+      case "var": {
+        const bound = bindings.get(t2.name);
+        if (bound !== void 0) return equals(bound, p);
+        bindings.set(t2.name, p);
+        return true;
+      }
+      case "implication":
+        return p.kind === "implication" && check(p.antecedent, t2.antecedent, bindings) && check(p.consequent, t2.consequent, bindings);
+      case "negation":
+        return p.kind === "negation" && check(p.negand, t2.negand, bindings);
+    }
+  };
+  return (p) => check(p, t, /* @__PURE__ */ new Map());
 };
+
+// src/rules/a1.ts
+var P = Variable("P");
+var Q = Variable("Q");
+var Axiom1 = Implication(P, Implication(Q, P));
+var isAxiom1 = match2(Axiom1);
 var isA1Result = (s) => {
   return isConclusion(s) && isAxiom1(s.succedent[0]);
 };
@@ -611,52 +631,14 @@ var ruleA1 = {
 };
 
 // src/rules/a2.ts
-var isAxiom2 = (p) => {
-  const piqiripiqipir = p;
-  if (piqiripiqipir.kind !== "implication") {
-    return false;
-  }
-  const piqir = piqiripiqipir.antecedent;
-  if (piqir.kind !== "implication") {
-    return false;
-  }
-  const p1 = piqir.antecedent;
-  const qir = piqir.consequent;
-  if (qir.kind !== "implication") {
-    return false;
-  }
-  const q1 = qir.antecedent;
-  const r1 = qir.consequent;
-  const piqipir = piqiripiqipir.consequent;
-  if (piqipir.kind !== "implication") {
-    return false;
-  }
-  const piq = piqipir.antecedent;
-  if (piq.kind !== "implication") {
-    return false;
-  }
-  const p2 = piq.antecedent;
-  const q2 = piq.consequent;
-  const pir = piqipir.consequent;
-  if (pir.kind !== "implication") {
-    return false;
-  }
-  const p3 = pir.antecedent;
-  const r2 = pir.consequent;
-  if (!equals(p1, p2)) {
-    return false;
-  }
-  if (!equals(p2, p3)) {
-    return false;
-  }
-  if (!equals(q1, q2)) {
-    return false;
-  }
-  if (!equals(r1, r2)) {
-    return false;
-  }
-  return true;
-};
+var P2 = Variable("P");
+var Q2 = Variable("Q");
+var R = Variable("R");
+var Axiom2 = Implication(
+  Implication(P2, Implication(Q2, R)),
+  Implication(Implication(P2, Q2), Implication(P2, R))
+);
+var isAxiom2 = match2(Axiom2);
 var isA2Result = (s) => {
   return isConclusion(s) && isAxiom2(s.succedent[0]);
 };
@@ -692,33 +674,13 @@ var ruleA2 = {
 };
 
 // src/rules/a3.ts
-var isAxiom3 = (p) => {
-  const npinqiqip = p;
-  if (npinqiqip.kind !== "implication") {
-    return false;
-  }
-  const npinq = npinqiqip.antecedent;
-  if (npinq.kind !== "implication") {
-    return false;
-  }
-  const np = npinq.antecedent;
-  if (np.kind !== "negation") {
-    return false;
-  }
-  const p1 = np.negand;
-  const nq = npinq.consequent;
-  if (nq.kind !== "negation") {
-    return false;
-  }
-  const q1 = nq.negand;
-  const qip = npinqiqip.consequent;
-  if (qip.kind !== "implication") {
-    return false;
-  }
-  const q2 = qip.antecedent;
-  const p2 = qip.consequent;
-  return equals(p1, p2) && equals(q1, q2);
-};
+var P3 = Variable("P");
+var Q3 = Variable("Q");
+var Axiom3 = Implication(
+  Implication(Negation(P3), Negation(Q3)),
+  Implication(Q3, P3)
+);
+var isAxiom3 = match2(Axiom3);
 var isA3Result = (s) => {
   return isConclusion(s) && isAxiom3(s.succedent[0]);
 };
@@ -1468,6 +1430,7 @@ var assertEqual = (a91, b) => {
   }
   return assertNever(b);
 };
+var isNonNullable = (value) => value != null;
 function assertNever(_n, s = "Unexpected value") {
   throw new Error(s);
 }
@@ -2358,6 +2321,25 @@ var zeta = {
   sRotRF: ruleSRotRF.apply,
   sRotRB: ruleSRotRB.apply
 };
+var rules2 = [
+  "i",
+  "f",
+  "v",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB",
+  "nl",
+  "nr",
+  "cl",
+  "cr",
+  "dl",
+  "dr",
+  "il",
+  "ir"
+];
 var name = "RK";
 var rk = {
   a: alpha,
@@ -2371,68 +2353,68 @@ var challenge = (c) => c;
 
 // src/challenges/ch0-identity-1.ts
 var { a, i: i2 } = rk;
-var rules2 = ["i"];
+var rules3 = ["i"];
 var goal = sequent([a("p")], [a("p")]);
 var solution = i2.i(a("p"));
-var ch0identity1 = challenge({ rules: rules2, goal, solution });
+var ch0identity1 = challenge({ rules: rules3, goal, solution });
 
 // src/challenges/ch0-identity-2.ts
 var { a: a4, i: i3 } = rk;
-var rules3 = ["i"];
+var rules4 = ["i"];
 var goal2 = sequent([a4("q")], [a4("q")]);
 var solution2 = i3.i(a4("q"));
-var ch0identity2 = challenge({ rules: rules3, goal: goal2, solution: solution2 });
+var ch0identity2 = challenge({ rules: rules4, goal: goal2, solution: solution2 });
 
 // src/challenges/ch0-identity-3.ts
 var { a: a5, o, i: i4 } = rk;
-var rules4 = ["i"];
+var rules5 = ["i"];
 var goal3 = sequent([o.p1.negation(a5("p"))], [o.p1.negation(a5("p"))]);
 var solution3 = i4.i(o.p1.negation(a5("p")));
-var ch0identity3 = challenge({ rules: rules4, goal: goal3, solution: solution3 });
+var ch0identity3 = challenge({ rules: rules5, goal: goal3, solution: solution3 });
 
 // src/challenges/ch0-identity-4.ts
 var { a: a6, o: o2, i: i5 } = rk;
-var rules5 = ["i"];
+var rules6 = ["i"];
 var goal4 = sequent(
   [o2.p2.conjunction(a6("q"), a6("r"))],
   [o2.p2.conjunction(a6("q"), a6("r"))]
 );
 var solution4 = i5.i(o2.p2.conjunction(a6("q"), a6("r")));
-var ch0identity4 = challenge({ rules: rules5, goal: goal4, solution: solution4 });
+var ch0identity4 = challenge({ rules: rules6, goal: goal4, solution: solution4 });
 
 // src/challenges/ch0-identity-5.ts
 var { a: a7, o: o3, i: i6 } = rk;
-var rules6 = ["i"];
+var rules7 = ["i"];
 var goal5 = sequent(
   [o3.p2.disjunction(a7("r"), a7("s"))],
   [o3.p2.disjunction(a7("r"), a7("s"))]
 );
 var solution5 = i6.i(o3.p2.disjunction(a7("r"), a7("s")));
-var ch0identity5 = challenge({ rules: rules6, goal: goal5, solution: solution5 });
+var ch0identity5 = challenge({ rules: rules7, goal: goal5, solution: solution5 });
 
 // src/challenges/ch0-identity-6.ts
 var { a: a8, o: o4, i: i7 } = rk;
-var rules7 = ["i"];
+var rules8 = ["i"];
 var goal6 = sequent(
   [o4.p2.implication(a8("r"), a8("p"))],
   [o4.p2.implication(a8("r"), a8("p"))]
 );
 var solution6 = i7.i(o4.p2.implication(a8("r"), a8("p")));
-var ch0identity6 = challenge({ rules: rules7, goal: goal6, solution: solution6 });
+var ch0identity6 = challenge({ rules: rules8, goal: goal6, solution: solution6 });
 
 // src/challenges/ch0-identity-7.ts
 var { a: a9, o: o5, i: i8 } = rk;
-var rules8 = ["i"];
+var rules9 = ["i"];
 var goal7 = sequent(
   [o5.p2.conjunction(a9("q"), o5.p1.negation(a9("p")))],
   [o5.p2.conjunction(a9("q"), o5.p1.negation(a9("p")))]
 );
 var solution7 = i8.i(o5.p2.conjunction(a9("q"), o5.p1.negation(a9("p"))));
-var ch0identity7 = challenge({ rules: rules8, goal: goal7, solution: solution7 });
+var ch0identity7 = challenge({ rules: rules9, goal: goal7, solution: solution7 });
 
 // src/challenges/ch0-identity-8.ts
 var { a: a10, o: o6, i: i9 } = rk;
-var rules9 = ["i"];
+var rules10 = ["i"];
 var goal8 = sequent(
   [
     o6.p2.implication(
@@ -2453,11 +2435,11 @@ var solution8 = i9.i(
     o6.p2.conjunction(a10("p"), a10("q"))
   )
 );
-var ch0identity8 = challenge({ rules: rules9, goal: goal8, solution: solution8 });
+var ch0identity8 = challenge({ rules: rules10, goal: goal8, solution: solution8 });
 
 // src/challenges/ch0-identity-9.ts
 var { a: a11, o: o7, i: i10 } = rk;
-var rules10 = ["i"];
+var rules11 = ["i"];
 var goal9 = sequent(
   [
     o7.p2.implication(
@@ -2478,32 +2460,32 @@ var solution9 = i10.i(
     o7.p1.negation(o7.p2.conjunction(a11("r"), a11("s")))
   )
 );
-var ch0identity9 = challenge({ rules: rules10, goal: goal9, solution: solution9 });
+var ch0identity9 = challenge({ rules: rules11, goal: goal9, solution: solution9 });
 
 // src/challenges/ch1-weakening-1.ts
 var { a: a12, z, i: i11 } = rk;
-var rules11 = ["i", "swl", "swr"];
+var rules12 = ["i", "swl", "swr"];
 var goal10 = sequent([a12("p"), a12("q")], [a12("p")]);
 var solution10 = z.swl(a12("q"), i11.i(a12("p")));
-var ch1weakening1 = challenge({ rules: rules11, goal: goal10, solution: solution10 });
+var ch1weakening1 = challenge({ rules: rules12, goal: goal10, solution: solution10 });
 
 // src/challenges/ch1-weakening-2.ts
 var { a: a13, z: z2, i: i12 } = rk;
-var rules12 = ["i", "swl", "swr"];
+var rules13 = ["i", "swl", "swr"];
 var goal11 = sequent([a13("p")], [a13("q"), a13("p")]);
 var solution11 = z2.swr(a13("q"), i12.i(a13("p")));
-var ch1weakening2 = challenge({ rules: rules12, goal: goal11, solution: solution11 });
+var ch1weakening2 = challenge({ rules: rules13, goal: goal11, solution: solution11 });
 
 // src/challenges/ch1-weakening-3.ts
 var { a: a14, z: z3, i: i13 } = rk;
-var rules13 = ["i", "swl", "swr"];
+var rules14 = ["i", "swl", "swr"];
 var goal12 = sequent([a14("p"), a14("q")], [a14("q"), a14("p")]);
 var solution12 = z3.swl(a14("q"), z3.swr(a14("q"), i13.i(a14("p"))));
-var ch1weakening3 = challenge({ rules: rules13, goal: goal12, solution: solution12 });
+var ch1weakening3 = challenge({ rules: rules14, goal: goal12, solution: solution12 });
 
 // src/challenges/ch1-weakening-4.ts
 var { a: a15, o: o8, z: z4, i: i14 } = rk;
-var rules14 = ["i", "swl", "swr"];
+var rules15 = ["i", "swl", "swr"];
 var goal13 = sequent(
   [a15("q"), o8.p2.conjunction(a15("p"), a15("q"))],
   [o8.p2.conjunction(a15("q"), a15("p")), a15("q")]
@@ -2512,11 +2494,11 @@ var solution13 = z4.swl(
   o8.p2.conjunction(a15("p"), a15("q")),
   z4.swr(o8.p2.conjunction(a15("q"), a15("p")), i14.i(a15("q")))
 );
-var ch1weakening4 = challenge({ rules: rules14, goal: goal13, solution: solution13 });
+var ch1weakening4 = challenge({ rules: rules15, goal: goal13, solution: solution13 });
 
 // src/challenges/ch1-weakening-5.ts
 var { a: a16, o: o9, z: z5, i: i15 } = rk;
-var rules15 = ["i", "swl", "swr"];
+var rules16 = ["i", "swl", "swr"];
 var goal14 = sequent(
   [o9.p2.conjunction(a16("p"), a16("q")), a16("p")],
   [a16("q"), o9.p2.conjunction(a16("p"), a16("q"))]
@@ -2525,11 +2507,11 @@ var solution14 = z5.swl(
   a16("p"),
   z5.swr(a16("q"), i15.i(o9.p2.conjunction(a16("p"), a16("q"))))
 );
-var ch1weakening5 = challenge({ rules: rules15, goal: goal14, solution: solution14 });
+var ch1weakening5 = challenge({ rules: rules16, goal: goal14, solution: solution14 });
 
 // src/challenges/ch1-weakening-6.ts
 var { a: a17, z: z6, i: i16 } = rk;
-var rules16 = ["i", "swl", "swr"];
+var rules17 = ["i", "swl", "swr"];
 var goal15 = sequent(
   [a17("p"), a17("q"), a17("q"), a17("p")],
   [a17("p"), a17("q"), a17("q"), a17("p")]
@@ -2541,11 +2523,11 @@ var solution15 = z6.swl(
     z6.swl(a17("q"), z6.swr(a17("p"), z6.swr(a17("q"), z6.swr(a17("q"), i16.i(a17("p"))))))
   )
 );
-var ch1weakening6 = challenge({ rules: rules16, goal: goal15, solution: solution15 });
+var ch1weakening6 = challenge({ rules: rules17, goal: goal15, solution: solution15 });
 
 // src/challenges/ch1-weakening-7.ts
 var { a: a18, o: o10, i: i17 } = rk;
-var rules17 = ["i", "swl", "swr"];
+var rules18 = ["i", "swl", "swr"];
 var goal16 = sequent(
   [
     o10.p2.implication(
@@ -2566,11 +2548,11 @@ var solution16 = i17.i(
     o10.p2.conjunction(a18("p"), a18("q"))
   )
 );
-var ch1weakening7 = challenge({ rules: rules17, goal: goal16, solution: solution16 });
+var ch1weakening7 = challenge({ rules: rules18, goal: goal16, solution: solution16 });
 
 // src/challenges/ch1-weakening-8.ts
 var { a: a19, o: o11, z: z7, i: i18 } = rk;
-var rules18 = ["i", "swl", "swr"];
+var rules19 = ["i", "swl", "swr"];
 var goal17 = sequent(
   [a19("p"), o11.p2.implication(a19("q"), a19("p")), a19("q")],
   [a19("q"), o11.p2.implication(a19("q"), a19("p")), a19("p")]
@@ -2582,11 +2564,11 @@ var solution17 = z7.swl(
     z7.swr(a19("q"), z7.swr(o11.p2.implication(a19("q"), a19("p")), i18.i(a19("p"))))
   )
 );
-var ch1weakening8 = challenge({ rules: rules18, goal: goal17, solution: solution17 });
+var ch1weakening8 = challenge({ rules: rules19, goal: goal17, solution: solution17 });
 
 // src/challenges/ch1-weakening-9.ts
 var { a: a20, z: z8, i: i19 } = rk;
-var rules19 = ["i", "swl", "swr"];
+var rules20 = ["i", "swl", "swr"];
 var goal18 = sequent(
   [a20("s"), a20("r"), a20("q"), a20("p")],
   [a20("p"), a20("q"), a20("r"), a20("s")]
@@ -2598,11 +2580,11 @@ var solution18 = z8.swl(
     z8.swl(a20("r"), z8.swr(a20("p"), z8.swr(a20("q"), z8.swr(a20("r"), i19.i(a20("s"))))))
   )
 );
-var ch1weakening9 = challenge({ rules: rules19, goal: goal18, solution: solution18 });
+var ch1weakening9 = challenge({ rules: rules20, goal: goal18, solution: solution18 });
 
 // src/challenges/ch2-permutation-1.ts
 var { a: a21, z: z9, i: i20 } = rk;
-var rules20 = [
+var rules21 = [
   "i",
   "swl",
   "swr",
@@ -2619,11 +2601,11 @@ var solution19 = z9.swl(
     z9.sRotLB(z9.swl(a21("p"), z9.swl(a21("p"), z9.swl(a21("p"), i20.i(a21("q"))))))
   )
 );
-var ch2permutation1 = challenge({ rules: rules20, goal: goal19, solution: solution19 });
+var ch2permutation1 = challenge({ rules: rules21, goal: goal19, solution: solution19 });
 
 // src/challenges/ch2-permutation-2.ts
 var { a: a22, z: z10, i: i21 } = rk;
-var rules21 = [
+var rules22 = [
   "i",
   "swl",
   "swr",
@@ -2641,11 +2623,11 @@ var solution20 = z10.sRotRF(
     )
   )
 );
-var ch2permutation2 = challenge({ rules: rules21, goal: goal20, solution: solution20 });
+var ch2permutation2 = challenge({ rules: rules22, goal: goal20, solution: solution20 });
 
 // src/challenges/ch2-permutation-3.ts
 var { a: a23, z: z11, i: i22 } = rk;
-var rules22 = [
+var rules23 = [
   "i",
   "swl",
   "swr",
@@ -2680,11 +2662,11 @@ var solution21 = z11.swl(
     )
   )
 );
-var ch2permutation3 = challenge({ rules: rules22, goal: goal21, solution: solution21 });
+var ch2permutation3 = challenge({ rules: rules23, goal: goal21, solution: solution21 });
 
 // src/challenges/ch2-permutation-4.ts
 var { a: a24, z: z12, i: i23 } = rk;
-var rules23 = [
+var rules24 = [
   "i",
   "swl",
   "swr",
@@ -2706,11 +2688,11 @@ var solution22 = z12.sRotLB(
     )
   )
 );
-var ch2permutation4 = challenge({ rules: rules23, goal: goal22, solution: solution22 });
+var ch2permutation4 = challenge({ rules: rules24, goal: goal22, solution: solution22 });
 
 // src/challenges/ch2-permutation-5.ts
 var { a: a25, o: o12, z: z13, i: i24 } = rk;
-var rules24 = [
+var rules25 = [
   "i",
   "swl",
   "swr",
@@ -2732,11 +2714,11 @@ var solution23 = z13.sRotRF(
     )
   )
 );
-var ch2permutation5 = challenge({ rules: rules24, goal: goal23, solution: solution23 });
+var ch2permutation5 = challenge({ rules: rules25, goal: goal23, solution: solution23 });
 
 // src/challenges/ch2-permutation-6.ts
 var { a: a26, o: o13, z: z14, i: i25 } = rk;
-var rules25 = [
+var rules26 = [
   "i",
   "swl",
   "swr",
@@ -2772,11 +2754,11 @@ var solution24 = z14.sRotRB(
     )
   )
 );
-var ch2permutation6 = challenge({ rules: rules25, goal: goal24, solution: solution24 });
+var ch2permutation6 = challenge({ rules: rules26, goal: goal24, solution: solution24 });
 
 // src/challenges/ch2-permutation-7.ts
 var { a: a27, o: o14, z: z15, i: i26 } = rk;
-var rules26 = [
+var rules27 = [
   "i",
   "swl",
   "swr",
@@ -2814,11 +2796,11 @@ var solution25 = z15.sRotLF(
     )
   )
 );
-var ch2permutation7 = challenge({ rules: rules26, goal: goal25, solution: solution25 });
+var ch2permutation7 = challenge({ rules: rules27, goal: goal25, solution: solution25 });
 
 // src/challenges/ch2-permutation-8.ts
 var { a: a28, o: o15, z: z16, i: i27 } = rk;
-var rules27 = [
+var rules28 = [
   "i",
   "swl",
   "swr",
@@ -2864,11 +2846,11 @@ var solution26 = z16.sRotLB(
     )
   )
 );
-var ch2permutation8 = challenge({ rules: rules27, goal: goal26, solution: solution26 });
+var ch2permutation8 = challenge({ rules: rules28, goal: goal26, solution: solution26 });
 
 // src/challenges/ch2-permutation-9.ts
 var { a: a29, o: o16, z: z17, i: i28 } = rk;
-var rules28 = [
+var rules29 = [
   "i",
   "swl",
   "swr",
@@ -2901,42 +2883,42 @@ var solution27 = z17.swr(
     )
   )
 );
-var ch2permutation9 = challenge({ rules: rules28, goal: goal27, solution: solution27 });
+var ch2permutation9 = challenge({ rules: rules29, goal: goal27, solution: solution27 });
 
 // src/challenges/ch3-negation-1.ts
 var { a: a30, o: o17, z: z18, i: i29 } = rk;
-var rules29 = ["i", "nl", "nr"];
+var rules30 = ["i", "nl", "nr"];
 var goal28 = sequent([a30("r"), o17.p1.negation(a30("r"))], []);
 var solution28 = z18.nl(i29.i(a30("r")));
-var ch3negation1 = challenge({ rules: rules29, goal: goal28, solution: solution28 });
+var ch3negation1 = challenge({ rules: rules30, goal: goal28, solution: solution28 });
 
 // src/challenges/ch3-negation-2.ts
 var { a: a31, o: o18, z: z19, i: i30 } = rk;
-var rules30 = ["i", "nl", "nr"];
+var rules31 = ["i", "nl", "nr"];
 var goal29 = sequent([], [o18.p1.negation(a31("r")), a31("r")]);
 var solution29 = z19.nr(i30.i(a31("r")));
-var ch3negation2 = challenge({ rules: rules30, goal: goal29, solution: solution29 });
+var ch3negation2 = challenge({ rules: rules31, goal: goal29, solution: solution29 });
 
 // src/challenges/ch3-negation-3.ts
 var { a: a32, o: o19, z: z20, i: i31 } = rk;
-var rules31 = ["i", "nl", "nr"];
+var rules32 = ["i", "nl", "nr"];
 var goal30 = sequent([o19.p1.negation(o19.p1.negation(a32("q")))], [a32("q")]);
 var solution30 = z20.nl(z20.nr(i31.i(a32("q"))));
-var ch3negation3 = challenge({ rules: rules31, goal: goal30, solution: solution30 });
+var ch3negation3 = challenge({ rules: rules32, goal: goal30, solution: solution30 });
 
 // src/challenges/ch3-negation-4.ts
 var { a: a33, o: o20, z: z21, i: i32 } = rk;
-var rules32 = ["i", "nl", "nr"];
+var rules33 = ["i", "nl", "nr"];
 var goal31 = sequent(
   [o20.p1.negation(o20.p1.negation(a33("s")))],
   [o20.p1.negation(o20.p1.negation(o20.p1.negation(o20.p1.negation(a33("s")))))]
 );
 var solution31 = z21.nr(z21.nl(i32.i(o20.p1.negation(o20.p1.negation(a33("s"))))));
-var ch3negation4 = challenge({ rules: rules32, goal: goal31, solution: solution31 });
+var ch3negation4 = challenge({ rules: rules33, goal: goal31, solution: solution31 });
 
 // src/challenges/ch3-negation-5.ts
 var { a: a34, o: o21, z: z22, i: i33 } = rk;
-var rules33 = ["i", "swl", "swr", "nl", "nr"];
+var rules34 = ["i", "swl", "swr", "nl", "nr"];
 var goal32 = sequent(
   [o21.p1.negation(o21.p1.negation(o21.p2.conjunction(a34("p"), a34("q"))))],
   [
@@ -2950,11 +2932,11 @@ var goal32 = sequent(
 var solution32 = z22.nr(
   z22.nl(i33.i(o21.p1.negation(o21.p1.negation(o21.p2.conjunction(a34("p"), a34("q"))))))
 );
-var ch3negation5 = challenge({ rules: rules33, goal: goal32, solution: solution32 });
+var ch3negation5 = challenge({ rules: rules34, goal: goal32, solution: solution32 });
 
 // src/challenges/ch3-negation-6.ts
 var { a: a35, o: o22, z: z23, i: i34 } = rk;
-var rules34 = ["i", "swl", "swr", "nl", "nr"];
+var rules35 = ["i", "swl", "swr", "nl", "nr"];
 var goal33 = sequent(
   [
     o22.p1.negation(o22.p1.negation(a35("p"))),
@@ -2972,11 +2954,11 @@ var solution33 = z23.swr(
     z23.nl(i34.i(o22.p1.negation(o22.p1.negation(a35("p")))))
   )
 );
-var ch3negation6 = challenge({ rules: rules34, goal: goal33, solution: solution33 });
+var ch3negation6 = challenge({ rules: rules35, goal: goal33, solution: solution33 });
 
 // src/challenges/ch3-negation-7.ts
 var { a: a36, o: o23, z: z24, i: i35 } = rk;
-var rules35 = [
+var rules36 = [
   "i",
   "swl",
   "swr",
@@ -3006,11 +2988,11 @@ var solution34 = z24.sRotLF(
     )
   )
 );
-var ch3negation7 = challenge({ rules: rules35, goal: goal34, solution: solution34 });
+var ch3negation7 = challenge({ rules: rules36, goal: goal34, solution: solution34 });
 
 // src/challenges/ch3-negation-8.ts
 var { a: a37, o: o24, z: z25, i: i36 } = rk;
-var rules36 = [
+var rules37 = [
   "i",
   "swl",
   "swr",
@@ -3050,11 +3032,11 @@ var solution35 = z25.sRotLF(
     )
   )
 );
-var ch3negation8 = challenge({ rules: rules36, goal: goal35, solution: solution35 });
+var ch3negation8 = challenge({ rules: rules37, goal: goal35, solution: solution35 });
 
 // src/challenges/ch3-negation-9.ts
 var { a: a38, o: o25, z: z26, i: i37 } = rk;
-var rules37 = [
+var rules38 = [
   "i",
   "swl",
   "swr",
@@ -3088,18 +3070,18 @@ var solution36 = z26.sRotRB(
     )
   )
 );
-var ch3negation9 = challenge({ rules: rules37, goal: goal36, solution: solution36 });
+var ch3negation9 = challenge({ rules: rules38, goal: goal36, solution: solution36 });
 
 // src/challenges/ch4-theorem-1.ts
 var { a: a39, o: o26, z: z27, i: i38 } = rk;
-var rules38 = ["i", "ir"];
+var rules39 = ["i", "ir"];
 var goal37 = conclusion(o26.p2.implication(a39("q"), a39("q")));
 var solution37 = z27.ir(i38.i(a39("q")));
-var ch4theorem1 = challenge({ rules: rules38, goal: goal37, solution: solution37 });
+var ch4theorem1 = challenge({ rules: rules39, goal: goal37, solution: solution37 });
 
 // src/challenges/ch4-theorem-2.ts
 var { a: a40, o: o27, z: z28, i: i39 } = rk;
-var rules39 = ["i", "ir"];
+var rules40 = ["i", "ir"];
 var goal38 = conclusion(
   o27.p2.implication(
     o27.p2.conjunction(a40("q"), a40("q")),
@@ -3107,11 +3089,11 @@ var goal38 = conclusion(
   )
 );
 var solution38 = z28.ir(i39.i(o27.p2.conjunction(a40("q"), a40("q"))));
-var ch4theorem2 = challenge({ rules: rules39, goal: goal38, solution: solution38 });
+var ch4theorem2 = challenge({ rules: rules40, goal: goal38, solution: solution38 });
 
 // src/challenges/ch4-theorem-3.ts
 var { a: a41, o: o28, z: z29, i: i40 } = rk;
-var rules40 = ["i", "ir"];
+var rules41 = ["i", "ir"];
 var goal39 = conclusion(
   o28.p2.implication(
     o28.p2.implication(a41("p"), a41("r")),
@@ -3119,11 +3101,11 @@ var goal39 = conclusion(
   )
 );
 var solution39 = z29.ir(i40.i(o28.p2.implication(a41("p"), a41("r"))));
-var ch4theorem3 = challenge({ rules: rules40, goal: goal39, solution: solution39 });
+var ch4theorem3 = challenge({ rules: rules41, goal: goal39, solution: solution39 });
 
 // src/challenges/ch4-theorem-4.ts
 var { a: a42, o: o29, z: z30, i: i41 } = rk;
-var rules41 = ["i", "ir"];
+var rules42 = ["i", "ir"];
 var goal40 = conclusion(
   o29.p2.implication(
     o29.p2.implication(a42("q"), o29.p2.implication(a42("r"), a42("q"))),
@@ -3133,29 +3115,29 @@ var goal40 = conclusion(
 var solution40 = z30.ir(
   i41.i(o29.p2.implication(a42("q"), o29.p2.implication(a42("r"), a42("q"))))
 );
-var ch4theorem4 = challenge({ rules: rules41, goal: goal40, solution: solution40 });
+var ch4theorem4 = challenge({ rules: rules42, goal: goal40, solution: solution40 });
 
 // src/challenges/ch4-theorem-5.ts
 var { a: a43, o: o30, z: z31, i: i42 } = rk;
-var rules42 = ["i", "swl", "swr", "ir"];
+var rules43 = ["i", "swl", "swr", "ir"];
 var goal41 = conclusion(
   o30.p2.implication(a43("q"), o30.p2.implication(a43("r"), a43("q")))
 );
 var solution41 = z31.ir(z31.ir(z31.swl(a43("r"), i42.i(a43("q")))));
-var ch4theorem5 = challenge({ rules: rules42, goal: goal41, solution: solution41 });
+var ch4theorem5 = challenge({ rules: rules43, goal: goal41, solution: solution41 });
 
 // src/challenges/ch4-theorem-6.ts
 var { a: a44, o: o31, z: z32, i: i43 } = rk;
-var rules43 = ["i", "swl", "swr", "ir"];
+var rules44 = ["i", "swl", "swr", "ir"];
 var goal42 = conclusion(
   o31.p2.implication(a44("r"), o31.p2.implication(a44("q"), a44("q")))
 );
 var solution42 = z32.ir(z32.swl(a44("r"), z32.ir(i43.i(a44("q")))));
-var ch4theorem6 = challenge({ rules: rules43, goal: goal42, solution: solution42 });
+var ch4theorem6 = challenge({ rules: rules44, goal: goal42, solution: solution42 });
 
 // src/challenges/ch4-theorem-7.ts
 var { a: a45, o: o32, z: z33, i: i44 } = rk;
-var rules44 = ["i", "swl", "swr", "ir"];
+var rules45 = ["i", "swl", "swr", "ir"];
 var goal43 = conclusion(
   o32.p2.implication(
     o32.p2.implication(a45("p"), o32.p2.implication(a45("q"), o32.p1.negation(a45("p")))),
@@ -3168,11 +3150,11 @@ var solution43 = z33.ir(
     z33.ir(i44.i(a45("p")))
   )
 );
-var ch4theorem7 = challenge({ rules: rules44, goal: goal43, solution: solution43 });
+var ch4theorem7 = challenge({ rules: rules45, goal: goal43, solution: solution43 });
 
 // src/challenges/ch4-theorem-8.ts
 var { a: a46, o: o33, z: z34, i: i45 } = rk;
-var rules45 = ["i", "swl", "swr", "nl", "nr", "ir"];
+var rules46 = ["i", "swl", "swr", "nl", "nr", "ir"];
 var goal44 = conclusion(
   o33.p2.implication(
     o33.p1.negation(o33.p1.negation(a46("s"))),
@@ -3180,11 +3162,11 @@ var goal44 = conclusion(
   )
 );
 var solution44 = z34.ir(z34.nr(z34.nl(i45.i(o33.p1.negation(o33.p1.negation(a46("s")))))));
-var ch4theorem8 = challenge({ rules: rules45, goal: goal44, solution: solution44 });
+var ch4theorem8 = challenge({ rules: rules46, goal: goal44, solution: solution44 });
 
 // src/challenges/ch4-theorem-9.ts
 var { a: a47, o: o34, z: z35, i: i46 } = rk;
-var rules46 = ["i", "swl", "swr", "nl", "nr", "ir"];
+var rules47 = ["i", "swl", "swr", "nl", "nr", "ir"];
 var goal45 = conclusion(
   o34.p2.implication(
     o34.p1.negation(o34.p1.negation(o34.p2.conjunction(a47("p"), a47("q")))),
@@ -3200,35 +3182,35 @@ var solution45 = z35.ir(
     z35.nl(i46.i(o34.p1.negation(o34.p1.negation(o34.p2.conjunction(a47("p"), a47("q"))))))
   )
 );
-var ch4theorem9 = challenge({ rules: rules46, goal: goal45, solution: solution45 });
+var ch4theorem9 = challenge({ rules: rules47, goal: goal45, solution: solution45 });
 
 // src/challenges/ch5-composition-1.ts
 var { a: a48, o: o35, z: z36, i: i47 } = rk;
-var rules47 = ["i", "swl", "swr", "cl", "dr"];
+var rules48 = ["i", "swl", "swr", "cl", "dr"];
 var goal46 = sequent([o35.p2.conjunction(a48("p"), a48("q"))], [a48("q"), a48("p")]);
 var solution46 = z36.cl(z36.swl(a48("q"), z36.swr(a48("q"), i47.i(a48("p")))));
-var ch5composition1 = challenge({ rules: rules47, goal: goal46, solution: solution46 });
+var ch5composition1 = challenge({ rules: rules48, goal: goal46, solution: solution46 });
 
 // src/challenges/ch5-composition-2.ts
 var { a: a49, o: o36, z: z37, i: i48 } = rk;
-var rules48 = ["i", "swl", "swr", "cl", "dr"];
+var rules49 = ["i", "swl", "swr", "cl", "dr"];
 var goal47 = sequent([a49("q"), a49("p")], [o36.p2.disjunction(a49("p"), a49("q"))]);
 var solution47 = z37.dr(z37.swl(a49("p"), z37.swr(a49("p"), i48.i(a49("q")))));
-var ch5composition2 = challenge({ rules: rules48, goal: goal47, solution: solution47 });
+var ch5composition2 = challenge({ rules: rules49, goal: goal47, solution: solution47 });
 
 // src/challenges/ch5-composition-3.ts
 var { a: a50, o: o37, z: z38, i: i49 } = rk;
-var rules49 = ["i", "swl", "swr", "cl", "dr"];
+var rules50 = ["i", "swl", "swr", "cl", "dr"];
 var goal48 = sequent(
   [o37.p2.conjunction(a50("q"), a50("p"))],
   [o37.p2.disjunction(a50("p"), a50("q"))]
 );
 var solution48 = z38.cl(z38.dr(z38.swl(a50("p"), z38.swr(a50("p"), i49.i(a50("q"))))));
-var ch5composition3 = challenge({ rules: rules49, goal: goal48, solution: solution48 });
+var ch5composition3 = challenge({ rules: rules50, goal: goal48, solution: solution48 });
 
 // src/challenges/ch5-composition-4.ts
 var { a: a51, o: o38, z: z39, i: i50 } = rk;
-var rules50 = ["i", "swl", "swr", "cl", "dr"];
+var rules51 = ["i", "swl", "swr", "cl", "dr"];
 var goal49 = sequent(
   [o38.p2.conjunction(o38.p2.conjunction(a51("r"), a51("p")), a51("s"))],
   [o38.p2.disjunction(a51("s"), o38.p2.disjunction(a51("p"), a51("r")))]
@@ -3241,11 +3223,11 @@ var solution49 = z39.cl(
     )
   )
 );
-var ch5composition4 = challenge({ rules: rules50, goal: goal49, solution: solution49 });
+var ch5composition4 = challenge({ rules: rules51, goal: goal49, solution: solution49 });
 
 // src/challenges/ch5-composition-5.ts
 var { a: a52, o: o39, z: z40, i: i51 } = rk;
-var rules51 = [
+var rules52 = [
   "i",
   "swl",
   "swr",
@@ -3283,11 +3265,11 @@ var solution50 = z40.cl(
     )
   )
 );
-var ch5composition5 = challenge({ rules: rules51, goal: goal50, solution: solution50 });
+var ch5composition5 = challenge({ rules: rules52, goal: goal50, solution: solution50 });
 
 // src/challenges/ch5-composition-6.ts
 var { a: a53, o: o40, z: z41, i: i52 } = rk;
-var rules52 = [
+var rules53 = [
   "i",
   "swl",
   "swr",
@@ -3323,11 +3305,11 @@ var solution51 = z41.cl(
     )
   )
 );
-var ch5composition6 = challenge({ rules: rules52, goal: goal51, solution: solution51 });
+var ch5composition6 = challenge({ rules: rules53, goal: goal51, solution: solution51 });
 
 // src/challenges/ch5-composition-7.ts
 var { a: a54, o: o41, z: z42, i: i53 } = rk;
-var rules53 = [
+var rules54 = [
   "i",
   "swl",
   "swr",
@@ -3365,11 +3347,11 @@ var solution52 = z42.cl(
     )
   )
 );
-var ch5composition7 = challenge({ rules: rules53, goal: goal52, solution: solution52 });
+var ch5composition7 = challenge({ rules: rules54, goal: goal52, solution: solution52 });
 
 // src/challenges/ch5-composition-8.ts
 var { a: a55, o: o42, z: z43, i: i54 } = rk;
-var rules54 = [
+var rules55 = [
   "i",
   "swl",
   "swr",
@@ -3392,11 +3374,11 @@ var goal53 = conclusion(
 var solution53 = z43.ir(
   z43.cl(z43.nl(z43.sRotRF(z43.swr(o42.p2.disjunction(a55("r"), a55("s")), i54.i(a55("q"))))))
 );
-var ch5composition8 = challenge({ rules: rules54, goal: goal53, solution: solution53 });
+var ch5composition8 = challenge({ rules: rules55, goal: goal53, solution: solution53 });
 
 // src/challenges/ch5-composition-9.ts
 var { a: a56, o: o43, z: z44, i: i55 } = rk;
-var rules55 = [
+var rules56 = [
   "i",
   "swl",
   "swr",
@@ -3444,11 +3426,11 @@ var solution54 = z44.ir(
     )
   )
 );
-var ch5composition9 = challenge({ rules: rules55, goal: goal54, solution: solution54 });
+var ch5composition9 = challenge({ rules: rules56, goal: goal54, solution: solution54 });
 
 // src/challenges/ch6-branching-1.ts
 var { a: a57, o: o44, z: z45, i: i56 } = rk;
-var rules56 = [
+var rules57 = [
   "i",
   "swl",
   "swr",
@@ -3464,11 +3446,11 @@ var solution55 = z45.dl(
   z45.sRotRF(z45.swr(a57("q"), i56.i(a57("p")))),
   z45.swr(a57("p"), i56.i(a57("q")))
 );
-var ch6branching1 = challenge({ rules: rules56, goal: goal55, solution: solution55 });
+var ch6branching1 = challenge({ rules: rules57, goal: goal55, solution: solution55 });
 
 // src/challenges/ch6-branching-2.ts
 var { a: a58, o: o45, z: z46, i: i57 } = rk;
-var rules57 = [
+var rules58 = [
   "i",
   "swl",
   "swr",
@@ -3484,11 +3466,11 @@ var solution56 = z46.cr(
   z46.swl(a58("q"), i57.i(a58("p"))),
   z46.sRotLF(z46.swl(a58("p"), i57.i(a58("q"))))
 );
-var ch6branching2 = challenge({ rules: rules57, goal: goal56, solution: solution56 });
+var ch6branching2 = challenge({ rules: rules58, goal: goal56, solution: solution56 });
 
 // src/challenges/ch6-branching-3.ts
 var { a: a59, o: o46, z: z47, i: i58 } = rk;
-var rules58 = [
+var rules59 = [
   "i",
   "swl",
   "swr",
@@ -3507,11 +3489,11 @@ var solution57 = z47.dl(
   z47.cr(i58.i(a59("p")), i58.i(a59("p"))),
   z47.cr(i58.i(a59("p")), i58.i(a59("p")))
 );
-var ch6branching3 = challenge({ rules: rules58, goal: goal57, solution: solution57 });
+var ch6branching3 = challenge({ rules: rules59, goal: goal57, solution: solution57 });
 
 // src/challenges/ch6-branching-4.ts
 var { a: a60, o: o47, z: z48, i: i59 } = rk;
-var rules59 = [
+var rules60 = [
   "i",
   "swl",
   "swr",
@@ -3531,11 +3513,11 @@ var goal58 = sequent(
 var solution58 = z48.dr(
   z48.dl(z48.swr(a60("q"), i59.i(a60("p"))), z48.sRotRF(z48.swr(a60("p"), i59.i(a60("q")))))
 );
-var ch6branching4 = challenge({ rules: rules59, goal: goal58, solution: solution58 });
+var ch6branching4 = challenge({ rules: rules60, goal: goal58, solution: solution58 });
 
 // src/challenges/ch6-branching-5.ts
 var { a: a61, o: o48, z: z49, i: i60 } = rk;
-var rules60 = [
+var rules61 = [
   "i",
   "swl",
   "swr",
@@ -3555,11 +3537,11 @@ var goal59 = sequent(
 var solution59 = z49.cl(
   z49.cr(z49.sRotLF(z49.swl(a61("p"), i60.i(a61("q")))), z49.swl(a61("q"), i60.i(a61("p"))))
 );
-var ch6branching5 = challenge({ rules: rules60, goal: goal59, solution: solution59 });
+var ch6branching5 = challenge({ rules: rules61, goal: goal59, solution: solution59 });
 
 // src/challenges/ch6-branching-6.ts
 var { a: a62, o: o49, z: z50, i: i61 } = rk;
-var rules61 = [
+var rules62 = [
   "i",
   "swl",
   "swr",
@@ -3589,11 +3571,11 @@ var solution60 = z50.ir(
     )
   )
 );
-var ch6branching6 = challenge({ rules: rules61, goal: goal60, solution: solution60 });
+var ch6branching6 = challenge({ rules: rules62, goal: goal60, solution: solution60 });
 
 // src/challenges/ch6-branching-7.ts
 var { a: a63, o: o50, z: z51, i: i62 } = rk;
-var rules62 = [
+var rules63 = [
   "i",
   "swl",
   "swr",
@@ -3627,11 +3609,11 @@ var solution61 = z51.ir(
     )
   )
 );
-var ch6branching7 = challenge({ rules: rules62, goal: goal61, solution: solution61 });
+var ch6branching7 = challenge({ rules: rules63, goal: goal61, solution: solution61 });
 
 // src/challenges/ch6-branching-8.ts
 var { a: a64, o: o51, z: z52, i: i63 } = rk;
-var rules63 = [
+var rules64 = [
   "i",
   "swl",
   "swr",
@@ -3682,11 +3664,11 @@ var solution62 = z52.ir(
     )
   )
 );
-var ch6branching8 = challenge({ rules: rules63, goal: goal62, solution: solution62 });
+var ch6branching8 = challenge({ rules: rules64, goal: goal62, solution: solution62 });
 
 // src/challenges/ch6-branching-9.ts
 var { a: a65, o: o52, z: z53, i: i64 } = rk;
-var rules64 = [
+var rules65 = [
   "i",
   "swl",
   "swr",
@@ -3725,11 +3707,11 @@ var solution63 = z53.ir(
     )
   )
 );
-var ch6branching9 = challenge({ rules: rules64, goal: goal63, solution: solution63 });
+var ch6branching9 = challenge({ rules: rules65, goal: goal63, solution: solution63 });
 
 // src/challenges/ch7-completeness-1.ts
 var { a: a66, o: o53, z: z54, i: i65 } = rk;
-var rules65 = [
+var rules66 = [
   "i",
   "swl",
   "swr",
@@ -3745,11 +3727,11 @@ var solution64 = z54.il(
   z54.sRotRF(z54.swr(a66("q"), i65.i(a66("p")))),
   z54.sRotLF(z54.swl(a66("p"), i65.i(a66("q"))))
 );
-var ch7completeness1 = challenge({ rules: rules65, goal: goal64, solution: solution64 });
+var ch7completeness1 = challenge({ rules: rules66, goal: goal64, solution: solution64 });
 
 // src/challenges/ch7-completeness-2.ts
 var { a: a67, o: o54, z: z55, i: i66 } = rk;
-var rules66 = [
+var rules67 = [
   "i",
   "swl",
   "swr",
@@ -3778,11 +3760,11 @@ var solution65 = z55.ir(
     )
   )
 );
-var ch7completeness2 = challenge({ rules: rules66, goal: goal65, solution: solution65 });
+var ch7completeness2 = challenge({ rules: rules67, goal: goal65, solution: solution65 });
 
 // src/challenges/ch7-completeness-3.ts
 var { a: a68, o: o55, z: z56, i: i67 } = rk;
-var rules67 = [
+var rules68 = [
   "i",
   "swl",
   "swr",
@@ -3824,11 +3806,11 @@ var solution66 = z56.ir(
     )
   )
 );
-var ch7completeness3 = challenge({ rules: rules67, goal: goal66, solution: solution66 });
+var ch7completeness3 = challenge({ rules: rules68, goal: goal66, solution: solution66 });
 
 // src/challenges/ch7-completeness-4.ts
 var { a: a69, o: o56, z: z57, i: i68 } = rk;
-var rules68 = [
+var rules69 = [
   "i",
   "swl",
   "swr",
@@ -3862,11 +3844,11 @@ var solution67 = z57.ir(
     )
   )
 );
-var ch7completeness4 = challenge({ rules: rules68, goal: goal67, solution: solution67 });
+var ch7completeness4 = challenge({ rules: rules69, goal: goal67, solution: solution67 });
 
 // src/challenges/ch7-completeness-5.ts
 var { a: a70, o: o57, z: z58, i: i69 } = rk;
-var rules69 = [
+var rules70 = [
   "i",
   "swl",
   "swr",
@@ -3886,11 +3868,11 @@ var goal68 = conclusion(
   )
 );
 var solution68 = z58.ir(z58.il(z58.ir(z58.swr(a70("q"), i69.i(a70("p")))), i69.i(a70("p"))));
-var ch7completeness5 = challenge({ rules: rules69, goal: goal68, solution: solution68 });
+var ch7completeness5 = challenge({ rules: rules70, goal: goal68, solution: solution68 });
 
 // src/challenges/ch7-completeness-6.ts
 var { a: a71, o: o58, z: z59, i: i70 } = rk;
-var rules70 = [
+var rules71 = [
   "i",
   "swl",
   "swr",
@@ -3928,11 +3910,11 @@ var solution69 = z59.ir(
     )
   )
 );
-var ch7completeness6 = challenge({ rules: rules70, goal: goal69, solution: solution69 });
+var ch7completeness6 = challenge({ rules: rules71, goal: goal69, solution: solution69 });
 
 // src/challenges/ch7-completeness-7.ts
 var { a: a72, o: o59, z: z60, i: i71 } = rk;
-var rules71 = [
+var rules72 = [
   "i",
   "swl",
   "swr",
@@ -3955,11 +3937,11 @@ var solution70 = z60.ir(
     i71.i(o59.p2.implication(a72("p"), a72("q")))
   )
 );
-var ch7completeness7 = challenge({ rules: rules71, goal: goal70, solution: solution70 });
+var ch7completeness7 = challenge({ rules: rules72, goal: goal70, solution: solution70 });
 
 // src/challenges/ch7-completeness-8.ts
 var { a: a73, o: o60, z: z61, i: i72 } = rk;
-var rules72 = [
+var rules73 = [
   "i",
   "swl",
   "swr",
@@ -3995,11 +3977,11 @@ var solution71 = z61.ir(
     )
   )
 );
-var ch7completeness8 = challenge({ rules: rules72, goal: goal71, solution: solution71 });
+var ch7completeness8 = challenge({ rules: rules73, goal: goal71, solution: solution71 });
 
 // src/challenges/ch7-completeness-9.ts
 var { a: a74, o: o61, z: z62, i: i73 } = rk;
-var rules73 = [
+var rules74 = [
   "i",
   "swl",
   "swr",
@@ -4033,11 +4015,11 @@ var solution72 = z62.ir(
     )
   )
 );
-var ch7completeness9 = challenge({ rules: rules73, goal: goal72, solution: solution72 });
+var ch7completeness9 = challenge({ rules: rules74, goal: goal72, solution: solution72 });
 
 // src/challenges/ch8-constants-1.ts
 var { a: a75, o: o62, z: z63, i: i74 } = rk;
-var rules74 = [
+var rules75 = [
   "i",
   "swl",
   "swr",
@@ -4052,11 +4034,11 @@ var solution73 = z63.sRotLF(
     z63.swl(a75("p"), z63.swl(a75("q"), z63.swr(a75("s"), z63.swr(a75("r"), i74.i(o62.p0.verum)))))
   )
 );
-var ch8constants1 = challenge({ rules: rules74, goal: goal73, solution: solution73 });
+var ch8constants1 = challenge({ rules: rules75, goal: goal73, solution: solution73 });
 
 // src/challenges/ch8-constants-2.ts
 var { a: a76, o: o63, z: z64, i: i75 } = rk;
-var rules75 = [
+var rules76 = [
   "i",
   "swl",
   "swr",
@@ -4077,11 +4059,11 @@ var solution74 = z64.sRotLF(
     )
   )
 );
-var ch8constants2 = challenge({ rules: rules75, goal: goal74, solution: solution74 });
+var ch8constants2 = challenge({ rules: rules76, goal: goal74, solution: solution74 });
 
 // src/challenges/ch8-constants-3.ts
 var { a: a77, o: o64, z: z65, i: i76 } = rk;
-var rules76 = [
+var rules77 = [
   "f",
   "v",
   "swl",
@@ -4098,11 +4080,11 @@ var solution75 = z65.sRotRF(
     z65.swl(o64.p0.verum, z65.swl(a77("p"), z65.swr(a77("p"), z65.swr(a77("q"), i76.v()))))
   )
 );
-var ch8constants3 = challenge({ rules: rules76, goal: goal75, solution: solution75 });
+var ch8constants3 = challenge({ rules: rules77, goal: goal75, solution: solution75 });
 
 // src/challenges/ch8-constants-4.ts
 var { a: a78, o: o65, z: z66, i: i77 } = rk;
-var rules77 = [
+var rules78 = [
   "f",
   "v",
   "swl",
@@ -4122,29 +4104,10 @@ var solution76 = z66.sRotLF(
     z66.swl(a78("s"), z66.swr(a78("s"), z66.swr(o65.p0.falsum, z66.swr(a78("r"), i77.f()))))
   )
 );
-var ch8constants4 = challenge({ rules: rules77, goal: goal76, solution: solution76 });
+var ch8constants4 = challenge({ rules: rules78, goal: goal76, solution: solution76 });
 
 // src/challenges/ch8-constants-5.ts
 var { a: a79, o: o66, z: z67, i: i78 } = rk;
-var rules78 = [
-  "i",
-  "f",
-  "v",
-  "swl",
-  "swr",
-  "sRotLF",
-  "sRotRF",
-  "sRotLB",
-  "sRotRB",
-  "nl",
-  "nr",
-  "cl",
-  "cr",
-  "dl",
-  "dr",
-  "il",
-  "ir"
-];
 var goal77 = conclusion(
   o66.p2.implication(
     o66.p2.implication(a79("p"), o66.p2.implication(a79("q"), o66.p1.negation(a79("p")))),
@@ -4165,29 +4128,10 @@ var solution77 = z67.ir(
     )
   )
 );
-var ch8constants5 = challenge({ rules: rules78, goal: goal77, solution: solution77 });
+var ch8constants5 = challenge({ rules: rules2, goal: goal77, solution: solution77 });
 
 // src/challenges/ch8-constants-6.ts
 var { a: a80, o: o67, z: z68, i: i79 } = rk;
-var rules79 = [
-  "i",
-  "f",
-  "v",
-  "swl",
-  "swr",
-  "sRotLF",
-  "sRotRF",
-  "sRotLB",
-  "sRotRB",
-  "nl",
-  "nr",
-  "cl",
-  "cr",
-  "dl",
-  "dr",
-  "il",
-  "ir"
-];
 var goal78 = conclusion(
   o67.p2.implication(
     o67.p1.negation(o67.p1.negation(o67.p0.falsum)),
@@ -4204,29 +4148,10 @@ var solution78 = z68.ir(
     )
   )
 );
-var ch8constants6 = challenge({ rules: rules79, goal: goal78, solution: solution78 });
+var ch8constants6 = challenge({ rules: rules2, goal: goal78, solution: solution78 });
 
 // src/challenges/ch8-constants-7.ts
 var { a: a81, o: o68, z: z69, i: i80 } = rk;
-var rules80 = [
-  "i",
-  "f",
-  "v",
-  "swl",
-  "swr",
-  "sRotLF",
-  "sRotRF",
-  "sRotLB",
-  "sRotRB",
-  "nl",
-  "nr",
-  "cl",
-  "cr",
-  "dl",
-  "dr",
-  "il",
-  "ir"
-];
 var goal79 = sequent(
   [o68.p2.disjunction(o68.p0.falsum, a81("p"))],
   [o68.p2.conjunction(o68.p0.verum, a81("p"))]
@@ -4235,29 +4160,10 @@ var solution79 = z69.dl(
   z69.swr(o68.p2.conjunction(o68.p0.verum, a81("p")), i80.f()),
   z69.cr(z69.swl(a81("p"), i80.v()), i80.i(a81("p")))
 );
-var ch8constants7 = challenge({ rules: rules80, goal: goal79, solution: solution79 });
+var ch8constants7 = challenge({ rules: rules2, goal: goal79, solution: solution79 });
 
 // src/challenges/ch8-constants-8.ts
 var { a: a82, o: o69, z: z70, i: i81 } = rk;
-var rules81 = [
-  "i",
-  "f",
-  "v",
-  "swl",
-  "swr",
-  "sRotLF",
-  "sRotRF",
-  "sRotLB",
-  "sRotRB",
-  "nl",
-  "nr",
-  "cl",
-  "cr",
-  "dl",
-  "dr",
-  "il",
-  "ir"
-];
 var goal80 = conclusion(
   o69.p2.implication(
     o69.p2.implication(a82("p"), a82("q")),
@@ -4293,29 +4199,10 @@ var solution80 = z70.ir(
     )
   )
 );
-var ch8constants8 = challenge({ rules: rules81, goal: goal80, solution: solution80 });
+var ch8constants8 = challenge({ rules: rules2, goal: goal80, solution: solution80 });
 
 // src/challenges/ch8-constants-9.ts
 var { a: a83, o: o70, z: z71, i: i82 } = rk;
-var rules82 = [
-  "i",
-  "f",
-  "v",
-  "swl",
-  "swr",
-  "sRotLF",
-  "sRotRF",
-  "sRotLB",
-  "sRotRB",
-  "nl",
-  "nr",
-  "cl",
-  "cr",
-  "dl",
-  "dr",
-  "il",
-  "ir"
-];
 var goal81 = sequent(
   [
     o70.p2.conjunction(
@@ -4360,29 +4247,10 @@ var solution81 = z71.cl(
     )
   )
 );
-var ch8constants9 = challenge({ rules: rules82, goal: goal81, solution: solution81 });
+var ch8constants9 = challenge({ rules: rules2, goal: goal81, solution: solution81 });
 
 // src/challenges/ch9-consolidation-1.ts
 var { a: a84, o: o71, z: z72, i: i83 } = rk;
-var rules83 = [
-  "i",
-  "f",
-  "v",
-  "swl",
-  "swr",
-  "sRotLF",
-  "sRotRF",
-  "sRotLB",
-  "sRotRB",
-  "nl",
-  "nr",
-  "cl",
-  "cr",
-  "dl",
-  "dr",
-  "il",
-  "ir"
-];
 var goal82 = conclusion(
   o71.p2.disjunction(
     o71.p2.disjunction(a84("r"), a84("s")),
@@ -4408,29 +4276,10 @@ var solution82 = z72.dr(
     )
   )
 );
-var ch9consolidation1 = challenge({ rules: rules83, goal: goal82, solution: solution82 });
+var ch9consolidation1 = challenge({ rules: rules2, goal: goal82, solution: solution82 });
 
 // src/challenges/ch9-consolidation-2.ts
 var { a: a85, o: o72, z: z73, i: i84 } = rk;
-var rules84 = [
-  "i",
-  "f",
-  "v",
-  "swl",
-  "swr",
-  "sRotLF",
-  "sRotRF",
-  "sRotLB",
-  "sRotRB",
-  "nl",
-  "nr",
-  "cl",
-  "cr",
-  "dl",
-  "dr",
-  "il",
-  "ir"
-];
 var goal83 = conclusion(
   o72.p2.implication(
     a85("p"),
@@ -4451,29 +4300,10 @@ var solution83 = z73.ir(
     )
   )
 );
-var ch9consolidation2 = challenge({ rules: rules84, goal: goal83, solution: solution83 });
+var ch9consolidation2 = challenge({ rules: rules2, goal: goal83, solution: solution83 });
 
 // src/challenges/ch9-consolidation-3.ts
 var { a: a86, o: o73, z: z74, i: i85 } = rk;
-var rules85 = [
-  "i",
-  "f",
-  "v",
-  "swl",
-  "swr",
-  "sRotLF",
-  "sRotRF",
-  "sRotLB",
-  "sRotRB",
-  "nl",
-  "nr",
-  "cl",
-  "cr",
-  "dl",
-  "dr",
-  "il",
-  "ir"
-];
 var goal84 = conclusion(
   o73.p2.implication(
     o73.p2.conjunction(
@@ -4520,54 +4350,16 @@ var solution84 = z74.ir(
     )
   )
 );
-var ch9consolidation3 = challenge({ rules: rules85, goal: goal84, solution: solution84 });
+var ch9consolidation3 = challenge({ rules: rules2, goal: goal84, solution: solution84 });
 
 // src/challenges/ch9-consolidation-4.ts
 var { a: a87, o: o74, z: z75, i: i86 } = rk;
-var rules86 = [
-  "i",
-  "f",
-  "v",
-  "swl",
-  "swr",
-  "sRotLF",
-  "sRotRF",
-  "sRotLB",
-  "sRotRB",
-  "nl",
-  "nr",
-  "cl",
-  "cr",
-  "dl",
-  "dr",
-  "il",
-  "ir"
-];
 var goal85 = conclusion(o74.p2.disjunction(a87("p"), o74.p1.negation(a87("p"))));
 var solution85 = z75.dr(z75.sRotRF(z75.nr(i86.i(a87("p")))));
-var ch9consolidation4 = challenge({ rules: rules86, goal: goal85, solution: solution85 });
+var ch9consolidation4 = challenge({ rules: rules2, goal: goal85, solution: solution85 });
 
 // src/challenges/ch9-consolidation-5.ts
 var { a: a88, o: o75, z: z76, i: i87 } = rk;
-var rules87 = [
-  "i",
-  "f",
-  "v",
-  "swl",
-  "swr",
-  "sRotLF",
-  "sRotRF",
-  "sRotLB",
-  "sRotRB",
-  "nl",
-  "nr",
-  "cl",
-  "cr",
-  "dl",
-  "dr",
-  "il",
-  "ir"
-];
 var goal86 = conclusion(
   o75.p2.implication(
     o75.p2.implication(a88("p"), o75.p2.implication(a88("q"), a88("r"))),
@@ -4589,29 +4381,10 @@ var solution86 = z76.ir(
     )
   )
 );
-var ch9consolidation5 = challenge({ rules: rules87, goal: goal86, solution: solution86 });
+var ch9consolidation5 = challenge({ rules: rules2, goal: goal86, solution: solution86 });
 
 // src/challenges/ch9-consolidation-6.ts
 var { a: a89, o: o76, z: z77, i: i88 } = rk;
-var rules88 = [
-  "i",
-  "f",
-  "v",
-  "swl",
-  "swr",
-  "sRotLF",
-  "sRotRF",
-  "sRotLB",
-  "sRotRB",
-  "nl",
-  "nr",
-  "cl",
-  "cr",
-  "dl",
-  "dr",
-  "il",
-  "ir"
-];
 var goal87 = conclusion(
   o76.p2.implication(
     o76.p2.implication(a89("p"), a89("r")),
@@ -4663,32 +4436,51 @@ var solution87 = z77.ir(
     )
   )
 );
-var ch9consolidation6 = challenge({ rules: rules88, goal: goal87, solution: solution87 });
+var ch9consolidation6 = challenge({ rules: rules2, goal: goal87, solution: solution87 });
 
 // src/challenges/ch9-consolidation-7.ts
 var { a: a90, o: o77, z: z78, i: i89 } = rk;
-var rules89 = [
-  "i",
-  "f",
-  "v",
-  "swl",
-  "swr",
-  "sRotLF",
-  "sRotRF",
-  "sRotLB",
-  "sRotRB",
-  "nl",
-  "nr",
-  "cl",
-  "cr",
-  "dl",
-  "dr",
-  "il",
-  "ir"
-];
-var goal88 = conclusion(o77.p2.implication(a90("p"), a90("p")));
-var solution88 = z78.ir(i89.i(a90("p")));
-var ch9consolidation7 = challenge({ rules: rules89, goal: goal88, solution: solution88 });
+var goal88 = conclusion(
+  o77.p2.disjunction(
+    o77.p2.implication(a90("r"), a90("p")),
+    o77.p2.conjunction(
+      o77.p2.conjunction(
+        a90("r"),
+        o77.p2.conjunction(
+          a90("r"),
+          o77.p2.disjunction(
+            o77.p2.conjunction(a90("r"), o77.p2.implication(a90("s"), a90("p"))),
+            o77.p2.disjunction(a90("r"), a90("p"))
+          )
+        )
+      ),
+      o77.p2.implication(o77.p0.falsum, a90("q"))
+    )
+  )
+);
+var solution88 = z78.dr(
+  z78.ir(
+    z78.swr(
+      a90("p"),
+      z78.cr(
+        z78.cr(
+          i89.i(a90("r")),
+          z78.cr(
+            i89.i(a90("r")),
+            z78.dr(
+              z78.swr(
+                o77.p2.conjunction(a90("r"), o77.p2.implication(a90("s"), a90("p"))),
+                z78.dr(z78.sRotRF(z78.swr(a90("p"), i89.i(a90("r")))))
+              )
+            )
+          )
+        ),
+        z78.ir(z78.sRotLF(z78.swl(a90("r"), z78.swr(a90("q"), i89.f()))))
+      )
+    )
+  )
+);
+var ch9consolidation7 = challenge({ rules: rules2, goal: goal88, solution: solution88 });
 
 // src/challenges/index.ts
 var challenges = {
@@ -4943,6 +4735,9 @@ function active(text) {
 function connective(text, active2) {
   return { text, active: active2, connective: true };
 }
+function paren(text) {
+  return { text, active: false, connective: false, parenthesis: true };
+}
 function raw(html2) {
   return { text: html2, active: false, connective: false, raw: true };
 }
@@ -4960,6 +4755,9 @@ function html(segments) {
     if (s.connective) {
       const cls = s.active ? "connective active" : "connective";
       return `<span class="${cls}">${escape(s.text)}</span>`;
+    }
+    if (s.parenthesis === true) {
+      return `<span class="parenthesis">${escape(s.text)}</span>`;
     }
     return escape(s.text);
   }).join("");
@@ -5029,6 +4827,9 @@ function printNullary(key) {
 function printUnary(key, activeConn = false, markConnective = false) {
   return (a91) => (theme) => {
     const [s0, s1] = theme[key];
+    if (key === "parenthesis") {
+      return [paren(s0), ...a91(theme), paren(s1)];
+    }
     return [
       markConnective ? connective(s0, activeConn) : activeConn ? active(s0) : of2(s0),
       ...a91(theme),
@@ -5090,81 +4891,42 @@ function fromFalsum(_falsum) {
 function fromVerum(_verum) {
   return print("verum")();
 }
+var precedence = (p) => matchRaw(p, {
+  atom: () => 4,
+  falsum: () => 4,
+  verum: () => 4,
+  negation: () => 3,
+  conjunction: () => 2,
+  disjunction: () => 2,
+  implication: () => 1
+});
+var expand = (minPrec, operand) => {
+  if (operand.kind === "atom") return fromProp(operand);
+  return precedence(operand) >= minPrec ? print("optional")(fromProp(operand)) : print("parenthesis")(fromProp(operand));
+};
 function fromNegation({ negand }, activeConnective = false) {
-  const expand = (operand) => {
-    const optional = () => print("optional")(fromProp(operand));
-    const parenthesized = () => print("parenthesis")(fromProp(operand));
-    return matchRaw(operand, {
-      atom: fromProp,
-      falsum: optional,
-      verum: optional,
-      negation: optional,
-      conjunction: parenthesized,
-      disjunction: parenthesized,
-      implication: parenthesized
-    });
-  };
-  return printUnary("negation", activeConnective, true)(expand(negand));
+  return printUnary("negation", activeConnective, true)(expand(3, negand));
 }
 function fromConjunction({ leftConjunct, rightConjunct }, activeConnective = false) {
-  const expand = (operand) => {
-    const optional = () => print("optional")(fromProp(operand));
-    const parenthesized = () => print("parenthesis")(fromProp(operand));
-    return matchRaw(operand, {
-      atom: fromProp,
-      falsum: optional,
-      verum: optional,
-      negation: optional,
-      conjunction: parenthesized,
-      disjunction: parenthesized,
-      implication: parenthesized
-    });
-  };
   return printBinary(
     "conjunction",
     activeConnective,
     true
-  )(expand(leftConjunct), expand(rightConjunct));
+  )(expand(3, leftConjunct), expand(3, rightConjunct));
 }
 function fromDisjunction({ leftDisjunct, rightDisjunct }, activeConnective = false) {
-  const expand = (operand) => {
-    const optional = () => print("optional")(fromProp(operand));
-    const parenthesized = () => print("parenthesis")(fromProp(operand));
-    return matchRaw(operand, {
-      atom: fromProp,
-      falsum: optional,
-      verum: optional,
-      negation: optional,
-      conjunction: parenthesized,
-      disjunction: parenthesized,
-      implication: parenthesized
-    });
-  };
   return printBinary(
     "disjunction",
     activeConnective,
     true
-  )(expand(leftDisjunct), expand(rightDisjunct));
+  )(expand(3, leftDisjunct), expand(3, rightDisjunct));
 }
 function fromImplication({ antecedent, consequent }, activeConnective = false) {
-  const expand = (operand) => {
-    const optional = () => print("optional")(fromProp(operand));
-    const parenthesized = () => print("parenthesis")(fromProp(operand));
-    return matchRaw(operand, {
-      atom: fromProp,
-      falsum: optional,
-      verum: optional,
-      negation: optional,
-      conjunction: optional,
-      disjunction: optional,
-      implication: parenthesized
-    });
-  };
   return printBinary(
     "implication",
     activeConnective,
     true
-  )(expand(antecedent), expand(consequent));
+  )(expand(2, antecedent), expand(2, consequent));
 }
 function fromProp(proposition, activeConnective = false) {
   return matchRaw(proposition, {
@@ -5178,20 +4940,14 @@ function fromProp(proposition, activeConnective = false) {
   });
 }
 var wrapGazed = (p) => (t) => [raw('<span class="gazed">'), ...p(t), raw("</span>")];
-function fromSequent(judgement, ruleIds = [], gaze = null) {
+function fromSequent(judgement, gaze = null) {
   const { antecedent, succedent } = judgement;
-  const activeLeft = ruleIds.some(
-    (id) => id in leftLogical && rules[id].isResult(judgement)
-  );
-  const activeRight = ruleIds.some(
-    (id) => id in rightLogical && rules[id].isResult(judgement)
-  );
   const antPrinters = antecedent.map((f2, i90) => {
-    const p = activeLeft && i90 === antecedent.length - 1 ? fromProp(f2, true) : fromProp(f2);
+    const p = fromProp(f2, true);
     return gaze && gaze.side === "left" && gaze.index === i90 ? wrapGazed(p) : p;
   });
   const sucPrinters = succedent.map((f2, i90) => {
-    const p = activeRight && i90 === 0 ? fromProp(f2, true) : fromProp(f2);
+    const p = fromProp(f2, true);
     return gaze && gaze.side === "right" && gaze.index === i90 ? wrapGazed(p) : p;
   });
   return (t) => trim(
@@ -5405,6 +5161,10 @@ var Workspace = class {
   }
   setGazeKind(kind) {
     this._gazeKind = kind;
+  }
+  setGaze(gaze) {
+    this._gaze = gaze;
+    this._gazeKind = "connective";
   }
   gaze() {
     if (this._gaze) return this._gaze;
@@ -5800,12 +5560,12 @@ function* repl(workspace) {
   }
 }
 var status = (s) => {
-  const rules90 = applicableRules2(s);
+  const rules79 = applicableRules2(s);
   return [
     of2("\n"),
-    ...fromSequent(activeSequent(s), rules90)(basic),
+    ...fromSequent(activeSequent(s))(basic),
     of2("\n\n" + fromFocus(s)),
-    of2("\nRules: " + rules90.join(", ")),
+    of2("\nRules: " + rules79.join(", ")),
     of2("\nProof: undo, reset"),
     of2("\nConjectures: prev, next, select, list"),
     of2("\nSystem: quit, help, systems\n"),
@@ -5815,15 +5575,11 @@ var status = (s) => {
 
 // src/web/tree.ts
 var equalPaths = (a91, b) => a91.length === b.length && a91.every((v2, i90) => v2 === b[i90]);
-var renderSequent = (derivation, ruleIds, isActive, gaze) => {
+var renderSequent = (derivation, isActive, gaze) => {
   const el = document.createElement("div");
   el.setAttribute("class", "tree-sequent");
   el.innerHTML = html(
-    fromSequent(
-      derivation.result,
-      isActive ? ruleIds : [],
-      isActive ? gaze : null
-    )(basic)
+    fromSequent(derivation.result, isActive ? gaze : null)(basic)
   );
   return el;
 };
@@ -5833,10 +5589,24 @@ var renderGhost = (chain) => {
   for (let i90 = chain.length - 1; i90 >= 0; i90 -= 1) {
     const step = chain[i90];
     if (!step) continue;
-    const sequent2 = document.createElement("div");
-    sequent2.setAttribute("class", "tree-sequent ghost");
-    sequent2.innerHTML = html(fromSequent(step.sequent, [], null)(basic));
-    wrap.appendChild(sequent2);
+    if (step.sequents.length <= 1) {
+      const only = step.sequents[0];
+      if (!only) continue;
+      const sequent2 = document.createElement("div");
+      sequent2.setAttribute("class", "tree-sequent ghost");
+      sequent2.innerHTML = html(fromSequent(only, null)(basic));
+      wrap.appendChild(sequent2);
+    } else {
+      const premises = document.createElement("div");
+      premises.setAttribute("class", "tree-premises ghost-premises");
+      for (const s of step.sequents) {
+        const sequent2 = document.createElement("div");
+        sequent2.setAttribute("class", "tree-sequent ghost");
+        sequent2.innerHTML = html(fromSequent(s, null)(basic));
+        premises.appendChild(sequent2);
+      }
+      wrap.appendChild(premises);
+    }
     const inference = document.createElement("div");
     inference.setAttribute("class", "tree-inference ghost");
     const label = document.createElement("div");
@@ -5856,7 +5626,7 @@ var renderInferenceLine = (ruleId2) => {
   container.appendChild(label);
   return container;
 };
-var renderDerivation = (derivation, activePath2, applicableRules3, gaze = null, ghost = null, currentPath = []) => {
+var renderDerivation = (derivation, activePath2, gaze = null, ghost = null, currentPath = []) => {
   const isActive = equalPaths(currentPath, activePath2);
   const isOpenActive = isActive && derivation.kind === "premise";
   const isClosedActive = isActive && derivation.kind === "transformation";
@@ -5874,14 +5644,10 @@ var renderDerivation = (derivation, activePath2, applicableRules3, gaze = null, 
     premises.setAttribute("class", "tree-premises");
     let maxChildDepth = -1;
     derivation.deps.forEach((dep, i90) => {
-      const child = renderDerivation(
-        dep,
-        activePath2,
-        applicableRules3,
-        gaze,
-        ghost,
-        [...currentPath, i90]
-      );
+      const child = renderDerivation(dep, activePath2, gaze, ghost, [
+        ...currentPath,
+        i90
+      ]);
       const childDepth = Number(child.dataset["leafDepth"] ?? "0");
       if (childDepth > maxChildDepth) maxChildDepth = childDepth;
       premises.appendChild(child);
@@ -5889,14 +5655,12 @@ var renderDerivation = (derivation, activePath2, applicableRules3, gaze = null, 
     leafDepth = maxChildDepth < 0 ? 0 : maxChildDepth + 1;
     node.appendChild(premises);
     node.appendChild(renderInferenceLine(derivation.rule));
-    node.appendChild(renderSequent(derivation, applicableRules3, false, null));
+    node.appendChild(renderSequent(derivation, false, null));
   } else {
     if (isOpenActive && ghost && ghost.length > 0) {
       node.appendChild(renderGhost(ghost));
     }
-    node.appendChild(
-      renderSequent(derivation, applicableRules3, isOpenActive, gaze)
-    );
+    node.appendChild(renderSequent(derivation, isOpenActive, gaze));
   }
   node.dataset["leafDepth"] = String(leafDepth);
   if (currentPath.length === 0) {
@@ -5909,22 +5673,18 @@ var renderDerivation = (derivation, activePath2, applicableRules3, gaze = null, 
 };
 var LINE_PAD = 16;
 var stabilizeWidths = (node) => {
-  const sequent2 = node.querySelector(
-    ":scope > .tree-sequent"
-  );
+  const sequent2 = node.querySelector(":scope > .tree-sequent");
   const sequentWidth = sequent2 ? sequent2.getBoundingClientRect().width : 0;
-  const premises = node.querySelector(
-    ":scope > .tree-premises"
-  );
-  const inference = node.querySelector(
-    ":scope > .tree-inference"
-  );
+  const premises = node.querySelector(":scope > .tree-premises");
+  const inference = node.querySelector(":scope > .tree-inference");
   let childSequentSum = 0;
   let childSubtreeSum = 0;
   let gap = 0;
   let count = 0;
   if (premises) {
-    const children = Array.from(premises.children);
+    const children = Array.from(
+      premises.querySelectorAll(":scope > *")
+    );
     count = children.length;
     gap = parseFloat(getComputedStyle(premises).gap) || 0;
     for (const child of children) {
@@ -5985,18 +5745,18 @@ var stepFinal = (seq, side, kind, available) => {
     if (!available.has(rule2.id)) return null;
     const t2 = rule2.tryReverse(premise(seq));
     if (!t2 || t2.kind !== "transformation") return null;
-    const dep2 = t2.deps[0];
-    if (!dep2) return null;
-    return { id: rule2.id, next: dep2.result };
+    const nexts2 = t2.deps.map((d) => d.result);
+    if (nexts2.length === 0) return null;
+    return { id: rule2.id, nexts: nexts2 };
   }
   const id = findConnectiveRule(seq, side, available);
   if (!id) return null;
   const rule = reverseLogic0[id];
   const t = rule.tryReverse(premise(seq));
   if (!t || t.kind !== "transformation") return null;
-  const dep = t.deps[0];
-  if (!dep) return null;
-  return { id, next: dep.result };
+  const nexts = t.deps.map((d) => d.result);
+  if (nexts.length === 0) return null;
+  return { id, nexts };
 };
 var computeGhostChain = (current, gaze, kind, availableRules) => {
   const available = new Set(availableRules);
@@ -6010,20 +5770,21 @@ var computeGhostChain = (current, gaze, kind, availableRules) => {
     if (g.side === "right" && (suc === 0 || g.index === 0)) break;
     const step = stepRotation(seq, g.side, available);
     if (!step) return null;
-    chain.push({ rule: step.id, sequent: step.next });
+    chain.push({ rule: step.id, sequents: [step.next] });
     seq = step.next;
     g = g.side === "left" ? { side: "left", index: g.index + 1 } : { side: "right", index: g.index - 1 };
   }
   const final = stepFinal(seq, g.side, kind, available);
   if (!final) return null;
-  chain.push({ rule: final.id, sequent: final.next });
+  chain.push({ rule: final.id, sequents: final.nexts });
   return chain;
 };
 
-// src/web/game.ts
+// src/web/input-mode.ts
 var qwertyKeyMap = {
-  KeyQ: "menu",
+  KeyM: "menu",
   Escape: "menu",
+  KeyX: "exit",
   Backquote: "level",
   KeyW: "prevBranch",
   KeyO: "nextBranch",
@@ -6069,6 +5830,123 @@ for (const [code, action] of Object.entries(qwertyKeyMap)) {
     actionKeyHint[action] = codeToLabel(code);
   }
 }
+var ps5SharedKeyMap = {
+  4: "prevBranch",
+  // L1
+  5: "nextBranch",
+  // R1
+  6: "undo",
+  // L2
+  7: "axiom",
+  // R2
+  9: "menu"
+  // Options
+};
+var ps5GazeKeyMap = {
+  ...ps5SharedKeyMap,
+  0: "axiom",
+  // Cross — alias for muscle memory
+  1: "undo",
+  // Circle — alias
+  12: "gazeConnective",
+  // D-pad up
+  13: "gazeWeakening",
+  // D-pad down
+  14: "gazeLeft",
+  // D-pad left
+  15: "gazeRight"
+  // D-pad right
+};
+var ps5HotKeyMap = {
+  ...ps5SharedKeyMap,
+  0: "rightWeakening",
+  // Cross   ↔ L
+  1: "rightRotateRight",
+  // Circle  ↔ ;/ö
+  2: "rightRotateLeft",
+  // Square  ↔ H
+  3: "rightConnective",
+  // Triangle ↔ J
+  12: "leftConnective",
+  // D-pad up    ↔ F
+  13: "leftWeakening",
+  // D-pad down  ↔ S
+  14: "leftRotateLeft",
+  // D-pad left  ↔ A
+  15: "leftRotateRight"
+  // D-pad right ↔ G
+};
+var padIndexToLabel = {
+  0: "\u2715",
+  1: "\u25EF",
+  2: "\u25A1",
+  3: "\u25B3",
+  4: "L1",
+  5: "R1",
+  6: "L2",
+  7: "R2",
+  9: "\u2630",
+  10: "L3",
+  11: "R3",
+  12: "\u2191",
+  13: "\u2193",
+  14: "\u2190",
+  15: "\u2192"
+};
+var buildActionPadHint = (keyMap) => {
+  const hint = {};
+  for (const [idx, action] of Object.entries(keyMap)) {
+    const label = padIndexToLabel[Number(idx)];
+    if (label !== void 0 && !(action in hint)) {
+      hint[action] = label;
+    }
+  }
+  return hint;
+};
+var actionPadHintGaze = buildActionPadHint(ps5GazeKeyMap);
+var actionPadHintHot = buildActionPadHint(ps5HotKeyMap);
+var gamepadActive = false;
+var hotMode = false;
+var gazeModeActive = false;
+var gamepadListeners = /* @__PURE__ */ new Set();
+var isGazeModeActive = () => gazeModeActive;
+var subscribeGamepad = (cb) => {
+  gamepadListeners.add(cb);
+  return () => {
+    gamepadListeners.delete(cb);
+  };
+};
+var notifyGamepadListeners = () => {
+  for (const cb of gamepadListeners) cb();
+};
+var activePadKeyMap = () => hotMode ? ps5HotKeyMap : ps5GazeKeyMap;
+var activeActionPadHint = () => hotMode ? actionPadHintHot : actionPadHintGaze;
+var setGamepadActive = (v2) => {
+  if (gamepadActive === v2) return;
+  gamepadActive = v2;
+  notifyGamepadListeners();
+};
+var markKeyboardInput = () => setGamepadActive(false);
+var markGamepadInput = () => setGamepadActive(true);
+var onGamepadConnected = () => setGamepadActive(true);
+var onGamepadDisconnected = () => setGamepadActive(false);
+var setGazeModeActive = (active2) => {
+  gazeModeActive = active2;
+  if (active2 && hotMode) {
+    hotMode = false;
+    notifyGamepadListeners();
+  }
+};
+var toggleHotMode = () => {
+  hotMode = !hotMode;
+  if (hotMode) gazeModeActive = false;
+  notifyGamepadListeners();
+};
+var getActionHint = (action) => gamepadActive ? activeActionPadHint()[action] : actionKeyHint[action];
+var kbdHint = (s) => gamepadActive ? void 0 : s;
+var dualHint = (kbd, padAction) => gamepadActive ? activeActionPadHint()[padAction] : kbd;
+
+// src/web/game.ts
 var ruleAction = {
   swl: "leftWeakening",
   sRotLF: "leftRotateLeft",
@@ -6100,28 +5978,11 @@ var ruleAction = {
 };
 var keyHintBadge = (hint, variant = "base") => {
   const badge = document.createElement("span");
-  const cls = variant === "hot" ? "key-hint hot" : variant === "cold" ? "key-hint cold" : variant === "coldGhost" ? "key-hint cold ghost" : "key-hint";
+  const base = variant === "hot" ? "key-hint hot" : variant === "cold" ? "key-hint cold" : variant === "coldGhost" ? "key-hint cold ghost" : "key-hint";
+  const cls = hint.length > 1 ? base + " wide" : base;
   badge.setAttribute("class", cls);
   badge.textContent = hint;
   return badge;
-};
-var ps5KeyMap = {
-  0: "axiom",
-  // Cross — confirm
-  1: "undo",
-  // Circle — cancel
-  2: "gazeWeakening",
-  // Square
-  3: "gazeConnective",
-  // Triangle
-  4: "prevBranch",
-  // L1
-  5: "nextBranch",
-  // R1
-  14: "gazeLeft",
-  // D-pad left
-  15: "gazeRight"
-  // D-pad right
 };
 var createButton = (label, disabled, onClick, hint, hintVariant = "base") => {
   const el = document.createElement("pre");
@@ -6187,7 +6048,8 @@ var lastScrollTop = 0;
 var lastScrollLeft = 0;
 var createPlayArea = (workspace) => {
   const panel = document.createElement("div");
-  panel.setAttribute("class", "playarea");
+  const solvedClass = workspace.isSolved() ? " solved" : "";
+  panel.setAttribute("class", "playarea" + solvedClass);
   panel.style.setProperty("--tree-zoom", String(treeZoom));
   panel.addEventListener("scroll", () => {
     lastScrollTop = panel.scrollTop;
@@ -6197,17 +6059,16 @@ var createPlayArea = (workspace) => {
   const startLeft = lastScrollLeft;
   const focus2 = workspace.currentConjecture();
   const solved = workspace.isSolved();
-  const gaze = workspace.gaze();
-  const ghost = computeGhostChain(
+  const gaze = isGazeModeActive() ? workspace.gaze() : null;
+  const ghost = isGazeModeActive() ? computeGhostChain(
     activeSequent(focus2),
-    gaze,
+    workspace.gaze(),
     workspace.gazeKind(),
     workspace.availableRules()
-  );
+  ) : null;
   const tree2 = renderDerivation(
     focus2.derivation,
     solved ? [-1] : activePath(focus2),
-    workspace.applicableRules(),
     gaze,
     ghost
   );
@@ -6263,7 +6124,7 @@ var createPlayArea = (workspace) => {
       const areaRect = panel.getBoundingClientRect();
       const fontPx = parseFloat(getComputedStyle(panel).fontSize);
       const availW = areaRect.width - 2 * 8 * fontPx;
-      const availH = areaRect.height - (8 + 6) * fontPx;
+      const availH = (areaRect.height - (8 + 1) * fontPx) * 0.85;
       const scale = Math.min(
         1,
         availW / treeRect.width,
@@ -6316,24 +6177,24 @@ var gazeHintBadgeForKind = (key, hints) => {
   }
   return null;
 };
-var createPanel = (className, ruleRecord, ls, rules90, solved, onApply, gazeHints) => {
+var createPanel = (className, ruleRecord, ls, rules79, solved, onApply, gazeHints) => {
   const panel = document.createElement("div");
   panel.setAttribute("class", className);
   entries(ruleRecord).forEach(([key, rule]) => {
-    if (!rules90.includes(key)) return;
+    if (!rules79.includes(key)) return;
     const disabled = solved || !ls.includes(key);
     const pre = document.createElement("pre");
     pre.setAttribute("class", "rule button" + (disabled ? " disabled" : ""));
     if (!disabled) pre.onclick = () => onApply(key);
     pre.innerHTML = fromDerivation(rule.example);
     const action = ruleAction[key];
-    const hint = action !== void 0 ? actionKeyHint[action] : void 0;
+    const hint = action !== void 0 ? getActionHint(action) : void 0;
     const ruleHintVariant = className === "main" ? "base" : "hot";
     if (hint !== void 0) pre.appendChild(keyHintBadge(hint, ruleHintVariant));
     const gazeBadges = [
       gazeHintBadgeForKind(key, gazeHints.connective),
       gazeHintBadgeForKind(key, gazeHints.weakening)
-    ].filter((b) => b !== null);
+    ].filter(isNonNullable);
     if (gazeBadges.length > 0) {
       const stack = document.createElement("span");
       stack.setAttribute("class", "gaze-hint-stack");
@@ -6346,26 +6207,27 @@ var createPanel = (className, ruleRecord, ls, rules90, solved, onApply, gazeHint
 };
 var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
   const ls = workspace.applicableRules();
-  const rules90 = workspace.availableRules();
+  const rules79 = workspace.availableRules();
   const solved = workspace.isSolved();
   const focus2 = workspace.currentConjecture();
   const activeDeriv = subDerivation(focus2.derivation, activePath(focus2));
   const branchClosed = activeDeriv?.kind === "transformation";
   const inactive = solved || branchClosed;
   const apply2 = (key) => {
+    setGazeModeActive(false);
     if (isReverseId0(key)) workspace.applyEvent(reverse02(key));
     rerender();
   };
   const applyCenter = (key) => {
+    setGazeModeActive(false);
     if (isReverseId0(key)) workspace.applyEvent(reverse02(key));
     rerender();
   };
-  const gaze = workspace.gaze();
   const seq = activeSequent(workspace.currentConjecture());
   const available = workspace.availableRules();
   const buildKindHints = (kind, hintChar) => {
     if (hintChar === void 0) return null;
-    const chain = computeGhostChain(seq, gaze, kind, available);
+    const chain = computeGhostChain(seq, workspace.gaze(), kind, available);
     if (!chain || chain.length === 0) return null;
     return {
       immediateRule: chain[0]?.rule ?? null,
@@ -6373,26 +6235,29 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
       hintChar
     };
   };
-  const gazeHints = {
-    connective: buildKindHints("connective", actionKeyHint["gazeConnective"]),
-    weakening: buildKindHints("weakening", actionKeyHint["gazeWeakening"])
-  };
+  const gazeHints = isGazeModeActive() ? {
+    connective: buildKindHints(
+      "connective",
+      getActionHint("gazeConnective")
+    ),
+    weakening: buildKindHints("weakening", getActionHint("gazeWeakening"))
+  } : { connective: null, weakening: null };
   const hideRules = !rulesVisible || solved;
   const panel = document.createElement("div");
   panel.setAttribute("class", "bench" + (hideRules ? " rules-hidden" : ""));
   panel.appendChild(
-    createPanel("left", left, ls, rules90, inactive, apply2, gazeHints)
+    createPanel("left", left, ls, rules79, inactive, apply2, gazeHints)
   );
   const congrats = solved ? makeCongrats() : null;
   if (congrats) {
     panel.appendChild(congrats.hurray);
   } else {
     panel.appendChild(
-      createPanel("main", center, ls, rules90, inactive, applyCenter, gazeHints)
+      createPanel("main", center, ls, rules79, inactive, applyCenter, gazeHints)
     );
   }
   panel.appendChild(
-    createPanel("right", right, ls, rules90, inactive, apply2, gazeHints)
+    createPanel("right", right, ls, rules79, inactive, apply2, gazeHints)
   );
   panel.appendChild(createPlayArea(workspace));
   const zoomOut = createButton(
@@ -6402,7 +6267,7 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
       zoomTreeOut();
       rerender();
     },
-    "-"
+    kbdHint("-")
   );
   const zoomReset = createButton(
     "\u2299",
@@ -6411,7 +6276,7 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
       zoomTreeReset();
       rerender();
     },
-    "0"
+    kbdHint("0")
   );
   const zoomIn = createButton(
     "+",
@@ -6420,40 +6285,55 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
       zoomTreeIn();
       rerender();
     },
-    "+"
+    kbdHint("+")
   );
   const gazeMovable = !inactive && seq.antecedent.length + seq.succedent.length > 1;
+  const leftDisabled = isGazeModeActive() ? !gazeMovable : inactive || seq.antecedent.length === 0;
+  const rightDisabled = isGazeModeActive() ? !gazeMovable : inactive || seq.succedent.length === 0;
   const gazeLeftBtn = createButton(
     "Left",
-    !gazeMovable,
+    leftDisabled,
     () => {
-      workspace.moveGaze(-1);
+      if (!isGazeModeActive()) {
+        setGazeModeActive(true);
+        workspace.setGaze({
+          side: "left",
+          index: seq.antecedent.length - 1
+        });
+      } else {
+        workspace.moveGaze(-1);
+      }
       rerender();
     },
-    actionKeyHint["gazeLeft"]
+    getActionHint("gazeLeft")
   );
   const gazeRightBtn = createButton(
     "Right",
-    !gazeMovable,
+    rightDisabled,
     () => {
-      workspace.moveGaze(1);
+      if (!isGazeModeActive()) {
+        setGazeModeActive(true);
+        workspace.setGaze({ side: "right", index: 0 });
+      } else {
+        workspace.moveGaze(1);
+      }
       rerender();
     },
-    actionKeyHint["gazeRight"]
+    getActionHint("gazeRight")
   );
   const gazeWeakeningBtn = createButton(
     "Drop",
-    inactive,
+    !isGazeModeActive() || inactive,
     () => {
       workspace.setGazeKind("weakening");
       applyGazeRule(workspace, "weakening");
       rerender();
     },
-    actionKeyHint["gazeWeakening"]
+    getActionHint("gazeWeakening")
   );
   const connectiveRule = gazeHints.connective?.eventualRule ?? null;
   const connectiveLabel = connectiveRule !== null ? ruleConnectiveLabel[connectiveRule] ?? "" : "";
-  const connectiveDisabled = inactive || connectiveLabel === "";
+  const connectiveDisabled = !isGazeModeActive() || inactive || connectiveLabel === "";
   const gazeConnectiveBtn = createButton(
     "Destruct",
     connectiveDisabled,
@@ -6462,7 +6342,7 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
       applyGazeRule(workspace, "connective");
       rerender();
     },
-    actionKeyHint["gazeConnective"]
+    getActionHint("gazeConnective")
   );
   const makeGroup = (...cls) => {
     const g = document.createElement("div");
@@ -6476,8 +6356,12 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
       rulesVisible = !rulesVisible;
       rerender();
     },
-    actionKeyHint["toggleRules"]
+    getActionHint("toggleRules")
   );
+  rulesBtn.classList.add("toggle");
+  const rulesLed = document.createElement("span");
+  rulesLed.setAttribute("class", "led" + (rulesVisible ? " on" : ""));
+  rulesBtn.appendChild(rulesLed);
   const axiomBtn = createButton(
     "Axiom",
     inactive || !keys(center).some((k) => ls.includes(k)),
@@ -6485,9 +6369,9 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
       autoRule(workspace, keys(center));
       rerender();
     },
-    actionKeyHint["axiom"]
+    getActionHint("axiom")
   );
-  const gazeGroup = makeGroup("gaze");
+  const gazeGroup = makeGroup(...isGazeModeActive() ? ["gaze"] : []);
   gazeGroup.appendChild(gazeLeftBtn);
   gazeGroup.appendChild(gazeWeakeningBtn);
   gazeGroup.appendChild(gazeConnectiveBtn);
@@ -6512,7 +6396,7 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
       workspace.applyEvent(prevBranch());
       rerender();
     },
-    actionKeyHint["prevBranch"]
+    getActionHint("prevBranch")
   );
   const nextBranchBtn = createButton(
     "\u21B1",
@@ -6521,7 +6405,7 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
       workspace.applyEvent(nextBranch());
       rerender();
     },
-    actionKeyHint["nextBranch"]
+    getActionHint("nextBranch")
   );
   const branchGroup = makeGroup();
   branchGroup.appendChild(prevBranchBtn);
@@ -6546,15 +6430,100 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
   panel.appendChild(controlsBar);
   return panel;
 };
-var autoRule = (workspace, rules90) => {
+var autoRule = (workspace, rules79) => {
   const available = workspace.applicableRules();
-  const [first] = rules90.filter((rule) => available.includes(rule));
+  const [first] = rules79.filter((rule) => available.includes(rule));
   if (!first) return;
   if (isReverseId0(first)) workspace.applyEvent(reverse02(first));
 };
-var createDispatch = (getWorkspace, rerender, navigate2, onSolved, onLevel) => (action) => {
+var createPausePopup = (onResume, onExit, onReset, resetDisabled, onFresh) => {
+  const shroud = document.createElement("div");
+  shroud.setAttribute("class", "shroud pause-shroud");
+  shroud.onclick = (ev) => {
+    if (ev.target === shroud) {
+      ev.preventDefault();
+      onResume();
+    }
+  };
+  const panel = document.createElement("div");
+  panel.setAttribute("class", "pause-popup");
+  panel.onclick = (ev) => {
+    ev.stopPropagation();
+  };
+  const title = document.createElement("div");
+  title.setAttribute("class", "pause-title");
+  title.textContent = "Paused";
+  panel.appendChild(title);
+  const buttons = document.createElement("div");
+  buttons.setAttribute("class", "pause-buttons");
+  buttons.appendChild(
+    createButton("Resume game", false, onResume, dualHint("m", "undo"))
+  );
+  const spacer = document.createElement("div");
+  spacer.setAttribute("class", "pause-buttons-spacer");
+  buttons.appendChild(spacer);
+  buttons.appendChild(
+    createButton(
+      "Reset challenge",
+      resetDisabled,
+      onReset,
+      getActionHint("reset")
+    )
+  );
+  if (onFresh) {
+    buttons.appendChild(
+      createButton("Fresh challenge", false, onFresh, kbdHint("n"))
+    );
+  }
+  buttons.appendChild(
+    createButton("Exit to main menu", false, onExit, getActionHint("exit"))
+  );
+  panel.appendChild(buttons);
+  shroud.appendChild(panel);
+  return shroud;
+};
+var RULE_APPLY_ACTIONS = /* @__PURE__ */ new Set([
+  "leftWeakening",
+  "leftConnective",
+  "leftRotateLeft",
+  "leftRotateRight",
+  "rightWeakening",
+  "rightConnective",
+  "rightRotateLeft",
+  "rightRotateRight"
+]);
+var createDispatch = (getWorkspace, rerender, navigate2, onSolved, onLevel, onMenu) => (action) => {
+  if (action === "gazeLeft" || action === "gazeRight") {
+    if (!isGazeModeActive()) {
+      const workspace2 = getWorkspace();
+      const seq = activeSequent(workspace2.currentConjecture());
+      if (action === "gazeLeft") {
+        if (seq.antecedent.length === 0) return;
+        setGazeModeActive(true);
+        workspace2.setGaze({
+          side: "left",
+          index: seq.antecedent.length - 1
+        });
+      } else {
+        if (seq.succedent.length === 0) return;
+        setGazeModeActive(true);
+        workspace2.setGaze({ side: "right", index: 0 });
+      }
+      rerender();
+      return;
+    }
+  } else if (action === "gazeConnective" || action === "gazeWeakening") {
+    if (!isGazeModeActive()) return;
+  } else if (isGazeModeActive() && (RULE_APPLY_ACTIONS.has(action) || action === "reset")) {
+    setGazeModeActive(false);
+  } else if (action === "undo" && isGazeModeActive()) {
+    if (activePath(getWorkspace().currentConjecture()).length === 0) {
+      setGazeModeActive(false);
+    }
+  }
   if (action === "menu") {
-    navigate2("menu");
+    if (onMenu) onMenu();
+    else navigate2("menu");
     return;
   }
   if (action === "level") {
@@ -6687,30 +6656,59 @@ var applyGazeRule = (workspace, kind) => {
 var setupGamepad = (dispatch) => {
   const oldPresses = [];
   let active2 = false;
+  let chordFired = false;
   const loop = () => {
     if (!active2) return;
     const gp = navigator.getGamepads()[0];
     if (gp) {
-      for (const [button, action] of Object.entries(ps5KeyMap)) {
+      for (const [button, action] of Object.entries(activePadKeyMap())) {
         const index = Number(button);
         const oldPress = oldPresses[index] ?? false;
         const newPress = gp.buttons[index]?.pressed ?? false;
         if (newPress !== oldPress) {
-          if (newPress) dispatch(action);
+          if (newPress) {
+            markGamepadInput();
+            setTimeout(() => dispatch(action), 0);
+          }
           oldPresses[index] = newPress;
         }
       }
+      const l3 = gp.buttons[10]?.pressed ?? false;
+      const r3 = gp.buttons[11]?.pressed ?? false;
+      if (l3 && r3 && !chordFired) {
+        markGamepadInput();
+        setTimeout(toggleHotMode, 0);
+        chordFired = true;
+      }
+      if (!l3 && !r3) chordFired = false;
     }
     requestAnimationFrame(loop);
   };
   const onConnected = () => {
+    if (active2) return;
     active2 = true;
+    onGamepadConnected();
     loop();
   };
+  const onDisconnected = () => {
+    const stillConnected = Array.from(navigator.getGamepads()).some(
+      (p) => p !== null
+    );
+    if (!stillConnected) {
+      active2 = false;
+      onGamepadDisconnected();
+    }
+  };
   window.addEventListener("gamepadconnected", onConnected);
+  window.addEventListener("gamepaddisconnected", onDisconnected);
+  const preExisting = Array.from(navigator.getGamepads()).some(
+    (p) => p !== null
+  );
+  if (preExisting) onConnected();
   return () => {
     active2 = false;
     window.removeEventListener("gamepadconnected", onConnected);
+    window.removeEventListener("gamepaddisconnected", onDisconnected);
   };
 };
 
@@ -6750,10 +6748,10 @@ var createListing = (ws, onSelect) => {
     title.setAttribute("class", "title");
     title.innerHTML = id;
     item.appendChild(title);
-    const rules90 = document.createElement("div");
-    rules90.setAttribute("class", "rules");
-    rules90.innerHTML = challenge2.rules.map((rule) => html(fromRuleId(rule)(basic))).join(", ");
-    item.appendChild(rules90);
+    const rules79 = document.createElement("div");
+    rules79.setAttribute("class", "rules");
+    rules79.innerHTML = challenge2.rules.map((rule) => html(fromRuleId(rule)(basic))).join(", ");
+    item.appendChild(rules79);
     const goal89 = document.createElement("div");
     goal89.setAttribute("class", "goal");
     goal89.innerHTML = html(fromSequent(challenge2.goal)(basic));
@@ -6764,38 +6762,30 @@ var createListing = (ws, onSelect) => {
   shroud.appendChild(panel);
   return shroud;
 };
-var createControls = (ws, _listingEl, rerender, navigate2, showLevelButton, onLevel) => {
+var createControls = (ws, _listingEl, rerender, onMenu, showLevelButton, onLevel) => {
   const canUndo = activePath(ws.currentConjecture()).length > 0;
+  const undoEnabled = canUndo || isGazeModeActive();
   const panel = document.createElement("div");
   panel.setAttribute("class", "controls");
-  panel.appendChild(
-    createButton("menu", false, () => navigate2("menu"), actionKeyHint["menu"])
-  );
+  panel.appendChild(createButton("menu", false, onMenu, getActionHint("menu")));
   if (showLevelButton) {
     panel.appendChild(
-      createButton("level", false, onLevel, actionKeyHint["level"])
+      createButton("level", false, onLevel, getActionHint("level"))
     );
   }
   panel.appendChild(
     createButton(
-      "reset",
-      !canUndo,
-      () => {
-        ws.applyEvent(reset());
-        rerender();
-      },
-      actionKeyHint["reset"]
-    )
-  );
-  panel.appendChild(
-    createButton(
       "undo",
-      !canUndo,
+      !undoEnabled,
       () => {
-        ws.applyEvent({ kind: "undo" });
+        if (canUndo) {
+          ws.applyEvent({ kind: "undo" });
+        } else {
+          setGazeModeActive(false);
+        }
         rerender();
       },
-      actionKeyHint["undo"]
+      getActionHint("undo")
     )
   );
   return panel;
@@ -6811,7 +6801,7 @@ var createCongrats = (ws, selectLevel, rerender) => {
       "Prev Level",
       false,
       () => selectLevel(ws.previousConjectureId()),
-      "p"
+      dualHint("p", "undo")
     )
   );
   buttons.appendChild(
@@ -6822,7 +6812,7 @@ var createCongrats = (ws, selectLevel, rerender) => {
         ws.applyEvent(reset());
         rerender();
       },
-      actionKeyHint["reset"]
+      getActionHint("reset")
     )
   );
   buttons.appendChild(
@@ -6830,7 +6820,7 @@ var createCongrats = (ws, selectLevel, rerender) => {
       "Next Level",
       false,
       () => selectLevel(ws.nextConjectureId()),
-      "\u2423"
+      dualHint("\u2423", "axiom")
     )
   );
   return { hurray, buttons };
@@ -6856,6 +6846,7 @@ var mountCampaign = (container, navigate2) => {
   const selectLevel = (id) => {
     if (ws.isConjectureId(id)) {
       ws.selectConjecture(id);
+      setGazeModeActive(false);
       history.pushState(
         { screen: "campaign", selected: id },
         "",
@@ -6865,6 +6856,27 @@ var mountCampaign = (container, navigate2) => {
     rerender();
   };
   let listingEl = createListing(ws, selectLevel);
+  let pausePopupOpen = false;
+  const togglePausePopup = () => {
+    pausePopupOpen = !pausePopupOpen;
+    rerender();
+  };
+  const closePausePopup = () => {
+    pausePopupOpen = false;
+    rerender();
+  };
+  const exitToMenu = () => {
+    pausePopupOpen = false;
+    navigate2("menu");
+  };
+  const resetFromPopup = () => {
+    if (activePath(ws.currentConjecture()).length > 0) {
+      ws.applyEvent(reset());
+    }
+    setGazeModeActive(false);
+    pausePopupOpen = false;
+    rerender();
+  };
   const rerender = () => {
     container.innerHTML = "";
     listingEl = createListing(ws, selectLevel);
@@ -6873,12 +6885,24 @@ var mountCampaign = (container, navigate2) => {
       ws,
       listingEl,
       rerender,
-      navigate2,
+      togglePausePopup,
       levelPresses >= 2,
       () => toggleLevel(listingEl)
     );
     const makeCongrats = () => createCongrats(ws, selectLevel, rerender);
     container.appendChild(createBench(ws, makeCongrats, controlsEl, rerender));
+    if (pausePopupOpen) {
+      const canReset = activePath(ws.currentConjecture()).length > 0;
+      const resetEnabled = canReset || isGazeModeActive();
+      container.appendChild(
+        createPausePopup(
+          closePausePopup,
+          exitToMenu,
+          resetFromPopup,
+          !resetEnabled
+        )
+      );
+    }
   };
   const onSolved = (action) => {
     switch (action) {
@@ -6896,13 +6920,30 @@ var mountCampaign = (container, navigate2) => {
     }
     rerender();
   };
-  const dispatch = createDispatch(
+  const baseDispatch = createDispatch(
     () => ws,
     rerender,
     navigate2,
     onSolved,
-    () => toggleLevel(listingEl)
+    () => toggleLevel(listingEl),
+    togglePausePopup
   );
+  const dispatch = (action) => {
+    if (action === "exit") {
+      if (pausePopupOpen) exitToMenu();
+      return;
+    }
+    if (action === "reset" && pausePopupOpen) {
+      resetFromPopup();
+      return;
+    }
+    if (action === "undo" && pausePopupOpen) {
+      closePausePopup();
+      return;
+    }
+    if (pausePopupOpen && action !== "menu") return;
+    baseDispatch(action);
+  };
   const params = new URLSearchParams(window.location.search);
   const level = params.get("level") ?? "";
   if (ws.isConjectureId(level)) {
@@ -6910,6 +6951,7 @@ var mountCampaign = (container, navigate2) => {
   }
   rerender();
   const handleKey = (ev) => {
+    markKeyboardInput();
     console.log(ev.code);
     if (ev.code === "KeyP" && ws.isSolved()) {
       selectLevel(ws.previousConjectureId());
@@ -6935,6 +6977,7 @@ var mountCampaign = (container, navigate2) => {
   };
   document.addEventListener("keydown", handleKey);
   const cleanupGamepad = setupGamepad(dispatch);
+  const unsubscribeGamepad = subscribeGamepad(rerender);
   const gen = repl(ws);
   gen.next("");
   Object.assign(window, {
@@ -6948,12 +6991,13 @@ var mountCampaign = (container, navigate2) => {
   return () => {
     document.removeEventListener("keydown", handleKey);
     cleanupGamepad();
+    unsubscribeGamepad();
   };
 };
 
 // src/solver/bruteStructure0.ts
 var seqKey = (s) => JSON.stringify([s.antecedent, s.succedent]);
-var buildStructurePath = (d, rules90, p) => {
+var buildStructurePath = (d, rules79, p) => {
   if (equals3(d.result, p.result)) {
     return proofUsing(d.result, p.deps, p.rule);
   }
@@ -6970,7 +7014,7 @@ var buildStructurePath = (d, rules90, p) => {
     const currentKey = seqKey(current.result);
     for (const [rId, rule] of entries(reverseStructure0)) {
       const ruleId2 = rId;
-      if (!includes(rules90, ruleId2)) continue;
+      if (!includes(rules79, ruleId2)) continue;
       const reversed = rule.tryReverse(current);
       if (!reversed || reversed.kind !== "transformation") continue;
       const [dep] = reversed.deps;
@@ -7000,8 +7044,8 @@ var buildStructurePath = (d, rules90, p) => {
   }
   return proof;
 };
-var bruteStructure0 = (d, rules90, p) => function* () {
-  const result = buildStructurePath(d, rules90, p);
+var bruteStructure0 = (d, rules79, p) => function* () {
+  const result = buildStructurePath(d, rules79, p);
   if (result !== null) {
     yield result;
   }
@@ -7021,52 +7065,52 @@ var hypoWeaken = (d) => function* () {
     yield premise(sequent([], [farRight]));
   }
 };
-var bruteWeaken0 = (d, rules90, p) => function* () {
+var bruteWeaken0 = (d, rules79, p) => function* () {
   if (equals3(d.result, p.result)) {
     yield proofUsing(d.result, p.deps, p.rule);
     return;
   }
   const swl2 = "swl";
-  if (includes(rules90, swl2) && d.result.antecedent.length > p.result.antecedent.length && reverseStructure0[swl2].isResultDerivation(d)) {
+  if (includes(rules79, swl2) && d.result.antecedent.length > p.result.antecedent.length && reverseStructure0[swl2].isResultDerivation(d)) {
     const step = reverseStructure0.swl.reverse(d);
     const [dep] = step.deps;
     if (dep.kind === "premise") {
       yield* map(
-        bruteWeaken0(dep, rules90, p),
+        bruteWeaken0(dep, rules79, p),
         (depProof) => proofUsing(step.result, [depProof], swl2)
       )();
     }
     return;
   }
   const swr2 = "swr";
-  if (includes(rules90, swr2) && d.result.succedent.length > p.result.succedent.length && reverseStructure0[swr2].isResultDerivation(d)) {
+  if (includes(rules79, swr2) && d.result.succedent.length > p.result.succedent.length && reverseStructure0[swr2].isResultDerivation(d)) {
     const step = reverseStructure0.swr.reverse(d);
     const [dep] = step.deps;
     if (dep.kind === "premise") {
       yield* map(
-        bruteWeaken0(dep, rules90, p),
+        bruteWeaken0(dep, rules79, p),
         (depProof) => proofUsing(step.result, [depProof], swr2)
       )();
     }
     return;
   }
 };
-var bruteAxiom0 = (d, rules90, limit) => function* () {
+var bruteAxiom0 = (d, rules79, limit) => function* () {
   for (const rule of Object.values(reverseAxiom0)) {
-    if (!includes(rules90, rule.id)) {
+    if (!includes(rules79, rule.id)) {
       continue;
     }
     const result = rule.tryReverse(d);
     if (!result) {
       continue;
     }
-    yield* brute0(result, rules90, limit)();
+    yield* brute0(result, rules79, limit)();
   }
 };
-var candidateConnectives = (rules90, sequent2) => {
+var candidateConnectives = (rules79, sequent2) => {
   const kinds = /* @__PURE__ */ new Set();
   for (const [rId, rule] of entries(reverse0)) {
-    if (!includes(rules90, rId)) continue;
+    if (!includes(rules79, rId)) continue;
     for (const kind of rule.connectives) kinds.add(kind);
   }
   for (const p of [...sequent2.antecedent, ...sequent2.succedent])
@@ -7096,47 +7140,47 @@ var formulasOfOpCount = (opCount, atoms2, connectives2) => function* () {
     }
   }
 };
-var bruteLogic1 = (d, rules90, limit) => function* () {
+var bruteLogic1 = (d, rules79, limit) => function* () {
   const applicableRules3 = entries(reverse1).filter(
-    ([rId]) => includes(rules90, rId)
+    ([rId]) => includes(rules79, rId)
   );
   if (applicableRules3.length === 0) return;
   const atoms2 = uniq2([
     ...d.result.antecedent.flatMap(atoms),
     ...d.result.succedent.flatMap(atoms)
   ]);
-  const connectives2 = candidateConnectives(rules90, d.result);
+  const connectives2 = candidateConnectives(rules79, d.result);
   for (let opCount = 0; opCount <= limit * 2; opCount += 1) {
     for (const formula of formulasOfOpCount(opCount, atoms2, connectives2)()) {
       for (const [, rule] of applicableRules3) {
         const result = rule.tryReverse(formula)(d);
         if (!result) continue;
-        yield* brute0(result, rules90, limit)();
+        yield* brute0(result, rules79, limit)();
       }
     }
   }
 };
-var bruteLogic0 = (d, rules90, limit) => function* () {
+var bruteLogic0 = (d, rules79, limit) => function* () {
   yield* flatMap(
     hypoWeaken(d),
     (hypo) => flatMap(
-      bruteAxiom0(hypo, rules90, limit),
-      (h) => bruteWeaken0(d, rules90, h)
+      bruteAxiom0(hypo, rules79, limit),
+      (h) => bruteWeaken0(d, rules79, h)
     )
   )();
   for (const rule of Object.values(reverseLogic0)) {
-    if (!includes(rules90, rule.id)) {
+    if (!includes(rules79, rule.id)) {
       continue;
     }
     const result = rule.tryReverse(d);
     if (!result) {
       continue;
     }
-    yield* brute0(result, rules90, limit)();
+    yield* brute0(result, rules79, limit)();
   }
-  yield* bruteLogic1(d, rules90, limit)();
+  yield* bruteLogic1(d, rules79, limit)();
 };
-var hypoStructure = (d, rules90) => function* () {
+var hypoStructure = (d, rules79) => function* () {
   const visited = /* @__PURE__ */ new Set();
   const queue = [d];
   while (queue.length > 0) {
@@ -7148,7 +7192,7 @@ var hypoStructure = (d, rules90) => function* () {
     yield current;
     for (const [rId, rule] of entries(reverseStructure0)) {
       const ruleId2 = rId;
-      if (!includes(rules90, ruleId2)) continue;
+      if (!includes(rules79, ruleId2)) continue;
       const reversed = rule.tryReverse(current);
       if (!reversed || reversed.kind !== "transformation") continue;
       const [dep] = reversed.deps;
@@ -7157,7 +7201,7 @@ var hypoStructure = (d, rules90) => function* () {
     }
   }
 };
-var brute0Premise = (d, rules90, limit) => function* () {
+var brute0Premise = (d, rules79, limit) => function* () {
   if (limit < 1) {
     return;
   }
@@ -7165,31 +7209,31 @@ var brute0Premise = (d, rules90, limit) => function* () {
     return;
   }
   yield* flatMap(
-    hypoStructure(d, rules90),
+    hypoStructure(d, rules79),
     (hypo) => flatMap(
-      bruteLogic0(hypo, rules90, limit),
-      (h) => bruteStructure0(d, rules90, h)
+      bruteLogic0(hypo, rules79, limit),
+      (h) => bruteStructure0(d, rules79, h)
     )
   )();
 };
-var brute0Transformation = (d, rules90, limit) => function* () {
+var brute0Transformation = (d, rules79, limit) => function* () {
   const depProofs = sequence(
-    d.deps.map((dep) => brute0(dep, rules90, limit - 1))
+    d.deps.map((dep) => brute0(dep, rules79, limit - 1))
   );
   yield* map(
     depProofs,
     (proofs) => proofUsing(d.result, proofs, d.rule)
   )();
 };
-var brute0 = (d, rules90, limit) => function* () {
+var brute0 = (d, rules79, limit) => function* () {
   switch (d.kind) {
     case "premise":
-      yield* brute0Premise(d, rules90, limit)();
+      yield* brute0Premise(d, rules79, limit)();
       break;
     case "transformation": {
       const rule = d.rule;
-      if (includes(rules90, rule)) {
-        yield* brute0Transformation({ ...d, rule }, rules90, limit)();
+      if (includes(rules79, rule)) {
+        yield* brute0Transformation({ ...d, rule }, rules79, limit)();
       }
       break;
     }
@@ -7216,7 +7260,7 @@ var brute = (c) => {
 
 // src/random/challenge.ts
 var random2 = (size = 10, minDifficulty = 8) => () => {
-  const rules90 = [
+  const rules79 = [
     "i",
     "f",
     "v",
@@ -7244,7 +7288,7 @@ var random2 = (size = 10, minDifficulty = 8) => () => {
         (tautology) => {
           const [proof, difficulty] = brute({
             goal: conclusion(tautology),
-            rules: rules90
+            rules: rules79
           });
           return difficulty < minDifficulty ? empty() : of(proof);
         }
@@ -7252,7 +7296,7 @@ var random2 = (size = 10, minDifficulty = 8) => () => {
     );
   }
   return {
-    rules: rules90,
+    rules: rules79,
     goal: solution89.result,
     solution: solution89
   };
@@ -7288,8 +7332,8 @@ var ChallengePool = class {
       }
       return challenge2;
     }
-    const { goal: goal89, rules: rules90 } = random2(FALLBACK_SIZE, FALLBACK_MIN_DIFFICULTY)();
-    return { goal: goal89, rules: rules90 };
+    const { goal: goal89, rules: rules79 } = random2(FALLBACK_SIZE, FALLBACK_MIN_DIFFICULTY)();
+    return { goal: goal89, rules: rules79 };
   }
   cleanup() {
     this.worker.terminate();
@@ -7298,34 +7342,25 @@ var ChallengePool = class {
 
 // src/web/random.ts
 var newWorkspace = (pool) => new Workspace({ challenge: pool.take() });
-var createControls2 = (ws, onNew, rerender, navigate2) => {
+var createControls2 = (ws, rerender, onMenu) => {
   const canUndo = activePath(ws.currentConjecture()).length > 0;
+  const undoEnabled = canUndo || isGazeModeActive();
   const panel = document.createElement("div");
   panel.setAttribute("class", "controls");
-  panel.appendChild(
-    createButton("menu", false, () => navigate2("menu"), actionKeyHint["menu"])
-  );
-  panel.appendChild(createButton("new", false, onNew, "n"));
-  panel.appendChild(
-    createButton(
-      "reset",
-      !canUndo,
-      () => {
-        ws.applyEvent(reset());
-        rerender();
-      },
-      actionKeyHint["reset"]
-    )
-  );
+  panel.appendChild(createButton("menu", false, onMenu, getActionHint("menu")));
   panel.appendChild(
     createButton(
       "undo",
-      !canUndo,
+      !undoEnabled,
       () => {
-        ws.applyEvent({ kind: "undo" });
+        if (canUndo) {
+          ws.applyEvent({ kind: "undo" });
+        } else {
+          setGazeModeActive(false);
+        }
         rerender();
       },
-      actionKeyHint["undo"]
+      getActionHint("undo")
     )
   );
   return panel;
@@ -7344,10 +7379,12 @@ var createCongrats2 = (ws, onNew, rerender) => {
         ws.applyEvent(reset());
         rerender();
       },
-      actionKeyHint["reset"]
+      getActionHint("reset")
     )
   );
-  buttons.appendChild(createButton("New Challenge", false, onNew, "n"));
+  buttons.appendChild(
+    createButton("New Challenge", false, onNew, dualHint("n", "axiom"))
+  );
   return { hurray, buttons };
 };
 var mountRandom = (container, navigate2) => {
@@ -7356,13 +7393,52 @@ var mountRandom = (container, navigate2) => {
   let ws = newWorkspace(pool);
   const onNew = () => {
     ws = newWorkspace(pool);
+    setGazeModeActive(false);
     rerender();
+  };
+  let pausePopupOpen = false;
+  const togglePausePopup = () => {
+    pausePopupOpen = !pausePopupOpen;
+    rerender();
+  };
+  const closePausePopup = () => {
+    pausePopupOpen = false;
+    rerender();
+  };
+  const exitToMenu = () => {
+    pausePopupOpen = false;
+    navigate2("menu");
+  };
+  const resetFromPopup = () => {
+    if (activePath(ws.currentConjecture()).length > 0) {
+      ws.applyEvent(reset());
+    }
+    setGazeModeActive(false);
+    pausePopupOpen = false;
+    rerender();
+  };
+  const freshFromPopup = () => {
+    pausePopupOpen = false;
+    onNew();
   };
   const rerender = () => {
     container.innerHTML = "";
-    const controlsEl = createControls2(ws, onNew, rerender, navigate2);
+    const controlsEl = createControls2(ws, rerender, togglePausePopup);
     const makeCongrats = () => createCongrats2(ws, onNew, rerender);
     container.appendChild(createBench(ws, makeCongrats, controlsEl, rerender));
+    if (pausePopupOpen) {
+      const canReset = activePath(ws.currentConjecture()).length > 0;
+      const resetEnabled = canReset || isGazeModeActive();
+      container.appendChild(
+        createPausePopup(
+          closePausePopup,
+          exitToMenu,
+          resetFromPopup,
+          !resetEnabled,
+          freshFromPopup
+        )
+      );
+    }
   };
   const onSolved = (action) => {
     switch (action) {
@@ -7377,9 +7453,33 @@ var mountRandom = (container, navigate2) => {
     }
     rerender();
   };
-  const dispatch = createDispatch(() => ws, rerender, navigate2, onSolved);
+  const baseDispatch = createDispatch(
+    () => ws,
+    rerender,
+    navigate2,
+    onSolved,
+    void 0,
+    togglePausePopup
+  );
+  const dispatch = (action) => {
+    if (action === "exit") {
+      if (pausePopupOpen) exitToMenu();
+      return;
+    }
+    if (action === "reset" && pausePopupOpen) {
+      resetFromPopup();
+      return;
+    }
+    if (action === "undo" && pausePopupOpen) {
+      closePausePopup();
+      return;
+    }
+    if (pausePopupOpen && action !== "menu") return;
+    baseDispatch(action);
+  };
   rerender();
   const handleKey = (ev) => {
+    markKeyboardInput();
     if (ev.code === "KeyN") {
       onNew();
       return;
@@ -7404,9 +7504,11 @@ var mountRandom = (container, navigate2) => {
   };
   document.addEventListener("keydown", handleKey);
   const cleanupGamepad = setupGamepad(dispatch);
+  const unsubscribeGamepad = subscribeGamepad(rerender);
   return () => {
     document.removeEventListener("keydown", handleKey);
     cleanupGamepad();
+    unsubscribeGamepad();
     pool.cleanup();
   };
 };
@@ -7471,6 +7573,7 @@ var cleanup = () => {
 };
 var navigate = (screen) => {
   cleanup();
+  if (screen === "menu") setGazeModeActive(false);
   history.pushState(
     { screen },
     "",
@@ -7511,5 +7614,6 @@ document.addEventListener("DOMContentLoaded", init3);
 window.addEventListener("popstate", (event) => {
   cleanup();
   const screen = event.state?.screen ?? "menu";
+  if (screen === "menu") setGazeModeActive(false);
   mount(screen);
 });

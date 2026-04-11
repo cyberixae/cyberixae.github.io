@@ -139,6 +139,12 @@ body {
 .playarea::-webkit-scrollbar {
   display: none;
 }
+.playarea.solved {
+  padding-bottom: 1em;
+  scroll-padding-bottom: 1em;
+  mask-image: none;
+  -webkit-mask-image: none;
+}
 .rule {
   position: relative;
   min-width: 260px;
@@ -198,6 +204,17 @@ body {
 .key-hint.cold.ghost {
   opacity: 0.35;
 }
+.key-hint.wide {
+  width: auto;
+  min-width: 40px;
+  padding: 0 8px;
+  border-radius: 999px;
+}
+.controls .button .key-hint.wide {
+  width: auto;
+  min-width: 30px;
+  padding: 0 7px;
+}
 .main .rule .key-hint {
   position: absolute;
   bottom: -20px;
@@ -233,13 +250,32 @@ body {
   margin: 0;
   text-transform: capitalize;
 }
-.button:hover {
+.button:not(.disabled):hover {
   background-color: #fff;
   opacity: 1;
 }
 .button.disabled {
   cursor: default;
   opacity: 0.5;
+}
+.button.toggle {
+  position: relative;
+}
+.button.toggle .led {
+  position: absolute;
+  top: 5px;
+  right: 6px;
+  width: 10px;
+  height: 4px;
+  border-radius: 1px;
+  background-color: #400;
+  box-shadow: inset 0 0 1px rgba(0, 0, 0, 0.6);
+}
+.button.toggle .led.on {
+  background-color: #f22;
+  box-shadow:
+    0 0 4px #f22,
+    0 0 8px #f66;
 }
 .hurray {
   grid-column: 1 / -1;
@@ -275,11 +311,55 @@ body {
   right: 0;
   bottom: 0;
   left: 0;
-  z-index: 1;
+  z-index: 10;
   background-color: #000e;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+.pause-shroud {
+  z-index: 20;
+}
+.pause-popup {
+  background-color: #fff2;
+  border: 4px solid #f80;
+  border-radius: 20px;
+  padding: 3em 4em;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2em;
+}
+.pause-title {
+  font-size: 2em;
+  font-weight: bold;
+}
+.pause-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1em;
+}
+.pause-buttons .button {
+  position: relative;
+  padding: 0.6em 1.2em;
+  color: #000;
+  opacity: 1;
+}
+.pause-buttons .button.disabled {
+  opacity: 0.5;
+}
+.pause-buttons-spacer {
+  height: 1em;
+}
+.pause-buttons .button .key-hint {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+  top: 8px;
+  left: -15px;
 }
 .level-select {
   position: absolute;
@@ -444,9 +524,21 @@ body {
   text-align: center;
   border-radius: 6px;
   background-color: transparent;
+  color: #000b;
 }
 .connective.active {
-  background-color: #d003;
+  color: #0008;
+}
+.parenthesis {
+  color: #000b;
+}
+.ghost-tree .connective,
+.ghost-tree .connective.active,
+.ghost-tree .parenthesis,
+.level-select .connective,
+.level-select .connective.active,
+.level-select .parenthesis {
+  color: inherit;
 }
 .gazed {
   border-bottom: 0.15em solid var(--gaze-color);
@@ -462,11 +554,16 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  opacity: 0.35;
+  opacity: 0.55;
   pointer-events: none;
+  color: #666;
+  filter: grayscale(1) brightness(0.8) sepia(1) hue-rotate(180deg) saturate(6);
 }
 .tree-sequent.ghost {
   background-color: transparent;
+}
+.tree-inference.ghost {
+  border-top-color: #666;
 }
 .tree-inference.ghost > .tree-rule-label {
   opacity: 0.7;
