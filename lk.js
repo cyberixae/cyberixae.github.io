@@ -2350,240 +2350,467 @@ var rk = {
 
 // src/model/challenge.ts
 var challenge = (c) => c;
+var isTutorial = (c) => "pinned" in c && Array.isArray(c.pinned);
+var tutorial = (t) => t;
 
 // src/challenges/ch0-identity-1.ts
 var { a, i: i2 } = rk;
-var rules3 = ["i"];
+var rules3 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB"
+];
+var pinned = ["i"];
 var goal = sequent([a("p")], [a("p")]);
 var solution = i2.i(a("p"));
-var ch0identity1 = challenge({ rules: rules3, goal, solution });
+var ch0identity1 = tutorial({ rules: rules3, goal, solution, pinned });
 
 // src/challenges/ch0-identity-2.ts
 var { a: a4, i: i3 } = rk;
-var rules4 = ["i"];
+var rules4 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB"
+];
+var pinned2 = ["i"];
 var goal2 = sequent([a4("q")], [a4("q")]);
 var solution2 = i3.i(a4("q"));
-var ch0identity2 = challenge({ rules: rules4, goal: goal2, solution: solution2 });
+var ch0identity2 = tutorial({ rules: rules4, goal: goal2, solution: solution2, pinned: pinned2 });
 
-// src/challenges/ch0-identity-3.ts
-var { a: a5, o, i: i4 } = rk;
-var rules5 = ["i"];
-var goal3 = sequent([o.p1.negation(a5("p"))], [o.p1.negation(a5("p"))]);
-var solution3 = i4.i(o.p1.negation(a5("p")));
-var ch0identity3 = challenge({ rules: rules5, goal: goal3, solution: solution3 });
+// src/challenges/ch1-weakening-1.ts
+var { a: a5, z, i: i4 } = rk;
+var rules5 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB"
+];
+var pinned3 = ["swl", "swr"];
+var goal3 = sequent([a5("p"), a5("q")], [a5("p")]);
+var solution3 = z.swl(a5("q"), i4.i(a5("p")));
+var ch1weakening1 = tutorial({ rules: rules5, goal: goal3, solution: solution3, pinned: pinned3 });
 
-// src/challenges/ch0-identity-4.ts
-var { a: a6, o: o2, i: i5 } = rk;
-var rules6 = ["i"];
-var goal4 = sequent(
-  [o2.p2.conjunction(a6("q"), a6("r"))],
-  [o2.p2.conjunction(a6("q"), a6("r"))]
-);
-var solution4 = i5.i(o2.p2.conjunction(a6("q"), a6("r")));
-var ch0identity4 = challenge({ rules: rules6, goal: goal4, solution: solution4 });
+// src/challenges/ch1-weakening-2.ts
+var { a: a6, z: z2, i: i5 } = rk;
+var rules6 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB"
+];
+var pinned4 = ["swl", "swr"];
+var goal4 = sequent([a6("p")], [a6("q"), a6("p")]);
+var solution4 = z2.swr(a6("q"), i5.i(a6("p")));
+var ch1weakening2 = tutorial({ rules: rules6, goal: goal4, solution: solution4, pinned: pinned4 });
 
-// src/challenges/ch0-identity-5.ts
-var { a: a7, o: o3, i: i6 } = rk;
-var rules7 = ["i"];
-var goal5 = sequent(
-  [o3.p2.disjunction(a7("r"), a7("s"))],
-  [o3.p2.disjunction(a7("r"), a7("s"))]
-);
-var solution5 = i6.i(o3.p2.disjunction(a7("r"), a7("s")));
-var ch0identity5 = challenge({ rules: rules7, goal: goal5, solution: solution5 });
+// src/challenges/ch1-weakening-3.ts
+var { a: a7, z: z3, i: i6 } = rk;
+var rules7 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB"
+];
+var pinned5 = ["swl", "swr"];
+var goal5 = sequent([a7("p"), a7("q")], [a7("q"), a7("p")]);
+var solution5 = z3.swl(a7("q"), z3.swr(a7("q"), i6.i(a7("p"))));
+var ch1weakening3 = tutorial({ rules: rules7, goal: goal5, solution: solution5, pinned: pinned5 });
 
-// src/challenges/ch0-identity-6.ts
-var { a: a8, o: o4, i: i7 } = rk;
-var rules8 = ["i"];
+// src/challenges/ch1-weakening-4.ts
+var { a: a8, o, z: z4, i: i7 } = rk;
+var rules8 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB"
+];
+var pinned6 = ["swl", "swr"];
 var goal6 = sequent(
-  [o4.p2.implication(a8("r"), a8("p"))],
-  [o4.p2.implication(a8("r"), a8("p"))]
+  [a8("q"), o.p2.conjunction(a8("p"), a8("q"))],
+  [o.p2.conjunction(a8("q"), a8("p")), a8("q")]
 );
-var solution6 = i7.i(o4.p2.implication(a8("r"), a8("p")));
-var ch0identity6 = challenge({ rules: rules8, goal: goal6, solution: solution6 });
+var solution6 = z4.swl(
+  o.p2.conjunction(a8("p"), a8("q")),
+  z4.swr(o.p2.conjunction(a8("q"), a8("p")), i7.i(a8("q")))
+);
+var ch1weakening4 = tutorial({ rules: rules8, goal: goal6, solution: solution6, pinned: pinned6 });
 
-// src/challenges/ch0-identity-7.ts
-var { a: a9, o: o5, i: i8 } = rk;
-var rules9 = ["i"];
+// src/challenges/ch1-weakening-5.ts
+var { a: a9, o: o2, z: z5, i: i8 } = rk;
+var rules9 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB"
+];
+var pinned7 = ["swl", "swr"];
 var goal7 = sequent(
-  [o5.p2.conjunction(a9("q"), o5.p1.negation(a9("p")))],
-  [o5.p2.conjunction(a9("q"), o5.p1.negation(a9("p")))]
+  [o2.p2.conjunction(a9("p"), a9("q")), a9("p")],
+  [a9("q"), o2.p2.conjunction(a9("p"), a9("q"))]
 );
-var solution7 = i8.i(o5.p2.conjunction(a9("q"), o5.p1.negation(a9("p"))));
-var ch0identity7 = challenge({ rules: rules9, goal: goal7, solution: solution7 });
+var solution7 = z5.swl(
+  a9("p"),
+  z5.swr(a9("q"), i8.i(o2.p2.conjunction(a9("p"), a9("q"))))
+);
+var ch1weakening5 = tutorial({ rules: rules9, goal: goal7, solution: solution7, pinned: pinned7 });
 
-// src/challenges/ch0-identity-8.ts
-var { a: a10, o: o6, i: i9 } = rk;
-var rules10 = ["i"];
+// src/challenges/ch1-weakening-6.ts
+var { a: a10, z: z6, i: i9 } = rk;
+var rules10 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB"
+];
+var pinned8 = ["swl", "swr"];
 var goal8 = sequent(
-  [
-    o6.p2.implication(
-      o6.p2.disjunction(a10("p"), a10("q")),
-      o6.p2.conjunction(a10("p"), a10("q"))
-    )
-  ],
-  [
-    o6.p2.implication(
-      o6.p2.disjunction(a10("p"), a10("q")),
-      o6.p2.conjunction(a10("p"), a10("q"))
-    )
-  ]
+  [a10("p"), a10("q"), a10("q"), a10("p")],
+  [a10("p"), a10("q"), a10("q"), a10("p")]
 );
-var solution8 = i9.i(
-  o6.p2.implication(
-    o6.p2.disjunction(a10("p"), a10("q")),
-    o6.p2.conjunction(a10("p"), a10("q"))
+var solution8 = z6.swl(
+  a10("p"),
+  z6.swl(
+    a10("q"),
+    z6.swl(a10("q"), z6.swr(a10("p"), z6.swr(a10("q"), z6.swr(a10("q"), i9.i(a10("p"))))))
   )
 );
-var ch0identity8 = challenge({ rules: rules10, goal: goal8, solution: solution8 });
+var ch1weakening6 = tutorial({ rules: rules10, goal: goal8, solution: solution8, pinned: pinned8 });
 
-// src/challenges/ch0-identity-9.ts
-var { a: a11, o: o7, i: i10 } = rk;
-var rules11 = ["i"];
+// src/challenges/ch1-weakening-7.ts
+var { a: a11, o: o3, i: i10 } = rk;
+var rules11 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB"
+];
+var pinned9 = ["swl", "swr"];
 var goal9 = sequent(
   [
-    o7.p2.implication(
-      o7.p2.disjunction(a11("p"), o7.p1.negation(a11("q"))),
-      o7.p1.negation(o7.p2.conjunction(a11("r"), a11("s")))
+    o3.p2.implication(
+      o3.p2.disjunction(a11("p"), a11("q")),
+      o3.p2.conjunction(a11("p"), a11("q"))
     )
   ],
   [
-    o7.p2.implication(
-      o7.p2.disjunction(a11("p"), o7.p1.negation(a11("q"))),
-      o7.p1.negation(o7.p2.conjunction(a11("r"), a11("s")))
+    o3.p2.implication(
+      o3.p2.disjunction(a11("p"), a11("q")),
+      o3.p2.conjunction(a11("p"), a11("q"))
     )
   ]
 );
 var solution9 = i10.i(
-  o7.p2.implication(
-    o7.p2.disjunction(a11("p"), o7.p1.negation(a11("q"))),
-    o7.p1.negation(o7.p2.conjunction(a11("r"), a11("s")))
+  o3.p2.implication(
+    o3.p2.disjunction(a11("p"), a11("q")),
+    o3.p2.conjunction(a11("p"), a11("q"))
   )
 );
-var ch0identity9 = challenge({ rules: rules11, goal: goal9, solution: solution9 });
-
-// src/challenges/ch1-weakening-1.ts
-var { a: a12, z, i: i11 } = rk;
-var rules12 = ["i", "swl", "swr"];
-var goal10 = sequent([a12("p"), a12("q")], [a12("p")]);
-var solution10 = z.swl(a12("q"), i11.i(a12("p")));
-var ch1weakening1 = challenge({ rules: rules12, goal: goal10, solution: solution10 });
-
-// src/challenges/ch1-weakening-2.ts
-var { a: a13, z: z2, i: i12 } = rk;
-var rules13 = ["i", "swl", "swr"];
-var goal11 = sequent([a13("p")], [a13("q"), a13("p")]);
-var solution11 = z2.swr(a13("q"), i12.i(a13("p")));
-var ch1weakening2 = challenge({ rules: rules13, goal: goal11, solution: solution11 });
-
-// src/challenges/ch1-weakening-3.ts
-var { a: a14, z: z3, i: i13 } = rk;
-var rules14 = ["i", "swl", "swr"];
-var goal12 = sequent([a14("p"), a14("q")], [a14("q"), a14("p")]);
-var solution12 = z3.swl(a14("q"), z3.swr(a14("q"), i13.i(a14("p"))));
-var ch1weakening3 = challenge({ rules: rules14, goal: goal12, solution: solution12 });
-
-// src/challenges/ch1-weakening-4.ts
-var { a: a15, o: o8, z: z4, i: i14 } = rk;
-var rules15 = ["i", "swl", "swr"];
-var goal13 = sequent(
-  [a15("q"), o8.p2.conjunction(a15("p"), a15("q"))],
-  [o8.p2.conjunction(a15("q"), a15("p")), a15("q")]
-);
-var solution13 = z4.swl(
-  o8.p2.conjunction(a15("p"), a15("q")),
-  z4.swr(o8.p2.conjunction(a15("q"), a15("p")), i14.i(a15("q")))
-);
-var ch1weakening4 = challenge({ rules: rules15, goal: goal13, solution: solution13 });
-
-// src/challenges/ch1-weakening-5.ts
-var { a: a16, o: o9, z: z5, i: i15 } = rk;
-var rules16 = ["i", "swl", "swr"];
-var goal14 = sequent(
-  [o9.p2.conjunction(a16("p"), a16("q")), a16("p")],
-  [a16("q"), o9.p2.conjunction(a16("p"), a16("q"))]
-);
-var solution14 = z5.swl(
-  a16("p"),
-  z5.swr(a16("q"), i15.i(o9.p2.conjunction(a16("p"), a16("q"))))
-);
-var ch1weakening5 = challenge({ rules: rules16, goal: goal14, solution: solution14 });
-
-// src/challenges/ch1-weakening-6.ts
-var { a: a17, z: z6, i: i16 } = rk;
-var rules17 = ["i", "swl", "swr"];
-var goal15 = sequent(
-  [a17("p"), a17("q"), a17("q"), a17("p")],
-  [a17("p"), a17("q"), a17("q"), a17("p")]
-);
-var solution15 = z6.swl(
-  a17("p"),
-  z6.swl(
-    a17("q"),
-    z6.swl(a17("q"), z6.swr(a17("p"), z6.swr(a17("q"), z6.swr(a17("q"), i16.i(a17("p"))))))
-  )
-);
-var ch1weakening6 = challenge({ rules: rules17, goal: goal15, solution: solution15 });
-
-// src/challenges/ch1-weakening-7.ts
-var { a: a18, o: o10, i: i17 } = rk;
-var rules18 = ["i", "swl", "swr"];
-var goal16 = sequent(
-  [
-    o10.p2.implication(
-      o10.p2.disjunction(a18("p"), a18("q")),
-      o10.p2.conjunction(a18("p"), a18("q"))
-    )
-  ],
-  [
-    o10.p2.implication(
-      o10.p2.disjunction(a18("p"), a18("q")),
-      o10.p2.conjunction(a18("p"), a18("q"))
-    )
-  ]
-);
-var solution16 = i17.i(
-  o10.p2.implication(
-    o10.p2.disjunction(a18("p"), a18("q")),
-    o10.p2.conjunction(a18("p"), a18("q"))
-  )
-);
-var ch1weakening7 = challenge({ rules: rules18, goal: goal16, solution: solution16 });
+var ch1weakening7 = tutorial({ rules: rules11, goal: goal9, solution: solution9, pinned: pinned9 });
 
 // src/challenges/ch1-weakening-8.ts
-var { a: a19, o: o11, z: z7, i: i18 } = rk;
-var rules19 = ["i", "swl", "swr"];
-var goal17 = sequent(
-  [a19("p"), o11.p2.implication(a19("q"), a19("p")), a19("q")],
-  [a19("q"), o11.p2.implication(a19("q"), a19("p")), a19("p")]
+var { a: a12, o: o4, z: z7, i: i11 } = rk;
+var rules12 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB"
+];
+var pinned10 = ["swl", "swr"];
+var goal10 = sequent(
+  [a12("p"), o4.p2.implication(a12("q"), a12("p")), a12("q")],
+  [a12("q"), o4.p2.implication(a12("q"), a12("p")), a12("p")]
 );
-var solution17 = z7.swl(
-  a19("q"),
+var solution10 = z7.swl(
+  a12("q"),
   z7.swl(
-    o11.p2.implication(a19("q"), a19("p")),
-    z7.swr(a19("q"), z7.swr(o11.p2.implication(a19("q"), a19("p")), i18.i(a19("p"))))
+    o4.p2.implication(a12("q"), a12("p")),
+    z7.swr(a12("q"), z7.swr(o4.p2.implication(a12("q"), a12("p")), i11.i(a12("p"))))
   )
 );
-var ch1weakening8 = challenge({ rules: rules19, goal: goal17, solution: solution17 });
+var ch1weakening8 = tutorial({ rules: rules12, goal: goal10, solution: solution10, pinned: pinned10 });
 
 // src/challenges/ch1-weakening-9.ts
-var { a: a20, z: z8, i: i19 } = rk;
-var rules20 = ["i", "swl", "swr"];
-var goal18 = sequent(
-  [a20("s"), a20("r"), a20("q"), a20("p")],
-  [a20("p"), a20("q"), a20("r"), a20("s")]
+var { a: a13, z: z8, i: i12 } = rk;
+var rules13 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB"
+];
+var pinned11 = ["swl", "swr"];
+var goal11 = sequent(
+  [a13("s"), a13("r"), a13("q"), a13("p")],
+  [a13("p"), a13("q"), a13("r"), a13("s")]
 );
-var solution18 = z8.swl(
-  a20("p"),
+var solution11 = z8.swl(
+  a13("p"),
   z8.swl(
-    a20("q"),
-    z8.swl(a20("r"), z8.swr(a20("p"), z8.swr(a20("q"), z8.swr(a20("r"), i19.i(a20("s"))))))
+    a13("q"),
+    z8.swl(a13("r"), z8.swr(a13("p"), z8.swr(a13("q"), z8.swr(a13("r"), i12.i(a13("s"))))))
   )
 );
-var ch1weakening9 = challenge({ rules: rules20, goal: goal18, solution: solution18 });
+var ch1weakening9 = tutorial({ rules: rules13, goal: goal11, solution: solution11, pinned: pinned11 });
 
 // src/challenges/ch2-permutation-1.ts
-var { a: a21, z: z9, i: i20 } = rk;
+var { a: a14, z: z9, i: i13 } = rk;
+var rules14 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB"
+];
+var pinned12 = ["sRotLF", "sRotRF", "sRotLB", "sRotRB"];
+var goal12 = sequent([a14("p"), a14("p"), a14("p"), a14("q"), a14("p"), a14("p")], [a14("q")]);
+var solution12 = z9.swl(
+  a14("p"),
+  z9.swl(
+    a14("p"),
+    z9.sRotLB(z9.swl(a14("p"), z9.swl(a14("p"), z9.swl(a14("p"), i13.i(a14("q"))))))
+  )
+);
+var ch2permutation1 = tutorial({ rules: rules14, goal: goal12, solution: solution12, pinned: pinned12 });
+
+// src/challenges/ch2-permutation-2.ts
+var { a: a15, z: z10, i: i14 } = rk;
+var rules15 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB"
+];
+var pinned13 = ["sRotLF", "sRotRF", "sRotLB", "sRotRB"];
+var goal13 = sequent([a15("q")], [a15("p"), a15("p"), a15("p"), a15("q"), a15("p"), a15("p")]);
+var solution13 = z10.sRotRF(
+  z10.sRotRF(
+    z10.swr(
+      a15("p"),
+      z10.swr(a15("p"), z10.swr(a15("p"), z10.swr(a15("p"), z10.swr(a15("p"), i14.i(a15("q"))))))
+    )
+  )
+);
+var ch2permutation2 = tutorial({ rules: rules15, goal: goal13, solution: solution13, pinned: pinned13 });
+
+// src/challenges/ch2-permutation-3.ts
+var { a: a16, z: z11, i: i15 } = rk;
+var rules16 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB"
+];
+var pinned14 = ["sRotLF", "sRotRF", "sRotLB", "sRotRB"];
+var goal14 = sequent(
+  [a16("p"), a16("p"), a16("p"), a16("q"), a16("p"), a16("p")],
+  [a16("p"), a16("p"), a16("p"), a16("q"), a16("p"), a16("p")]
+);
+var solution14 = z11.swl(
+  a16("p"),
+  z11.swl(
+    a16("p"),
+    z11.swl(
+      a16("q"),
+      z11.swl(
+        a16("p"),
+        z11.swl(
+          a16("p"),
+          z11.swr(
+            a16("p"),
+            z11.swr(
+              a16("p"),
+              z11.swr(a16("p"), z11.swr(a16("q"), z11.swr(a16("p"), i15.i(a16("p")))))
+            )
+          )
+        )
+      )
+    )
+  )
+);
+var ch2permutation3 = tutorial({ rules: rules16, goal: goal14, solution: solution14, pinned: pinned14 });
+
+// src/challenges/ch2-permutation-4.ts
+var { a: a17, z: z12, i: i16 } = rk;
+var rules17 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB"
+];
+var pinned15 = ["sRotLF", "sRotRF", "sRotLB", "sRotRB"];
+var goal15 = sequent(
+  [a17("s"), a17("r"), a17("q"), a17("p")],
+  [a17("s"), a17("r"), a17("q"), a17("p")]
+);
+var solution15 = z12.sRotLB(
+  z12.swl(
+    a17("q"),
+    z12.swl(
+      a17("r"),
+      z12.swl(a17("s"), z12.swr(a17("s"), z12.swr(a17("r"), z12.swr(a17("q"), i16.i(a17("p"))))))
+    )
+  )
+);
+var ch2permutation4 = tutorial({ rules: rules17, goal: goal15, solution: solution15, pinned: pinned15 });
+
+// src/challenges/ch2-permutation-5.ts
+var { a: a18, o: o5, z: z13, i: i17 } = rk;
+var rules18 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB"
+];
+var pinned16 = ["sRotLF", "sRotRF", "sRotLB", "sRotRB"];
+var goal16 = sequent(
+  [o5.p2.conjunction(a18("p"), a18("q")), o5.p2.conjunction(a18("p"), a18("q"))],
+  [o5.p2.conjunction(a18("p"), a18("q")), o5.p2.disjunction(a18("p"), a18("q"))]
+);
+var solution16 = z13.sRotRF(
+  z13.swl(
+    o5.p2.conjunction(a18("p"), a18("q")),
+    z13.swr(
+      o5.p2.disjunction(a18("p"), a18("q")),
+      i17.i(o5.p2.conjunction(a18("p"), a18("q")))
+    )
+  )
+);
+var ch2permutation5 = tutorial({ rules: rules18, goal: goal16, solution: solution16, pinned: pinned16 });
+
+// src/challenges/ch2-permutation-6.ts
+var { a: a19, o: o6, z: z14, i: i18 } = rk;
+var rules19 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB"
+];
+var pinned17 = ["sRotLF", "sRotRF", "sRotLB", "sRotRB"];
+var goal17 = sequent(
+  [
+    o6.p2.conjunction(a19("q"), a19("s")),
+    o6.p2.conjunction(a19("q"), a19("s")),
+    o6.p2.conjunction(a19("q"), a19("s"))
+  ],
+  [
+    o6.p2.conjunction(a19("q"), a19("s")),
+    o6.p2.conjunction(a19("s"), a19("q")),
+    o6.p2.conjunction(a19("s"), a19("q"))
+  ]
+);
+var solution17 = z14.sRotRB(
+  z14.swl(
+    o6.p2.conjunction(a19("q"), a19("s")),
+    z14.swl(
+      o6.p2.conjunction(a19("q"), a19("s")),
+      z14.swr(
+        o6.p2.conjunction(a19("s"), a19("q")),
+        z14.swr(
+          o6.p2.conjunction(a19("s"), a19("q")),
+          i18.i(o6.p2.conjunction(a19("q"), a19("s")))
+        )
+      )
+    )
+  )
+);
+var ch2permutation6 = tutorial({ rules: rules19, goal: goal17, solution: solution17, pinned: pinned17 });
+
+// src/challenges/ch2-permutation-7.ts
+var { a: a20, o: o7, z: z15, i: i19 } = rk;
+var rules20 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB"
+];
+var pinned18 = ["sRotLF", "sRotRF", "sRotLB", "sRotRB"];
+var goal18 = sequent(
+  [
+    o7.p2.implication(a20("q"), a20("p")),
+    o7.p2.implication(a20("p"), a20("s")),
+    o7.p2.implication(a20("s"), a20("r"))
+  ],
+  [
+    o7.p2.implication(a20("r"), a20("p")),
+    o7.p2.implication(a20("p"), a20("s")),
+    o7.p2.implication(a20("s"), a20("q"))
+  ]
+);
+var solution18 = z15.sRotLF(
+  z15.sRotRF(
+    z15.swl(
+      o7.p2.implication(a20("q"), a20("p")),
+      z15.swl(
+        o7.p2.implication(a20("s"), a20("r")),
+        z15.swr(
+          o7.p2.implication(a20("s"), a20("q")),
+          z15.swr(
+            o7.p2.implication(a20("r"), a20("p")),
+            i19.i(o7.p2.implication(a20("p"), a20("s")))
+          )
+        )
+      )
+    )
+  )
+);
+var ch2permutation7 = tutorial({ rules: rules20, goal: goal18, solution: solution18, pinned: pinned18 });
+
+// src/challenges/ch2-permutation-8.ts
+var { a: a21, o: o8, z: z16, i: i20 } = rk;
 var rules21 = [
   "i",
   "swl",
@@ -2593,18 +2820,48 @@ var rules21 = [
   "sRotLB",
   "sRotRB"
 ];
-var goal19 = sequent([a21("p"), a21("p"), a21("p"), a21("q"), a21("p"), a21("p")], [a21("q")]);
-var solution19 = z9.swl(
-  a21("p"),
-  z9.swl(
-    a21("p"),
-    z9.sRotLB(z9.swl(a21("p"), z9.swl(a21("p"), z9.swl(a21("p"), i20.i(a21("q"))))))
+var pinned19 = ["sRotLF", "sRotRF", "sRotLB", "sRotRB"];
+var goal19 = sequent(
+  [
+    o8.p2.conjunction(a21("s"), a21("q")),
+    a21("r"),
+    o8.p2.implication(a21("q"), a21("p")),
+    o8.p1.negation(a21("r"))
+  ],
+  [
+    o8.p1.negation(a21("p")),
+    o8.p2.implication(a21("s"), a21("q")),
+    o8.p1.negation(a21("r")),
+    o8.p2.disjunction(a21("q"), a21("p"))
+  ]
+);
+var solution19 = z16.sRotLB(
+  z16.sRotRF(
+    z16.swl(
+      o8.p2.implication(a21("q"), a21("p")),
+      z16.swl(
+        a21("r"),
+        z16.swl(
+          o8.p2.conjunction(a21("s"), a21("q")),
+          z16.swr(
+            o8.p2.disjunction(a21("q"), a21("p")),
+            z16.swr(
+              o8.p1.negation(a21("p")),
+              z16.swr(
+                o8.p2.implication(a21("s"), a21("q")),
+                i20.i(o8.p1.negation(a21("r")))
+              )
+            )
+          )
+        )
+      )
+    )
   )
 );
-var ch2permutation1 = challenge({ rules: rules21, goal: goal19, solution: solution19 });
+var ch2permutation8 = tutorial({ rules: rules21, goal: goal19, solution: solution19, pinned: pinned19 });
 
-// src/challenges/ch2-permutation-2.ts
-var { a: a22, z: z10, i: i21 } = rk;
+// src/challenges/ch2-permutation-9.ts
+var { a: a22, o: o9, z: z17, i: i21 } = rk;
 var rules22 = [
   "i",
   "swl",
@@ -2614,19 +2871,35 @@ var rules22 = [
   "sRotLB",
   "sRotRB"
 ];
-var goal20 = sequent([a22("q")], [a22("p"), a22("p"), a22("p"), a22("q"), a22("p"), a22("p")]);
-var solution20 = z10.sRotRF(
-  z10.sRotRF(
-    z10.swr(
-      a22("p"),
-      z10.swr(a22("p"), z10.swr(a22("p"), z10.swr(a22("p"), z10.swr(a22("p"), i21.i(a22("q"))))))
+var pinned20 = ["sRotLF", "sRotRF", "sRotLB", "sRotRB"];
+var goal20 = sequent(
+  [a22("p"), o9.p1.negation(a22("p")), a22("q"), a22("r")],
+  [o9.p1.negation(a22("q")), o9.p1.negation(a22("p")), a22("s"), o9.p1.negation(a22("r"))]
+);
+var solution20 = z17.swr(
+  o9.p1.negation(a22("q")),
+  z17.sRotLF(
+    z17.sRotRB(
+      z17.swl(
+        a22("p"),
+        z17.swl(
+          a22("r"),
+          z17.swl(
+            a22("q"),
+            z17.swr(
+              a22("s"),
+              z17.swr(o9.p1.negation(a22("r")), i21.i(o9.p1.negation(a22("p"))))
+            )
+          )
+        )
+      )
     )
   )
 );
-var ch2permutation2 = challenge({ rules: rules22, goal: goal20, solution: solution20 });
+var ch2permutation9 = tutorial({ rules: rules22, goal: goal20, solution: solution20, pinned: pinned20 });
 
-// src/challenges/ch2-permutation-3.ts
-var { a: a23, z: z11, i: i22 } = rk;
+// src/challenges/ch3-negation-1.ts
+var { a: a23, o: o10, z: z18, i: i22 } = rk;
 var rules23 = [
   "i",
   "swl",
@@ -2634,38 +2907,17 @@ var rules23 = [
   "sRotLF",
   "sRotRF",
   "sRotLB",
-  "sRotRB"
+  "sRotRB",
+  "nl",
+  "nr"
 ];
-var goal21 = sequent(
-  [a23("p"), a23("p"), a23("p"), a23("q"), a23("p"), a23("p")],
-  [a23("p"), a23("p"), a23("p"), a23("q"), a23("p"), a23("p")]
-);
-var solution21 = z11.swl(
-  a23("p"),
-  z11.swl(
-    a23("p"),
-    z11.swl(
-      a23("q"),
-      z11.swl(
-        a23("p"),
-        z11.swl(
-          a23("p"),
-          z11.swr(
-            a23("p"),
-            z11.swr(
-              a23("p"),
-              z11.swr(a23("p"), z11.swr(a23("q"), z11.swr(a23("p"), i22.i(a23("p")))))
-            )
-          )
-        )
-      )
-    )
-  )
-);
-var ch2permutation3 = challenge({ rules: rules23, goal: goal21, solution: solution21 });
+var pinned21 = ["nl", "nr"];
+var goal21 = sequent([a23("r"), o10.p1.negation(a23("r"))], []);
+var solution21 = z18.nl(i22.i(a23("r")));
+var ch3negation1 = tutorial({ rules: rules23, goal: goal21, solution: solution21, pinned: pinned21 });
 
-// src/challenges/ch2-permutation-4.ts
-var { a: a24, z: z12, i: i23 } = rk;
+// src/challenges/ch3-negation-2.ts
+var { a: a24, o: o11, z: z19, i: i23 } = rk;
 var rules24 = [
   "i",
   "swl",
@@ -2673,25 +2925,17 @@ var rules24 = [
   "sRotLF",
   "sRotRF",
   "sRotLB",
-  "sRotRB"
+  "sRotRB",
+  "nl",
+  "nr"
 ];
-var goal22 = sequent(
-  [a24("s"), a24("r"), a24("q"), a24("p")],
-  [a24("s"), a24("r"), a24("q"), a24("p")]
-);
-var solution22 = z12.sRotLB(
-  z12.swl(
-    a24("q"),
-    z12.swl(
-      a24("r"),
-      z12.swl(a24("s"), z12.swr(a24("s"), z12.swr(a24("r"), z12.swr(a24("q"), i23.i(a24("p"))))))
-    )
-  )
-);
-var ch2permutation4 = challenge({ rules: rules24, goal: goal22, solution: solution22 });
+var pinned22 = ["nl", "nr"];
+var goal22 = sequent([], [o11.p1.negation(a24("r")), a24("r")]);
+var solution22 = z19.nr(i23.i(a24("r")));
+var ch3negation2 = tutorial({ rules: rules24, goal: goal22, solution: solution22, pinned: pinned22 });
 
-// src/challenges/ch2-permutation-5.ts
-var { a: a25, o: o12, z: z13, i: i24 } = rk;
+// src/challenges/ch3-negation-3.ts
+var { a: a25, o: o12, z: z20, i: i24 } = rk;
 var rules25 = [
   "i",
   "swl",
@@ -2699,25 +2943,17 @@ var rules25 = [
   "sRotLF",
   "sRotRF",
   "sRotLB",
-  "sRotRB"
+  "sRotRB",
+  "nl",
+  "nr"
 ];
-var goal23 = sequent(
-  [o12.p2.conjunction(a25("p"), a25("q")), o12.p2.conjunction(a25("p"), a25("q"))],
-  [o12.p2.conjunction(a25("p"), a25("q")), o12.p2.disjunction(a25("p"), a25("q"))]
-);
-var solution23 = z13.sRotRF(
-  z13.swl(
-    o12.p2.conjunction(a25("p"), a25("q")),
-    z13.swr(
-      o12.p2.disjunction(a25("p"), a25("q")),
-      i24.i(o12.p2.conjunction(a25("p"), a25("q")))
-    )
-  )
-);
-var ch2permutation5 = challenge({ rules: rules25, goal: goal23, solution: solution23 });
+var pinned23 = ["nl", "nr"];
+var goal23 = sequent([o12.p1.negation(o12.p1.negation(a25("q")))], [a25("q")]);
+var solution23 = z20.nl(z20.nr(i24.i(a25("q"))));
+var ch3negation3 = tutorial({ rules: rules25, goal: goal23, solution: solution23, pinned: pinned23 });
 
-// src/challenges/ch2-permutation-6.ts
-var { a: a26, o: o13, z: z14, i: i25 } = rk;
+// src/challenges/ch3-negation-4.ts
+var { a: a26, o: o13, z: z21, i: i25 } = rk;
 var rules26 = [
   "i",
   "swl",
@@ -2725,39 +2961,20 @@ var rules26 = [
   "sRotLF",
   "sRotRF",
   "sRotLB",
-  "sRotRB"
+  "sRotRB",
+  "nl",
+  "nr"
 ];
+var pinned24 = ["nl", "nr"];
 var goal24 = sequent(
-  [
-    o13.p2.conjunction(a26("q"), a26("s")),
-    o13.p2.conjunction(a26("q"), a26("s")),
-    o13.p2.conjunction(a26("q"), a26("s"))
-  ],
-  [
-    o13.p2.conjunction(a26("q"), a26("s")),
-    o13.p2.conjunction(a26("s"), a26("q")),
-    o13.p2.conjunction(a26("s"), a26("q"))
-  ]
+  [o13.p1.negation(o13.p1.negation(a26("s")))],
+  [o13.p1.negation(o13.p1.negation(o13.p1.negation(o13.p1.negation(a26("s")))))]
 );
-var solution24 = z14.sRotRB(
-  z14.swl(
-    o13.p2.conjunction(a26("q"), a26("s")),
-    z14.swl(
-      o13.p2.conjunction(a26("q"), a26("s")),
-      z14.swr(
-        o13.p2.conjunction(a26("s"), a26("q")),
-        z14.swr(
-          o13.p2.conjunction(a26("s"), a26("q")),
-          i25.i(o13.p2.conjunction(a26("q"), a26("s")))
-        )
-      )
-    )
-  )
-);
-var ch2permutation6 = challenge({ rules: rules26, goal: goal24, solution: solution24 });
+var solution24 = z21.nr(z21.nl(i25.i(o13.p1.negation(o13.p1.negation(a26("s"))))));
+var ch3negation4 = tutorial({ rules: rules26, goal: goal24, solution: solution24, pinned: pinned24 });
 
-// src/challenges/ch2-permutation-7.ts
-var { a: a27, o: o14, z: z15, i: i26 } = rk;
+// src/challenges/ch3-negation-5.ts
+var { a: a27, o: o14, z: z22, i: i26 } = rk;
 var rules27 = [
   "i",
   "swl",
@@ -2765,41 +2982,28 @@ var rules27 = [
   "sRotLF",
   "sRotRF",
   "sRotLB",
-  "sRotRB"
+  "sRotRB",
+  "nl",
+  "nr"
 ];
+var pinned25 = ["nl", "nr"];
 var goal25 = sequent(
+  [o14.p1.negation(o14.p1.negation(o14.p2.conjunction(a27("p"), a27("q"))))],
   [
-    o14.p2.implication(a27("q"), a27("p")),
-    o14.p2.implication(a27("p"), a27("s")),
-    o14.p2.implication(a27("s"), a27("r"))
-  ],
-  [
-    o14.p2.implication(a27("r"), a27("p")),
-    o14.p2.implication(a27("p"), a27("s")),
-    o14.p2.implication(a27("s"), a27("q"))
-  ]
-);
-var solution25 = z15.sRotLF(
-  z15.sRotRF(
-    z15.swl(
-      o14.p2.implication(a27("q"), a27("p")),
-      z15.swl(
-        o14.p2.implication(a27("s"), a27("r")),
-        z15.swr(
-          o14.p2.implication(a27("s"), a27("q")),
-          z15.swr(
-            o14.p2.implication(a27("r"), a27("p")),
-            i26.i(o14.p2.implication(a27("p"), a27("s")))
-          )
-        )
+    o14.p1.negation(
+      o14.p1.negation(
+        o14.p1.negation(o14.p1.negation(o14.p2.conjunction(a27("p"), a27("q"))))
       )
     )
-  )
+  ]
 );
-var ch2permutation7 = challenge({ rules: rules27, goal: goal25, solution: solution25 });
+var solution25 = z22.nr(
+  z22.nl(i26.i(o14.p1.negation(o14.p1.negation(o14.p2.conjunction(a27("p"), a27("q"))))))
+);
+var ch3negation5 = tutorial({ rules: rules27, goal: goal25, solution: solution25, pinned: pinned25 });
 
-// src/challenges/ch2-permutation-8.ts
-var { a: a28, o: o15, z: z16, i: i27 } = rk;
+// src/challenges/ch3-negation-6.ts
+var { a: a28, o: o15, z: z23, i: i27 } = rk;
 var rules28 = [
   "i",
   "swl",
@@ -2807,49 +3011,34 @@ var rules28 = [
   "sRotLF",
   "sRotRF",
   "sRotLB",
-  "sRotRB"
+  "sRotRB",
+  "nl",
+  "nr"
 ];
+var pinned26 = ["nl", "nr"];
 var goal26 = sequent(
   [
-    o15.p2.conjunction(a28("s"), a28("q")),
-    a28("r"),
-    o15.p2.implication(a28("q"), a28("p")),
-    o15.p1.negation(a28("r"))
+    o15.p1.negation(o15.p1.negation(a28("p"))),
+    o15.p1.negation(o15.p1.negation(o15.p1.negation(a28("p"))))
   ],
   [
-    o15.p1.negation(a28("p")),
-    o15.p2.implication(a28("s"), a28("q")),
-    o15.p1.negation(a28("r")),
-    o15.p2.disjunction(a28("q"), a28("p"))
+    o15.p1.negation(o15.p1.negation(a28("p"))),
+    o15.p1.negation(o15.p1.negation(o15.p1.negation(a28("p"))))
   ]
 );
-var solution26 = z16.sRotLB(
-  z16.sRotRF(
-    z16.swl(
-      o15.p2.implication(a28("q"), a28("p")),
-      z16.swl(
-        a28("r"),
-        z16.swl(
-          o15.p2.conjunction(a28("s"), a28("q")),
-          z16.swr(
-            o15.p2.disjunction(a28("q"), a28("p")),
-            z16.swr(
-              o15.p1.negation(a28("p")),
-              z16.swr(
-                o15.p2.implication(a28("s"), a28("q")),
-                i27.i(o15.p1.negation(a28("r")))
-              )
-            )
-          )
-        )
-      )
+var solution26 = z23.sRotLF(
+  z23.swl(
+    o15.p1.negation(o15.p1.negation(a28("p"))),
+    z23.swr(
+      o15.p1.negation(o15.p1.negation(a28("p"))),
+      i27.i(o15.p1.negation(o15.p1.negation(o15.p1.negation(a28("p")))))
     )
   )
 );
-var ch2permutation8 = challenge({ rules: rules28, goal: goal26, solution: solution26 });
+var ch3negation6 = tutorial({ rules: rules28, goal: goal26, solution: solution26, pinned: pinned26 });
 
-// src/challenges/ch2-permutation-9.ts
-var { a: a29, o: o16, z: z17, i: i28 } = rk;
+// src/challenges/ch3-negation-7.ts
+var { a: a29, o: o16, z: z24, i: i28 } = rk;
 var rules29 = [
   "i",
   "swl",
@@ -2857,25 +3046,107 @@ var rules29 = [
   "sRotLF",
   "sRotRF",
   "sRotLB",
-  "sRotRB"
+  "sRotRB",
+  "nl",
+  "nr"
 ];
+var pinned27 = ["nl", "nr"];
 var goal27 = sequent(
-  [a29("p"), o16.p1.negation(a29("p")), a29("q"), a29("r")],
-  [o16.p1.negation(a29("q")), o16.p1.negation(a29("p")), a29("s"), o16.p1.negation(a29("r"))]
+  [
+    o16.p1.negation(o16.p1.negation(a29("p"))),
+    o16.p1.negation(o16.p1.negation(o16.p1.negation(a29("p"))))
+  ],
+  [
+    o16.p1.negation(o16.p1.negation(a29("p"))),
+    o16.p1.negation(o16.p1.negation(o16.p1.negation(a29("p"))))
+  ]
 );
-var solution27 = z17.swr(
-  o16.p1.negation(a29("q")),
-  z17.sRotLF(
-    z17.sRotRB(
-      z17.swl(
-        a29("p"),
-        z17.swl(
-          a29("r"),
-          z17.swl(
-            a29("q"),
-            z17.swr(
-              a29("s"),
-              z17.swr(o16.p1.negation(a29("r")), i28.i(o16.p1.negation(a29("p"))))
+var solution27 = z24.sRotLF(
+  z24.swl(
+    o16.p1.negation(o16.p1.negation(a29("p"))),
+    z24.swr(
+      o16.p1.negation(o16.p1.negation(a29("p"))),
+      i28.i(o16.p1.negation(o16.p1.negation(o16.p1.negation(a29("p")))))
+    )
+  )
+);
+var ch3negation7 = tutorial({ rules: rules29, goal: goal27, solution: solution27, pinned: pinned27 });
+
+// src/challenges/ch3-negation-8.ts
+var { a: a30, o: o17, z: z25, i: i29 } = rk;
+var rules30 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB",
+  "nl",
+  "nr"
+];
+var pinned28 = ["nl", "nr"];
+var goal28 = sequent(
+  [
+    o17.p1.negation(o17.p1.negation(a30("p"))),
+    o17.p2.conjunction(o17.p1.negation(a30("p")), o17.p1.negation(a30("q"))),
+    o17.p1.negation(o17.p1.negation(o17.p1.negation(a30("q"))))
+  ],
+  [
+    o17.p1.negation(o17.p1.negation(o17.p1.negation(a30("p")))),
+    o17.p2.conjunction(o17.p1.negation(a30("p")), o17.p1.negation(a30("q"))),
+    o17.p1.negation(o17.p1.negation(a30("q")))
+  ]
+);
+var solution28 = z25.sRotLF(
+  z25.sRotRF(
+    z25.swl(
+      o17.p1.negation(o17.p1.negation(a30("p"))),
+      z25.swl(
+        o17.p1.negation(o17.p1.negation(o17.p1.negation(a30("q")))),
+        z25.swr(
+          o17.p1.negation(o17.p1.negation(a30("q"))),
+          z25.swr(
+            o17.p1.negation(o17.p1.negation(o17.p1.negation(a30("p")))),
+            i29.i(o17.p2.conjunction(o17.p1.negation(a30("p")), o17.p1.negation(a30("q"))))
+          )
+        )
+      )
+    )
+  )
+);
+var ch3negation8 = tutorial({ rules: rules30, goal: goal28, solution: solution28, pinned: pinned28 });
+
+// src/challenges/ch3-negation-9.ts
+var { a: a31, o: o18, z: z26, i: i30 } = rk;
+var rules31 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB",
+  "nl",
+  "nr"
+];
+var pinned29 = ["nl", "nr"];
+var goal29 = sequent(
+  [o18.p1.negation(a31("p")), o18.p1.negation(a31("s")), o18.p1.negation(a31("p")), a31("r")],
+  [a31("q"), o18.p1.negation(a31("q")), a31("s"), o18.p1.negation(a31("r"))]
+);
+var solution29 = z26.sRotRB(
+  z26.nr(
+    z26.sRotLB(
+      z26.swl(
+        a31("r"),
+        z26.swl(
+          o18.p1.negation(a31("p")),
+          z26.swl(
+            o18.p1.negation(a31("s")),
+            z26.swl(
+              o18.p1.negation(a31("p")),
+              z26.swr(a31("s"), z26.swr(o18.p1.negation(a31("r")), i30.i(a31("q"))))
             )
           )
         )
@@ -2883,81 +3154,95 @@ var solution27 = z17.swr(
     )
   )
 );
-var ch2permutation9 = challenge({ rules: rules29, goal: goal27, solution: solution27 });
+var ch3negation9 = tutorial({ rules: rules31, goal: goal29, solution: solution29, pinned: pinned29 });
 
-// src/challenges/ch3-negation-1.ts
-var { a: a30, o: o17, z: z18, i: i29 } = rk;
-var rules30 = ["i", "nl", "nr"];
-var goal28 = sequent([a30("r"), o17.p1.negation(a30("r"))], []);
-var solution28 = z18.nl(i29.i(a30("r")));
-var ch3negation1 = challenge({ rules: rules30, goal: goal28, solution: solution28 });
+// src/challenges/ch3-negation-10.ts
+var { a: a32, o: o19, i: i31 } = rk;
+var rules32 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB",
+  "nl",
+  "nr"
+];
+var pinned30 = ["nl", "nr"];
+var goal30 = sequent([o19.p1.negation(a32("p"))], [o19.p1.negation(a32("p"))]);
+var solution30 = i31.i(o19.p1.negation(a32("p")));
+var ch3negation10 = tutorial({ rules: rules32, goal: goal30, solution: solution30, pinned: pinned30 });
 
-// src/challenges/ch3-negation-2.ts
-var { a: a31, o: o18, z: z19, i: i30 } = rk;
-var rules31 = ["i", "nl", "nr"];
-var goal29 = sequent([], [o18.p1.negation(a31("r")), a31("r")]);
-var solution29 = z19.nr(i30.i(a31("r")));
-var ch3negation2 = challenge({ rules: rules31, goal: goal29, solution: solution29 });
+// src/challenges/ch4-theorem-1.ts
+var { a: a33, o: o20, z: z27, i: i32 } = rk;
+var rules33 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB",
+  "nl",
+  "nr",
+  "ir"
+];
+var pinned31 = ["ir"];
+var goal31 = conclusion(o20.p2.implication(a33("q"), a33("q")));
+var solution31 = z27.ir(i32.i(a33("q")));
+var ch4theorem1 = tutorial({ rules: rules33, goal: goal31, solution: solution31, pinned: pinned31 });
 
-// src/challenges/ch3-negation-3.ts
-var { a: a32, o: o19, z: z20, i: i31 } = rk;
-var rules32 = ["i", "nl", "nr"];
-var goal30 = sequent([o19.p1.negation(o19.p1.negation(a32("q")))], [a32("q")]);
-var solution30 = z20.nl(z20.nr(i31.i(a32("q"))));
-var ch3negation3 = challenge({ rules: rules32, goal: goal30, solution: solution30 });
-
-// src/challenges/ch3-negation-4.ts
-var { a: a33, o: o20, z: z21, i: i32 } = rk;
-var rules33 = ["i", "nl", "nr"];
-var goal31 = sequent(
-  [o20.p1.negation(o20.p1.negation(a33("s")))],
-  [o20.p1.negation(o20.p1.negation(o20.p1.negation(o20.p1.negation(a33("s")))))]
-);
-var solution31 = z21.nr(z21.nl(i32.i(o20.p1.negation(o20.p1.negation(a33("s"))))));
-var ch3negation4 = challenge({ rules: rules33, goal: goal31, solution: solution31 });
-
-// src/challenges/ch3-negation-5.ts
-var { a: a34, o: o21, z: z22, i: i33 } = rk;
-var rules34 = ["i", "swl", "swr", "nl", "nr"];
-var goal32 = sequent(
-  [o21.p1.negation(o21.p1.negation(o21.p2.conjunction(a34("p"), a34("q"))))],
-  [
-    o21.p1.negation(
-      o21.p1.negation(
-        o21.p1.negation(o21.p1.negation(o21.p2.conjunction(a34("p"), a34("q"))))
-      )
-    )
-  ]
-);
-var solution32 = z22.nr(
-  z22.nl(i33.i(o21.p1.negation(o21.p1.negation(o21.p2.conjunction(a34("p"), a34("q"))))))
-);
-var ch3negation5 = challenge({ rules: rules34, goal: goal32, solution: solution32 });
-
-// src/challenges/ch3-negation-6.ts
-var { a: a35, o: o22, z: z23, i: i34 } = rk;
-var rules35 = ["i", "swl", "swr", "nl", "nr"];
-var goal33 = sequent(
-  [
-    o22.p1.negation(o22.p1.negation(a35("p"))),
-    o22.p1.negation(o22.p1.negation(o22.p1.negation(a35("p"))))
-  ],
-  [
-    o22.p1.negation(o22.p1.negation(a35("p"))),
-    o22.p1.negation(o22.p1.negation(o22.p1.negation(a35("p"))))
-  ]
-);
-var solution33 = z23.swr(
-  o22.p1.negation(o22.p1.negation(a35("p"))),
-  z23.swr(
-    o22.p1.negation(o22.p1.negation(o22.p1.negation(a35("p")))),
-    z23.nl(i34.i(o22.p1.negation(o22.p1.negation(a35("p")))))
+// src/challenges/ch4-theorem-2.ts
+var { a: a34, o: o21, z: z28, i: i33 } = rk;
+var rules34 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB",
+  "nl",
+  "nr",
+  "ir"
+];
+var pinned32 = ["ir"];
+var goal32 = conclusion(
+  o21.p2.implication(
+    o21.p2.conjunction(a34("q"), a34("q")),
+    o21.p2.conjunction(a34("q"), a34("q"))
   )
 );
-var ch3negation6 = challenge({ rules: rules35, goal: goal33, solution: solution33 });
+var solution32 = z28.ir(i33.i(o21.p2.conjunction(a34("q"), a34("q"))));
+var ch4theorem2 = tutorial({ rules: rules34, goal: goal32, solution: solution32, pinned: pinned32 });
 
-// src/challenges/ch3-negation-7.ts
-var { a: a36, o: o23, z: z24, i: i35 } = rk;
+// src/challenges/ch4-theorem-3.ts
+var { a: a35, o: o22, z: z29, i: i34 } = rk;
+var rules35 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB",
+  "nl",
+  "nr",
+  "ir"
+];
+var pinned33 = ["ir"];
+var goal33 = conclusion(
+  o22.p2.implication(
+    o22.p2.implication(a35("p"), a35("r")),
+    o22.p2.implication(a35("p"), a35("r"))
+  )
+);
+var solution33 = z29.ir(i34.i(o22.p2.implication(a35("p"), a35("r"))));
+var ch4theorem3 = tutorial({ rules: rules35, goal: goal33, solution: solution33, pinned: pinned33 });
+
+// src/challenges/ch4-theorem-4.ts
+var { a: a36, o: o23, z: z30, i: i35 } = rk;
 var rules36 = [
   "i",
   "swl",
@@ -2967,31 +3252,23 @@ var rules36 = [
   "sRotLB",
   "sRotRB",
   "nl",
-  "nr"
+  "nr",
+  "ir"
 ];
-var goal34 = sequent(
-  [
-    o23.p1.negation(o23.p1.negation(a36("p"))),
-    o23.p1.negation(o23.p1.negation(o23.p1.negation(a36("p"))))
-  ],
-  [
-    o23.p1.negation(o23.p1.negation(a36("p"))),
-    o23.p1.negation(o23.p1.negation(o23.p1.negation(a36("p"))))
-  ]
-);
-var solution34 = z24.sRotLF(
-  z24.swl(
-    o23.p1.negation(o23.p1.negation(a36("p"))),
-    z24.swr(
-      o23.p1.negation(o23.p1.negation(a36("p"))),
-      i35.i(o23.p1.negation(o23.p1.negation(o23.p1.negation(a36("p")))))
-    )
+var pinned34 = ["ir"];
+var goal34 = conclusion(
+  o23.p2.implication(
+    o23.p2.implication(a36("q"), o23.p2.implication(a36("r"), a36("q"))),
+    o23.p2.implication(a36("q"), o23.p2.implication(a36("r"), a36("q")))
   )
 );
-var ch3negation7 = challenge({ rules: rules36, goal: goal34, solution: solution34 });
+var solution34 = z30.ir(
+  i35.i(o23.p2.implication(a36("q"), o23.p2.implication(a36("r"), a36("q"))))
+);
+var ch4theorem4 = tutorial({ rules: rules36, goal: goal34, solution: solution34, pinned: pinned34 });
 
-// src/challenges/ch3-negation-8.ts
-var { a: a37, o: o24, z: z25, i: i36 } = rk;
+// src/challenges/ch4-theorem-5.ts
+var { a: a37, o: o24, z: z31, i: i36 } = rk;
 var rules37 = [
   "i",
   "swl",
@@ -3001,41 +3278,18 @@ var rules37 = [
   "sRotLB",
   "sRotRB",
   "nl",
-  "nr"
+  "nr",
+  "ir"
 ];
-var goal35 = sequent(
-  [
-    o24.p1.negation(o24.p1.negation(a37("p"))),
-    o24.p2.conjunction(o24.p1.negation(a37("p")), o24.p1.negation(a37("q"))),
-    o24.p1.negation(o24.p1.negation(o24.p1.negation(a37("q"))))
-  ],
-  [
-    o24.p1.negation(o24.p1.negation(o24.p1.negation(a37("p")))),
-    o24.p2.conjunction(o24.p1.negation(a37("p")), o24.p1.negation(a37("q"))),
-    o24.p1.negation(o24.p1.negation(a37("q")))
-  ]
+var pinned35 = ["ir"];
+var goal35 = conclusion(
+  o24.p2.implication(a37("q"), o24.p2.implication(a37("r"), a37("q")))
 );
-var solution35 = z25.sRotLF(
-  z25.sRotRF(
-    z25.swl(
-      o24.p1.negation(o24.p1.negation(a37("p"))),
-      z25.swl(
-        o24.p1.negation(o24.p1.negation(o24.p1.negation(a37("q")))),
-        z25.swr(
-          o24.p1.negation(o24.p1.negation(a37("q"))),
-          z25.swr(
-            o24.p1.negation(o24.p1.negation(o24.p1.negation(a37("p")))),
-            i36.i(o24.p2.conjunction(o24.p1.negation(a37("p")), o24.p1.negation(a37("q"))))
-          )
-        )
-      )
-    )
-  )
-);
-var ch3negation8 = challenge({ rules: rules37, goal: goal35, solution: solution35 });
+var solution35 = z31.ir(z31.ir(z31.swl(a37("r"), i36.i(a37("q")))));
+var ch4theorem5 = tutorial({ rules: rules37, goal: goal35, solution: solution35, pinned: pinned35 });
 
-// src/challenges/ch3-negation-9.ts
-var { a: a38, o: o25, z: z26, i: i37 } = rk;
+// src/challenges/ch4-theorem-6.ts
+var { a: a38, o: o25, z: z32, i: i37 } = rk;
 var rules38 = [
   "i",
   "swl",
@@ -3045,24 +3299,444 @@ var rules38 = [
   "sRotLB",
   "sRotRB",
   "nl",
-  "nr"
+  "nr",
+  "ir"
 ];
-var goal36 = sequent(
-  [o25.p1.negation(a38("p")), o25.p1.negation(a38("s")), o25.p1.negation(a38("p")), a38("r")],
-  [a38("q"), o25.p1.negation(a38("q")), a38("s"), o25.p1.negation(a38("r"))]
+var pinned36 = ["ir"];
+var goal36 = conclusion(
+  o25.p2.implication(a38("r"), o25.p2.implication(a38("q"), a38("q")))
 );
-var solution36 = z26.sRotRB(
-  z26.nr(
-    z26.sRotLB(
-      z26.swl(
-        a38("r"),
-        z26.swl(
-          o25.p1.negation(a38("p")),
-          z26.swl(
-            o25.p1.negation(a38("s")),
-            z26.swl(
-              o25.p1.negation(a38("p")),
-              z26.swr(a38("s"), z26.swr(o25.p1.negation(a38("r")), i37.i(a38("q"))))
+var solution36 = z32.ir(z32.ir(z32.sRotLF(z32.swl(a38("r"), i37.i(a38("q"))))));
+var ch4theorem6 = tutorial({ rules: rules38, goal: goal36, solution: solution36, pinned: pinned36 });
+
+// src/challenges/ch4-theorem-7.ts
+var { a: a39, o: o26, z: z33, i: i38 } = rk;
+var rules39 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB",
+  "nl",
+  "nr",
+  "ir"
+];
+var pinned37 = ["ir"];
+var goal37 = conclusion(
+  o26.p2.implication(
+    o26.p2.implication(a39("p"), o26.p2.implication(a39("q"), o26.p1.negation(a39("p")))),
+    o26.p2.implication(a39("p"), a39("p"))
+  )
+);
+var solution37 = z33.ir(
+  z33.ir(
+    z33.sRotLF(
+      z33.swl(
+        o26.p2.implication(
+          a39("p"),
+          o26.p2.implication(a39("q"), o26.p1.negation(a39("p")))
+        ),
+        i38.i(a39("p"))
+      )
+    )
+  )
+);
+var ch4theorem7 = tutorial({ rules: rules39, goal: goal37, solution: solution37, pinned: pinned37 });
+
+// src/challenges/ch4-theorem-8.ts
+var { a: a40, o: o27, z: z34, i: i39 } = rk;
+var rules40 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB",
+  "nl",
+  "nr",
+  "ir"
+];
+var pinned38 = ["ir"];
+var goal38 = conclusion(
+  o27.p2.implication(
+    o27.p1.negation(o27.p1.negation(a40("s"))),
+    o27.p1.negation(o27.p1.negation(o27.p1.negation(o27.p1.negation(a40("s")))))
+  )
+);
+var solution38 = z34.ir(z34.nr(z34.nl(i39.i(o27.p1.negation(o27.p1.negation(a40("s")))))));
+var ch4theorem8 = tutorial({ rules: rules40, goal: goal38, solution: solution38, pinned: pinned38 });
+
+// src/challenges/ch4-theorem-9.ts
+var { a: a41, o: o28, z: z35, i: i40 } = rk;
+var rules41 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB",
+  "nl",
+  "nr",
+  "ir"
+];
+var pinned39 = ["ir"];
+var goal39 = conclusion(
+  o28.p2.implication(
+    o28.p1.negation(o28.p1.negation(o28.p2.conjunction(a41("p"), a41("q")))),
+    o28.p1.negation(
+      o28.p1.negation(
+        o28.p1.negation(o28.p1.negation(o28.p2.conjunction(a41("p"), a41("q"))))
+      )
+    )
+  )
+);
+var solution39 = z35.ir(
+  z35.nr(
+    z35.nl(i40.i(o28.p1.negation(o28.p1.negation(o28.p2.conjunction(a41("p"), a41("q"))))))
+  )
+);
+var ch4theorem9 = tutorial({ rules: rules41, goal: goal39, solution: solution39, pinned: pinned39 });
+
+// src/challenges/ch4-theorem-10.ts
+var { a: a42, o: o29, i: i41 } = rk;
+var rules42 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB",
+  "nl",
+  "nr",
+  "ir"
+];
+var pinned40 = ["ir"];
+var goal40 = sequent(
+  [o29.p2.implication(a42("r"), a42("p"))],
+  [o29.p2.implication(a42("r"), a42("p"))]
+);
+var solution40 = i41.i(o29.p2.implication(a42("r"), a42("p")));
+var ch4theorem10 = tutorial({ rules: rules42, goal: goal40, solution: solution40, pinned: pinned40 });
+
+// src/challenges/ch5-composition-1.ts
+var { a: a43, o: o30, z: z36, i: i42 } = rk;
+var rules43 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB",
+  "nl",
+  "nr",
+  "cl",
+  "dr",
+  "ir"
+];
+var pinned41 = ["cl", "dr"];
+var goal41 = sequent([o30.p2.conjunction(a43("p"), a43("q"))], [a43("q"), a43("p")]);
+var solution41 = z36.cl(z36.swl(a43("q"), z36.swr(a43("q"), i42.i(a43("p")))));
+var ch5composition1 = tutorial({ rules: rules43, goal: goal41, solution: solution41, pinned: pinned41 });
+
+// src/challenges/ch5-composition-2.ts
+var { a: a44, o: o31, z: z37, i: i43 } = rk;
+var rules44 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB",
+  "nl",
+  "nr",
+  "cl",
+  "dr",
+  "ir"
+];
+var pinned42 = ["cl", "dr"];
+var goal42 = sequent([a44("q"), a44("p")], [o31.p2.disjunction(a44("p"), a44("q"))]);
+var solution42 = z37.dr(z37.swl(a44("p"), z37.swr(a44("p"), i43.i(a44("q")))));
+var ch5composition2 = tutorial({ rules: rules44, goal: goal42, solution: solution42, pinned: pinned42 });
+
+// src/challenges/ch5-composition-3.ts
+var { a: a45, o: o32, z: z38, i: i44 } = rk;
+var rules45 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB",
+  "nl",
+  "nr",
+  "cl",
+  "dr",
+  "ir"
+];
+var pinned43 = ["cl", "dr"];
+var goal43 = sequent(
+  [o32.p2.conjunction(a45("q"), a45("p"))],
+  [o32.p2.disjunction(a45("p"), a45("q"))]
+);
+var solution43 = z38.cl(z38.dr(z38.swl(a45("p"), z38.swr(a45("p"), i44.i(a45("q"))))));
+var ch5composition3 = tutorial({ rules: rules45, goal: goal43, solution: solution43, pinned: pinned43 });
+
+// src/challenges/ch5-composition-4.ts
+var { a: a46, o: o33, z: z39, i: i45 } = rk;
+var rules46 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB",
+  "nl",
+  "nr",
+  "cl",
+  "dr",
+  "ir"
+];
+var pinned44 = ["cl", "dr"];
+var goal44 = sequent(
+  [o33.p2.conjunction(o33.p2.conjunction(a46("r"), a46("p")), a46("s"))],
+  [o33.p2.disjunction(a46("s"), o33.p2.disjunction(a46("p"), a46("r")))]
+);
+var solution44 = z39.cl(
+  z39.dr(
+    z39.sRotLF(
+      z39.sRotRF(
+        z39.swl(
+          o33.p2.conjunction(a46("r"), a46("p")),
+          z39.swr(o33.p2.disjunction(a46("p"), a46("r")), i45.i(a46("s")))
+        )
+      )
+    )
+  )
+);
+var ch5composition4 = tutorial({ rules: rules46, goal: goal44, solution: solution44, pinned: pinned44 });
+
+// src/challenges/ch5-composition-5.ts
+var { a: a47, o: o34, z: z40, i: i46 } = rk;
+var rules47 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB",
+  "nl",
+  "nr",
+  "cl",
+  "dr",
+  "ir"
+];
+var pinned45 = ["cl", "dr"];
+var goal45 = sequent(
+  [
+    o34.p2.conjunction(
+      o34.p2.conjunction(a47("r"), a47("p")),
+      o34.p2.disjunction(a47("p"), a47("r"))
+    )
+  ],
+  [
+    o34.p2.disjunction(
+      o34.p2.conjunction(a47("p"), a47("r")),
+      o34.p2.disjunction(a47("r"), a47("p"))
+    )
+  ]
+);
+var solution45 = z40.cl(
+  z40.dr(
+    z40.swl(
+      o34.p2.disjunction(a47("p"), a47("r")),
+      z40.cl(
+        z40.swr(
+          o34.p2.conjunction(a47("p"), a47("r")),
+          z40.dr(z40.sRotLF(z40.swl(a47("r"), z40.swr(a47("r"), i46.i(a47("p"))))))
+        )
+      )
+    )
+  )
+);
+var ch5composition5 = tutorial({ rules: rules47, goal: goal45, solution: solution45, pinned: pinned45 });
+
+// src/challenges/ch5-composition-6.ts
+var { a: a48, o: o35, z: z41, i: i47 } = rk;
+var rules48 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB",
+  "nl",
+  "nr",
+  "cl",
+  "dr",
+  "ir"
+];
+var pinned46 = ["cl", "dr"];
+var goal46 = sequent(
+  [
+    o35.p2.conjunction(
+      o35.p2.disjunction(a48("r"), a48("p")),
+      o35.p2.disjunction(a48("p"), a48("s"))
+    )
+  ],
+  [
+    o35.p2.disjunction(
+      o35.p2.disjunction(a48("s"), a48("p")),
+      o35.p2.disjunction(a48("r"), a48("p"))
+    )
+  ]
+);
+var solution46 = z41.cl(
+  z41.dr(
+    z41.swl(
+      o35.p2.disjunction(a48("p"), a48("s")),
+      z41.swr(
+        o35.p2.disjunction(a48("s"), a48("p")),
+        i47.i(o35.p2.disjunction(a48("r"), a48("p")))
+      )
+    )
+  )
+);
+var ch5composition6 = tutorial({ rules: rules48, goal: goal46, solution: solution46, pinned: pinned46 });
+
+// src/challenges/ch5-composition-7.ts
+var { a: a49, o: o36, z: z42, i: i48 } = rk;
+var rules49 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB",
+  "nl",
+  "nr",
+  "cl",
+  "dr",
+  "ir"
+];
+var pinned47 = ["cl", "dr"];
+var goal47 = sequent(
+  [
+    o36.p2.conjunction(
+      o36.p2.conjunction(a49("p"), a49("q")),
+      o36.p2.implication(a49("r"), a49("q"))
+    )
+  ],
+  [
+    o36.p2.disjunction(
+      o36.p2.implication(a49("q"), a49("r")),
+      o36.p2.disjunction(a49("p"), a49("q"))
+    )
+  ]
+);
+var solution47 = z42.dr(
+  z42.ir(
+    z42.swr(
+      a49("r"),
+      z42.dr(
+        z42.sRotLF(
+          z42.swl(
+            o36.p2.conjunction(
+              o36.p2.conjunction(a49("p"), a49("q")),
+              o36.p2.implication(a49("r"), a49("q"))
+            ),
+            z42.swr(a49("p"), i48.i(a49("q")))
+          )
+        )
+      )
+    )
+  )
+);
+var ch5composition7 = tutorial({ rules: rules49, goal: goal47, solution: solution47, pinned: pinned47 });
+
+// src/challenges/ch5-composition-8.ts
+var { a: a50, o: o37, z: z43, i: i49 } = rk;
+var rules50 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB",
+  "nl",
+  "nr",
+  "cl",
+  "dr",
+  "ir"
+];
+var pinned48 = ["cl", "dr"];
+var goal48 = conclusion(
+  o37.p2.implication(
+    o37.p2.conjunction(a50("q"), o37.p1.negation(a50("q"))),
+    o37.p2.disjunction(a50("r"), a50("s"))
+  )
+);
+var solution48 = z43.ir(
+  z43.cl(z43.nl(z43.sRotRF(z43.swr(o37.p2.disjunction(a50("r"), a50("s")), i49.i(a50("q"))))))
+);
+var ch5composition8 = tutorial({ rules: rules50, goal: goal48, solution: solution48, pinned: pinned48 });
+
+// src/challenges/ch5-composition-9.ts
+var { a: a51, o: o38, z: z44, i: i50 } = rk;
+var rules51 = [
+  "i",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB",
+  "nl",
+  "nr",
+  "cl",
+  "dr",
+  "ir"
+];
+var pinned49 = ["cl", "dr"];
+var goal49 = conclusion(
+  o38.p2.implication(
+    o38.p2.conjunction(
+      o38.p2.conjunction(o38.p1.negation(a51("p")), o38.p1.negation(a51("s"))),
+      o38.p2.conjunction(o38.p1.negation(a51("p")), a51("r"))
+    ),
+    o38.p2.disjunction(
+      o38.p2.disjunction(a51("q"), o38.p1.negation(a51("q"))),
+      o38.p2.disjunction(a51("s"), o38.p1.negation(a51("r")))
+    )
+  )
+);
+var solution49 = z44.ir(
+  z44.dr(
+    z44.dr(
+      z44.sRotRB(
+        z44.nr(
+          z44.sRotLF(
+            z44.swl(
+              o38.p2.conjunction(
+                o38.p2.conjunction(o38.p1.negation(a51("p")), o38.p1.negation(a51("s"))),
+                o38.p2.conjunction(o38.p1.negation(a51("p")), a51("r"))
+              ),
+              z44.swr(
+                o38.p2.disjunction(a51("s"), o38.p1.negation(a51("r"))),
+                i50.i(a51("q"))
+              )
             )
           )
         )
@@ -3070,163 +3744,10 @@ var solution36 = z26.sRotRB(
     )
   )
 );
-var ch3negation9 = challenge({ rules: rules38, goal: goal36, solution: solution36 });
+var ch5composition9 = tutorial({ rules: rules51, goal: goal49, solution: solution49, pinned: pinned49 });
 
-// src/challenges/ch4-theorem-1.ts
-var { a: a39, o: o26, z: z27, i: i38 } = rk;
-var rules39 = ["i", "ir"];
-var goal37 = conclusion(o26.p2.implication(a39("q"), a39("q")));
-var solution37 = z27.ir(i38.i(a39("q")));
-var ch4theorem1 = challenge({ rules: rules39, goal: goal37, solution: solution37 });
-
-// src/challenges/ch4-theorem-2.ts
-var { a: a40, o: o27, z: z28, i: i39 } = rk;
-var rules40 = ["i", "ir"];
-var goal38 = conclusion(
-  o27.p2.implication(
-    o27.p2.conjunction(a40("q"), a40("q")),
-    o27.p2.conjunction(a40("q"), a40("q"))
-  )
-);
-var solution38 = z28.ir(i39.i(o27.p2.conjunction(a40("q"), a40("q"))));
-var ch4theorem2 = challenge({ rules: rules40, goal: goal38, solution: solution38 });
-
-// src/challenges/ch4-theorem-3.ts
-var { a: a41, o: o28, z: z29, i: i40 } = rk;
-var rules41 = ["i", "ir"];
-var goal39 = conclusion(
-  o28.p2.implication(
-    o28.p2.implication(a41("p"), a41("r")),
-    o28.p2.implication(a41("p"), a41("r"))
-  )
-);
-var solution39 = z29.ir(i40.i(o28.p2.implication(a41("p"), a41("r"))));
-var ch4theorem3 = challenge({ rules: rules41, goal: goal39, solution: solution39 });
-
-// src/challenges/ch4-theorem-4.ts
-var { a: a42, o: o29, z: z30, i: i41 } = rk;
-var rules42 = ["i", "ir"];
-var goal40 = conclusion(
-  o29.p2.implication(
-    o29.p2.implication(a42("q"), o29.p2.implication(a42("r"), a42("q"))),
-    o29.p2.implication(a42("q"), o29.p2.implication(a42("r"), a42("q")))
-  )
-);
-var solution40 = z30.ir(
-  i41.i(o29.p2.implication(a42("q"), o29.p2.implication(a42("r"), a42("q"))))
-);
-var ch4theorem4 = challenge({ rules: rules42, goal: goal40, solution: solution40 });
-
-// src/challenges/ch4-theorem-5.ts
-var { a: a43, o: o30, z: z31, i: i42 } = rk;
-var rules43 = ["i", "swl", "swr", "ir"];
-var goal41 = conclusion(
-  o30.p2.implication(a43("q"), o30.p2.implication(a43("r"), a43("q")))
-);
-var solution41 = z31.ir(z31.ir(z31.swl(a43("r"), i42.i(a43("q")))));
-var ch4theorem5 = challenge({ rules: rules43, goal: goal41, solution: solution41 });
-
-// src/challenges/ch4-theorem-6.ts
-var { a: a44, o: o31, z: z32, i: i43 } = rk;
-var rules44 = ["i", "swl", "swr", "ir"];
-var goal42 = conclusion(
-  o31.p2.implication(a44("r"), o31.p2.implication(a44("q"), a44("q")))
-);
-var solution42 = z32.ir(z32.swl(a44("r"), z32.ir(i43.i(a44("q")))));
-var ch4theorem6 = challenge({ rules: rules44, goal: goal42, solution: solution42 });
-
-// src/challenges/ch4-theorem-7.ts
-var { a: a45, o: o32, z: z33, i: i44 } = rk;
-var rules45 = ["i", "swl", "swr", "ir"];
-var goal43 = conclusion(
-  o32.p2.implication(
-    o32.p2.implication(a45("p"), o32.p2.implication(a45("q"), o32.p1.negation(a45("p")))),
-    o32.p2.implication(a45("p"), a45("p"))
-  )
-);
-var solution43 = z33.ir(
-  z33.swl(
-    o32.p2.implication(a45("p"), o32.p2.implication(a45("q"), o32.p1.negation(a45("p")))),
-    z33.ir(i44.i(a45("p")))
-  )
-);
-var ch4theorem7 = challenge({ rules: rules45, goal: goal43, solution: solution43 });
-
-// src/challenges/ch4-theorem-8.ts
-var { a: a46, o: o33, z: z34, i: i45 } = rk;
-var rules46 = ["i", "swl", "swr", "nl", "nr", "ir"];
-var goal44 = conclusion(
-  o33.p2.implication(
-    o33.p1.negation(o33.p1.negation(a46("s"))),
-    o33.p1.negation(o33.p1.negation(o33.p1.negation(o33.p1.negation(a46("s")))))
-  )
-);
-var solution44 = z34.ir(z34.nr(z34.nl(i45.i(o33.p1.negation(o33.p1.negation(a46("s")))))));
-var ch4theorem8 = challenge({ rules: rules46, goal: goal44, solution: solution44 });
-
-// src/challenges/ch4-theorem-9.ts
-var { a: a47, o: o34, z: z35, i: i46 } = rk;
-var rules47 = ["i", "swl", "swr", "nl", "nr", "ir"];
-var goal45 = conclusion(
-  o34.p2.implication(
-    o34.p1.negation(o34.p1.negation(o34.p2.conjunction(a47("p"), a47("q")))),
-    o34.p1.negation(
-      o34.p1.negation(
-        o34.p1.negation(o34.p1.negation(o34.p2.conjunction(a47("p"), a47("q"))))
-      )
-    )
-  )
-);
-var solution45 = z35.ir(
-  z35.nr(
-    z35.nl(i46.i(o34.p1.negation(o34.p1.negation(o34.p2.conjunction(a47("p"), a47("q"))))))
-  )
-);
-var ch4theorem9 = challenge({ rules: rules47, goal: goal45, solution: solution45 });
-
-// src/challenges/ch5-composition-1.ts
-var { a: a48, o: o35, z: z36, i: i47 } = rk;
-var rules48 = ["i", "swl", "swr", "cl", "dr"];
-var goal46 = sequent([o35.p2.conjunction(a48("p"), a48("q"))], [a48("q"), a48("p")]);
-var solution46 = z36.cl(z36.swl(a48("q"), z36.swr(a48("q"), i47.i(a48("p")))));
-var ch5composition1 = challenge({ rules: rules48, goal: goal46, solution: solution46 });
-
-// src/challenges/ch5-composition-2.ts
-var { a: a49, o: o36, z: z37, i: i48 } = rk;
-var rules49 = ["i", "swl", "swr", "cl", "dr"];
-var goal47 = sequent([a49("q"), a49("p")], [o36.p2.disjunction(a49("p"), a49("q"))]);
-var solution47 = z37.dr(z37.swl(a49("p"), z37.swr(a49("p"), i48.i(a49("q")))));
-var ch5composition2 = challenge({ rules: rules49, goal: goal47, solution: solution47 });
-
-// src/challenges/ch5-composition-3.ts
-var { a: a50, o: o37, z: z38, i: i49 } = rk;
-var rules50 = ["i", "swl", "swr", "cl", "dr"];
-var goal48 = sequent(
-  [o37.p2.conjunction(a50("q"), a50("p"))],
-  [o37.p2.disjunction(a50("p"), a50("q"))]
-);
-var solution48 = z38.cl(z38.dr(z38.swl(a50("p"), z38.swr(a50("p"), i49.i(a50("q"))))));
-var ch5composition3 = challenge({ rules: rules50, goal: goal48, solution: solution48 });
-
-// src/challenges/ch5-composition-4.ts
-var { a: a51, o: o38, z: z39, i: i50 } = rk;
-var rules51 = ["i", "swl", "swr", "cl", "dr"];
-var goal49 = sequent(
-  [o38.p2.conjunction(o38.p2.conjunction(a51("r"), a51("p")), a51("s"))],
-  [o38.p2.disjunction(a51("s"), o38.p2.disjunction(a51("p"), a51("r")))]
-);
-var solution49 = z39.cl(
-  z39.dr(
-    z39.swl(
-      a51("s"),
-      z39.cl(z39.swr(a51("s"), z39.dr(z39.swl(a51("p"), z39.swr(a51("p"), i50.i(a51("r")))))))
-    )
-  )
-);
-var ch5composition4 = challenge({ rules: rules51, goal: goal49, solution: solution49 });
-
-// src/challenges/ch5-composition-5.ts
-var { a: a52, o: o39, z: z40, i: i51 } = rk;
+// src/challenges/ch5-composition-10.ts
+var { a: a52, o: o39, i: i51 } = rk;
 var rules52 = [
   "i",
   "swl",
@@ -3235,40 +3756,22 @@ var rules52 = [
   "sRotRF",
   "sRotLB",
   "sRotRB",
+  "nl",
+  "nr",
   "cl",
-  "dr"
+  "dr",
+  "ir"
 ];
+var pinned50 = ["cl", "dr"];
 var goal50 = sequent(
-  [
-    o39.p2.conjunction(
-      o39.p2.conjunction(a52("r"), a52("p")),
-      o39.p2.disjunction(a52("p"), a52("r"))
-    )
-  ],
-  [
-    o39.p2.disjunction(
-      o39.p2.conjunction(a52("p"), a52("r")),
-      o39.p2.disjunction(a52("r"), a52("p"))
-    )
-  ]
+  [o39.p2.conjunction(a52("q"), a52("r"))],
+  [o39.p2.conjunction(a52("q"), a52("r"))]
 );
-var solution50 = z40.cl(
-  z40.dr(
-    z40.swl(
-      o39.p2.disjunction(a52("p"), a52("r")),
-      z40.cl(
-        z40.swr(
-          o39.p2.conjunction(a52("p"), a52("r")),
-          z40.dr(z40.sRotLF(z40.swl(a52("r"), z40.swr(a52("r"), i51.i(a52("p"))))))
-        )
-      )
-    )
-  )
-);
-var ch5composition5 = challenge({ rules: rules52, goal: goal50, solution: solution50 });
+var solution50 = i51.i(o39.p2.conjunction(a52("q"), a52("r")));
+var ch5composition10 = tutorial({ rules: rules52, goal: goal50, solution: solution50, pinned: pinned50 });
 
-// src/challenges/ch5-composition-6.ts
-var { a: a53, o: o40, z: z41, i: i52 } = rk;
+// src/challenges/ch5-composition-11.ts
+var { a: a53, o: o40, i: i52 } = rk;
 var rules53 = [
   "i",
   "swl",
@@ -3277,38 +3780,22 @@ var rules53 = [
   "sRotRF",
   "sRotLB",
   "sRotRB",
+  "nl",
+  "nr",
   "cl",
-  "dr"
+  "dr",
+  "ir"
 ];
+var pinned51 = ["cl", "dr"];
 var goal51 = sequent(
-  [
-    o40.p2.conjunction(
-      o40.p2.disjunction(a53("r"), a53("p")),
-      o40.p2.disjunction(a53("p"), a53("s"))
-    )
-  ],
-  [
-    o40.p2.disjunction(
-      o40.p2.disjunction(a53("s"), a53("p")),
-      o40.p2.disjunction(a53("r"), a53("p"))
-    )
-  ]
+  [o40.p2.conjunction(a53("q"), o40.p1.negation(a53("p")))],
+  [o40.p2.conjunction(a53("q"), o40.p1.negation(a53("p")))]
 );
-var solution51 = z41.cl(
-  z41.dr(
-    z41.swl(
-      o40.p2.disjunction(a53("p"), a53("s")),
-      z41.swr(
-        o40.p2.disjunction(a53("s"), a53("p")),
-        i52.i(o40.p2.disjunction(a53("r"), a53("p")))
-      )
-    )
-  )
-);
-var ch5composition6 = challenge({ rules: rules53, goal: goal51, solution: solution51 });
+var solution51 = i52.i(o40.p2.conjunction(a53("q"), o40.p1.negation(a53("p"))));
+var ch5composition11 = tutorial({ rules: rules53, goal: goal51, solution: solution51, pinned: pinned51 });
 
-// src/challenges/ch5-composition-7.ts
-var { a: a54, o: o41, z: z42, i: i53 } = rk;
+// src/challenges/ch6-branching-1.ts
+var { a: a54, o: o41, z: z45, i: i53 } = rk;
 var rules54 = [
   "i",
   "swl",
@@ -3317,40 +3804,24 @@ var rules54 = [
   "sRotRF",
   "sRotLB",
   "sRotRB",
+  "nl",
+  "nr",
   "cl",
-  "dr"
+  "cr",
+  "dl",
+  "dr",
+  "ir"
 ];
-var goal52 = sequent(
-  [
-    o41.p2.conjunction(
-      o41.p2.conjunction(a54("p"), a54("q")),
-      o41.p2.implication(a54("r"), a54("q"))
-    )
-  ],
-  [
-    o41.p2.disjunction(
-      o41.p2.implication(a54("q"), a54("r")),
-      o41.p2.disjunction(a54("p"), a54("q"))
-    )
-  ]
+var pinned52 = ["dl", "cr"];
+var goal52 = sequent([o41.p2.disjunction(a54("p"), a54("q"))], [a54("p"), a54("q")]);
+var solution52 = z45.dl(
+  z45.sRotRF(z45.swr(a54("q"), i53.i(a54("p")))),
+  z45.swr(a54("p"), i53.i(a54("q")))
 );
-var solution52 = z42.cl(
-  z42.dr(
-    z42.swl(
-      o41.p2.implication(a54("r"), a54("q")),
-      z42.cl(
-        z42.swr(
-          o41.p2.implication(a54("q"), a54("r")),
-          z42.dr(z42.sRotLF(z42.swl(a54("p"), z42.swr(a54("p"), i53.i(a54("q"))))))
-        )
-      )
-    )
-  )
-);
-var ch5composition7 = challenge({ rules: rules54, goal: goal52, solution: solution52 });
+var ch6branching1 = tutorial({ rules: rules54, goal: goal52, solution: solution52, pinned: pinned52 });
 
-// src/challenges/ch5-composition-8.ts
-var { a: a55, o: o42, z: z43, i: i54 } = rk;
+// src/challenges/ch6-branching-2.ts
+var { a: a55, o: o42, z: z46, i: i54 } = rk;
 var rules55 = [
   "i",
   "swl",
@@ -3362,22 +3833,21 @@ var rules55 = [
   "nl",
   "nr",
   "cl",
+  "cr",
+  "dl",
   "dr",
   "ir"
 ];
-var goal53 = conclusion(
-  o42.p2.implication(
-    o42.p2.conjunction(a55("q"), o42.p1.negation(a55("q"))),
-    o42.p2.disjunction(a55("r"), a55("s"))
-  )
+var pinned53 = ["dl", "cr"];
+var goal53 = sequent([a55("p"), a55("q")], [o42.p2.conjunction(a55("p"), a55("q"))]);
+var solution53 = z46.cr(
+  z46.swl(a55("q"), i54.i(a55("p"))),
+  z46.sRotLF(z46.swl(a55("p"), i54.i(a55("q"))))
 );
-var solution53 = z43.ir(
-  z43.cl(z43.nl(z43.sRotRF(z43.swr(o42.p2.disjunction(a55("r"), a55("s")), i54.i(a55("q"))))))
-);
-var ch5composition8 = challenge({ rules: rules55, goal: goal53, solution: solution53 });
+var ch6branching2 = tutorial({ rules: rules55, goal: goal53, solution: solution53, pinned: pinned53 });
 
-// src/challenges/ch5-composition-9.ts
-var { a: a56, o: o43, z: z44, i: i55 } = rk;
+// src/challenges/ch6-branching-3.ts
+var { a: a56, o: o43, z: z47, i: i55 } = rk;
 var rules56 = [
   "i",
   "swl",
@@ -3389,47 +3859,24 @@ var rules56 = [
   "nl",
   "nr",
   "cl",
+  "cr",
+  "dl",
   "dr",
   "ir"
 ];
-var goal54 = conclusion(
-  o43.p2.implication(
-    o43.p2.conjunction(
-      o43.p2.conjunction(o43.p1.negation(a56("p")), o43.p1.negation(a56("s"))),
-      o43.p2.conjunction(o43.p1.negation(a56("p")), a56("r"))
-    ),
-    o43.p2.disjunction(
-      o43.p2.disjunction(a56("q"), o43.p1.negation(a56("q"))),
-      o43.p2.disjunction(a56("s"), o43.p1.negation(a56("r")))
-    )
-  )
+var pinned54 = ["dl", "cr"];
+var goal54 = sequent(
+  [o43.p2.disjunction(a56("p"), a56("p"))],
+  [o43.p2.conjunction(a56("p"), a56("p"))]
 );
-var solution54 = z44.ir(
-  z44.dr(
-    z44.dr(
-      z44.sRotRB(
-        z44.nr(
-          z44.sRotLF(
-            z44.swl(
-              o43.p2.conjunction(
-                o43.p2.conjunction(o43.p1.negation(a56("p")), o43.p1.negation(a56("s"))),
-                o43.p2.conjunction(o43.p1.negation(a56("p")), a56("r"))
-              ),
-              z44.swr(
-                o43.p2.disjunction(a56("s"), o43.p1.negation(a56("r"))),
-                i55.i(a56("q"))
-              )
-            )
-          )
-        )
-      )
-    )
-  )
+var solution54 = z47.dl(
+  z47.cr(i55.i(a56("p")), i55.i(a56("p"))),
+  z47.cr(i55.i(a56("p")), i55.i(a56("p")))
 );
-var ch5composition9 = challenge({ rules: rules56, goal: goal54, solution: solution54 });
+var ch6branching3 = tutorial({ rules: rules56, goal: goal54, solution: solution54, pinned: pinned54 });
 
-// src/challenges/ch6-branching-1.ts
-var { a: a57, o: o44, z: z45, i: i56 } = rk;
+// src/challenges/ch6-branching-4.ts
+var { a: a57, o: o44, z: z48, i: i56 } = rk;
 var rules57 = [
   "i",
   "swl",
@@ -3438,18 +3885,26 @@ var rules57 = [
   "sRotRF",
   "sRotLB",
   "sRotRB",
+  "nl",
+  "nr",
+  "cl",
+  "cr",
   "dl",
-  "cr"
+  "dr",
+  "ir"
 ];
-var goal55 = sequent([o44.p2.disjunction(a57("p"), a57("q"))], [a57("p"), a57("q")]);
-var solution55 = z45.dl(
-  z45.sRotRF(z45.swr(a57("q"), i56.i(a57("p")))),
-  z45.swr(a57("p"), i56.i(a57("q")))
+var pinned55 = ["dl", "cr"];
+var goal55 = sequent(
+  [o44.p2.disjunction(a57("p"), a57("q"))],
+  [o44.p2.disjunction(a57("q"), a57("p"))]
 );
-var ch6branching1 = challenge({ rules: rules57, goal: goal55, solution: solution55 });
+var solution55 = z48.dr(
+  z48.dl(z48.swr(a57("q"), i56.i(a57("p"))), z48.sRotRF(z48.swr(a57("p"), i56.i(a57("q")))))
+);
+var ch6branching4 = tutorial({ rules: rules57, goal: goal55, solution: solution55, pinned: pinned55 });
 
-// src/challenges/ch6-branching-2.ts
-var { a: a58, o: o45, z: z46, i: i57 } = rk;
+// src/challenges/ch6-branching-5.ts
+var { a: a58, o: o45, z: z49, i: i57 } = rk;
 var rules58 = [
   "i",
   "swl",
@@ -3458,18 +3913,26 @@ var rules58 = [
   "sRotRF",
   "sRotLB",
   "sRotRB",
+  "nl",
+  "nr",
+  "cl",
+  "cr",
   "dl",
-  "cr"
+  "dr",
+  "ir"
 ];
-var goal56 = sequent([a58("p"), a58("q")], [o45.p2.conjunction(a58("p"), a58("q"))]);
-var solution56 = z46.cr(
-  z46.swl(a58("q"), i57.i(a58("p"))),
-  z46.sRotLF(z46.swl(a58("p"), i57.i(a58("q"))))
+var pinned56 = ["dl", "cr"];
+var goal56 = sequent(
+  [o45.p2.conjunction(a58("p"), a58("q"))],
+  [o45.p2.conjunction(a58("q"), a58("p"))]
 );
-var ch6branching2 = challenge({ rules: rules58, goal: goal56, solution: solution56 });
+var solution56 = z49.cl(
+  z49.cr(z49.sRotLF(z49.swl(a58("p"), i57.i(a58("q")))), z49.swl(a58("q"), i57.i(a58("p"))))
+);
+var ch6branching5 = tutorial({ rules: rules58, goal: goal56, solution: solution56, pinned: pinned56 });
 
-// src/challenges/ch6-branching-3.ts
-var { a: a59, o: o46, z: z47, i: i58 } = rk;
+// src/challenges/ch6-branching-6.ts
+var { a: a59, o: o46, z: z50, i: i58 } = rk;
 var rules59 = [
   "i",
   "swl",
@@ -3478,21 +3941,33 @@ var rules59 = [
   "sRotRF",
   "sRotLB",
   "sRotRB",
+  "nl",
+  "nr",
+  "cl",
+  "cr",
   "dl",
-  "cr"
+  "dr",
+  "ir"
 ];
-var goal57 = sequent(
-  [o46.p2.disjunction(a59("p"), a59("p"))],
-  [o46.p2.conjunction(a59("p"), a59("p"))]
+var pinned57 = ["dl", "cr"];
+var goal57 = conclusion(
+  o46.p2.implication(
+    o46.p1.negation(o46.p2.conjunction(a59("p"), a59("q"))),
+    o46.p2.disjunction(o46.p1.negation(a59("p")), o46.p1.negation(a59("q")))
+  )
 );
-var solution57 = z47.dl(
-  z47.cr(i58.i(a59("p")), i58.i(a59("p"))),
-  z47.cr(i58.i(a59("p")), i58.i(a59("p")))
+var solution57 = z50.ir(
+  z50.nl(
+    z50.cr(
+      z50.sRotRF(z50.dr(z50.nr(z50.swr(o46.p1.negation(a59("q")), i58.i(a59("p")))))),
+      z50.sRotRF(z50.dr(z50.swr(o46.p1.negation(a59("p")), z50.nr(i58.i(a59("q"))))))
+    )
+  )
 );
-var ch6branching3 = challenge({ rules: rules59, goal: goal57, solution: solution57 });
+var ch6branching6 = tutorial({ rules: rules59, goal: goal57, solution: solution57, pinned: pinned57 });
 
-// src/challenges/ch6-branching-4.ts
-var { a: a60, o: o47, z: z48, i: i59 } = rk;
+// src/challenges/ch6-branching-7.ts
+var { a: a60, o: o47, z: z51, i: i59 } = rk;
 var rules60 = [
   "i",
   "swl",
@@ -3501,22 +3976,37 @@ var rules60 = [
   "sRotRF",
   "sRotLB",
   "sRotRB",
+  "nl",
+  "nr",
   "cl",
   "cr",
   "dl",
-  "dr"
+  "dr",
+  "ir"
 ];
-var goal58 = sequent(
-  [o47.p2.disjunction(a60("p"), a60("q"))],
-  [o47.p2.disjunction(a60("q"), a60("p"))]
+var pinned58 = ["dl", "cr"];
+var goal58 = conclusion(
+  o47.p2.implication(
+    o47.p2.disjunction(o47.p1.negation(a60("p")), o47.p1.negation(a60("q"))),
+    o47.p1.negation(o47.p2.conjunction(a60("p"), a60("q")))
+  )
 );
-var solution58 = z48.dr(
-  z48.dl(z48.swr(a60("q"), i59.i(a60("p"))), z48.sRotRF(z48.swr(a60("p"), i59.i(a60("q")))))
+var solution58 = z51.ir(
+  z51.nr(
+    z51.cl(
+      z51.sRotLF(
+        z51.dl(
+          z51.nl(z51.swl(a60("q"), i59.i(a60("p")))),
+          z51.nl(z51.sRotLF(z51.swl(a60("p"), i59.i(a60("q")))))
+        )
+      )
+    )
+  )
 );
-var ch6branching4 = challenge({ rules: rules60, goal: goal58, solution: solution58 });
+var ch6branching7 = tutorial({ rules: rules60, goal: goal58, solution: solution58, pinned: pinned58 });
 
-// src/challenges/ch6-branching-5.ts
-var { a: a61, o: o48, z: z49, i: i60 } = rk;
+// src/challenges/ch6-branching-8.ts
+var { a: a61, o: o48, z: z52, i: i60 } = rk;
 var rules61 = [
   "i",
   "swl",
@@ -3525,22 +4015,56 @@ var rules61 = [
   "sRotRF",
   "sRotLB",
   "sRotRB",
+  "nl",
+  "nr",
   "cl",
   "cr",
   "dl",
-  "dr"
+  "dr",
+  "ir"
 ];
-var goal59 = sequent(
-  [o48.p2.conjunction(a61("p"), a61("q"))],
-  [o48.p2.conjunction(a61("q"), a61("p"))]
+var pinned59 = ["dl", "cr"];
+var goal59 = conclusion(
+  o48.p2.implication(
+    o48.p2.conjunction(a61("p"), o48.p2.disjunction(a61("q"), a61("r"))),
+    o48.p2.disjunction(
+      o48.p2.conjunction(a61("p"), a61("q")),
+      o48.p2.conjunction(a61("p"), a61("r"))
+    )
+  )
 );
-var solution59 = z49.cl(
-  z49.cr(z49.sRotLF(z49.swl(a61("p"), i60.i(a61("q")))), z49.swl(a61("q"), i60.i(a61("p"))))
+var solution59 = z52.ir(
+  z52.cl(
+    z52.dr(
+      z52.dl(
+        z52.cr(
+          z52.sRotRF(
+            z52.swl(a61("q"), z52.swr(o48.p2.conjunction(a61("p"), a61("r")), i60.i(a61("p"))))
+          ),
+          z52.sRotLF(
+            z52.sRotRF(
+              z52.swl(
+                a61("p"),
+                z52.swr(o48.p2.conjunction(a61("p"), a61("r")), i60.i(a61("q")))
+              )
+            )
+          )
+        ),
+        z52.swr(
+          o48.p2.conjunction(a61("p"), a61("q")),
+          z52.cr(
+            z52.swl(a61("r"), i60.i(a61("p"))),
+            z52.sRotLF(z52.swl(a61("p"), i60.i(a61("r"))))
+          )
+        )
+      )
+    )
+  )
 );
-var ch6branching5 = challenge({ rules: rules61, goal: goal59, solution: solution59 });
+var ch6branching8 = tutorial({ rules: rules61, goal: goal59, solution: solution59, pinned: pinned59 });
 
-// src/challenges/ch6-branching-6.ts
-var { a: a62, o: o49, z: z50, i: i61 } = rk;
+// src/challenges/ch6-branching-9.ts
+var { a: a62, o: o49, z: z53, i: i61 } = rk;
 var rules62 = [
   "i",
   "swl",
@@ -3557,24 +4081,36 @@ var rules62 = [
   "dr",
   "ir"
 ];
+var pinned60 = ["dl", "cr"];
 var goal60 = conclusion(
   o49.p2.implication(
-    o49.p1.negation(o49.p2.conjunction(a62("p"), a62("q"))),
-    o49.p2.disjunction(o49.p1.negation(a62("p")), o49.p1.negation(a62("q")))
+    o49.p2.disjunction(
+      o49.p2.conjunction(a62("p"), a62("q")),
+      o49.p2.conjunction(a62("p"), a62("r"))
+    ),
+    o49.p2.conjunction(a62("p"), o49.p2.disjunction(a62("q"), a62("r")))
   )
 );
-var solution60 = z50.ir(
-  z50.nl(
-    z50.cr(
-      z50.sRotRF(z50.dr(z50.nr(z50.swr(o49.p1.negation(a62("q")), i61.i(a62("p")))))),
-      z50.sRotRF(z50.dr(z50.swr(o49.p1.negation(a62("p")), z50.nr(i61.i(a62("q"))))))
+var solution60 = z53.ir(
+  z53.dl(
+    z53.cl(
+      z53.cr(
+        z53.swl(a62("q"), i61.i(a62("p"))),
+        z53.dr(z53.sRotLF(z53.sRotRF(z53.swl(a62("p"), z53.swr(a62("r"), i61.i(a62("q")))))))
+      )
+    ),
+    z53.cl(
+      z53.cr(
+        z53.swl(a62("r"), i61.i(a62("p"))),
+        z53.dr(z53.sRotLF(z53.swl(a62("p"), z53.swr(a62("q"), i61.i(a62("r"))))))
+      )
     )
   )
 );
-var ch6branching6 = challenge({ rules: rules62, goal: goal60, solution: solution60 });
+var ch6branching9 = tutorial({ rules: rules62, goal: goal60, solution: solution60, pinned: pinned60 });
 
-// src/challenges/ch6-branching-7.ts
-var { a: a63, o: o50, z: z51, i: i62 } = rk;
+// src/challenges/ch6-branching-10.ts
+var { a: a63, o: o50, i: i62 } = rk;
 var rules63 = [
   "i",
   "swl",
@@ -3591,28 +4127,16 @@ var rules63 = [
   "dr",
   "ir"
 ];
-var goal61 = conclusion(
-  o50.p2.implication(
-    o50.p2.disjunction(o50.p1.negation(a63("p")), o50.p1.negation(a63("q"))),
-    o50.p1.negation(o50.p2.conjunction(a63("p"), a63("q")))
-  )
+var pinned61 = ["dl", "cr"];
+var goal61 = sequent(
+  [o50.p2.disjunction(a63("r"), a63("s"))],
+  [o50.p2.disjunction(a63("r"), a63("s"))]
 );
-var solution61 = z51.ir(
-  z51.nr(
-    z51.cl(
-      z51.sRotLF(
-        z51.dl(
-          z51.nl(z51.swl(a63("q"), i62.i(a63("p")))),
-          z51.nl(z51.sRotLF(z51.swl(a63("p"), i62.i(a63("q")))))
-        )
-      )
-    )
-  )
-);
-var ch6branching7 = challenge({ rules: rules63, goal: goal61, solution: solution61 });
+var solution61 = i62.i(o50.p2.disjunction(a63("r"), a63("s")));
+var ch6branching10 = tutorial({ rules: rules63, goal: goal61, solution: solution61, pinned: pinned61 });
 
-// src/challenges/ch6-branching-8.ts
-var { a: a64, o: o51, z: z52, i: i63 } = rk;
+// src/challenges/ch7-completeness-1.ts
+var { a: a64, o: o51, z: z54, i: i63 } = rk;
 var rules64 = [
   "i",
   "swl",
@@ -3621,53 +4145,25 @@ var rules64 = [
   "sRotRF",
   "sRotLB",
   "sRotRB",
+  "nl",
+  "nr",
   "cl",
   "cr",
   "dl",
   "dr",
+  "il",
   "ir"
 ];
-var goal62 = conclusion(
-  o51.p2.implication(
-    o51.p2.conjunction(a64("p"), o51.p2.disjunction(a64("q"), a64("r"))),
-    o51.p2.disjunction(
-      o51.p2.conjunction(a64("p"), a64("q")),
-      o51.p2.conjunction(a64("p"), a64("r"))
-    )
-  )
+var pinned62 = ["il"];
+var goal62 = sequent([a64("p"), o51.p2.implication(a64("p"), a64("q"))], [a64("q")]);
+var solution62 = z54.il(
+  z54.sRotRF(z54.swr(a64("q"), i63.i(a64("p")))),
+  z54.sRotLF(z54.swl(a64("p"), i63.i(a64("q"))))
 );
-var solution62 = z52.ir(
-  z52.cl(
-    z52.dr(
-      z52.dl(
-        z52.cr(
-          z52.sRotRF(
-            z52.swl(a64("q"), z52.swr(o51.p2.conjunction(a64("p"), a64("r")), i63.i(a64("p"))))
-          ),
-          z52.sRotLF(
-            z52.sRotRF(
-              z52.swl(
-                a64("p"),
-                z52.swr(o51.p2.conjunction(a64("p"), a64("r")), i63.i(a64("q")))
-              )
-            )
-          )
-        ),
-        z52.swr(
-          o51.p2.conjunction(a64("p"), a64("q")),
-          z52.cr(
-            z52.swl(a64("r"), i63.i(a64("p"))),
-            z52.sRotLF(z52.swl(a64("p"), i63.i(a64("r"))))
-          )
-        )
-      )
-    )
-  )
-);
-var ch6branching8 = challenge({ rules: rules64, goal: goal62, solution: solution62 });
+var ch7completeness1 = tutorial({ rules: rules64, goal: goal62, solution: solution62, pinned: pinned62 });
 
-// src/challenges/ch6-branching-9.ts
-var { a: a65, o: o52, z: z53, i: i64 } = rk;
+// src/challenges/ch7-completeness-2.ts
+var { a: a65, o: o52, z: z55, i: i64 } = rk;
 var rules65 = [
   "i",
   "swl",
@@ -3676,41 +4172,36 @@ var rules65 = [
   "sRotRF",
   "sRotLB",
   "sRotRB",
+  "nl",
+  "nr",
   "cl",
   "cr",
   "dl",
   "dr",
+  "il",
   "ir"
 ];
+var pinned63 = ["il"];
 var goal63 = conclusion(
   o52.p2.implication(
-    o52.p2.disjunction(
-      o52.p2.conjunction(a65("p"), a65("q")),
-      o52.p2.conjunction(a65("p"), a65("r"))
-    ),
-    o52.p2.conjunction(a65("p"), o52.p2.disjunction(a65("q"), a65("r")))
+    o52.p2.implication(a65("p"), a65("q")),
+    o52.p2.implication(o52.p1.negation(a65("q")), o52.p1.negation(a65("p")))
   )
 );
-var solution63 = z53.ir(
-  z53.dl(
-    z53.cl(
-      z53.cr(
-        z53.swl(a65("q"), i64.i(a65("p"))),
-        z53.dr(z53.sRotLF(z53.sRotRF(z53.swl(a65("p"), z53.swr(a65("r"), i64.i(a65("q")))))))
-      )
-    ),
-    z53.cl(
-      z53.cr(
-        z53.swl(a65("r"), i64.i(a65("p"))),
-        z53.dr(z53.sRotLF(z53.swl(a65("p"), z53.swr(a65("q"), i64.i(a65("r"))))))
+var solution63 = z55.ir(
+  z55.ir(
+    z55.sRotLF(
+      z55.il(
+        z55.sRotRF(z55.nr(z55.sRotLF(z55.swl(o52.p1.negation(a65("q")), i64.i(a65("p")))))),
+        z55.sRotLF(z55.nl(z55.sRotRF(z55.swr(o52.p1.negation(a65("p")), i64.i(a65("q"))))))
       )
     )
   )
 );
-var ch6branching9 = challenge({ rules: rules65, goal: goal63, solution: solution63 });
+var ch7completeness2 = tutorial({ rules: rules65, goal: goal63, solution: solution63, pinned: pinned63 });
 
-// src/challenges/ch7-completeness-1.ts
-var { a: a66, o: o53, z: z54, i: i65 } = rk;
+// src/challenges/ch7-completeness-3.ts
+var { a: a66, o: o53, z: z56, i: i65 } = rk;
 var rules66 = [
   "i",
   "swl",
@@ -3719,18 +4210,51 @@ var rules66 = [
   "sRotRF",
   "sRotLB",
   "sRotRB",
+  "nl",
+  "nr",
+  "cl",
+  "cr",
+  "dl",
+  "dr",
   "il",
   "ir"
 ];
-var goal64 = sequent([a66("p"), o53.p2.implication(a66("p"), a66("q"))], [a66("q")]);
-var solution64 = z54.il(
-  z54.sRotRF(z54.swr(a66("q"), i65.i(a66("p")))),
-  z54.sRotLF(z54.swl(a66("p"), i65.i(a66("q"))))
+var pinned64 = ["il"];
+var goal64 = conclusion(
+  o53.p2.implication(
+    o53.p2.implication(a66("p"), a66("q")),
+    o53.p2.implication(
+      o53.p2.implication(a66("q"), a66("r")),
+      o53.p2.implication(a66("p"), a66("r"))
+    )
+  )
 );
-var ch7completeness1 = challenge({ rules: rules66, goal: goal64, solution: solution64 });
+var solution64 = z56.ir(
+  z56.ir(
+    z56.ir(
+      z56.sRotLF(
+        z56.il(
+          z56.sRotLF(
+            z56.il(
+              z56.sRotRF(z56.swr(a66("r"), z56.swr(a66("q"), i65.i(a66("p"))))),
+              z56.sRotLF(z56.swl(a66("p"), z56.swr(a66("p"), i65.i(a66("r")))))
+            )
+          ),
+          z56.sRotLF(
+            z56.il(
+              z56.sRotLF(z56.sRotRF(z56.swl(a66("p"), z56.swr(a66("r"), i65.i(a66("q")))))),
+              z56.sRotLB(z56.swl(a66("q"), z56.swl(a66("p"), i65.i(a66("r")))))
+            )
+          )
+        )
+      )
+    )
+  )
+);
+var ch7completeness3 = tutorial({ rules: rules66, goal: goal64, solution: solution64, pinned: pinned64 });
 
-// src/challenges/ch7-completeness-2.ts
-var { a: a67, o: o54, z: z55, i: i66 } = rk;
+// src/challenges/ch7-completeness-4.ts
+var { a: a67, o: o54, z: z57, i: i66 } = rk;
 var rules67 = [
   "i",
   "swl",
@@ -3741,29 +4265,39 @@ var rules67 = [
   "sRotRB",
   "nl",
   "nr",
+  "cl",
+  "cr",
+  "dl",
+  "dr",
   "il",
   "ir"
 ];
+var pinned65 = ["il"];
 var goal65 = conclusion(
   o54.p2.implication(
-    o54.p2.implication(a67("p"), a67("q")),
-    o54.p2.implication(o54.p1.negation(a67("q")), o54.p1.negation(a67("p")))
+    o54.p2.implication(o54.p2.conjunction(a67("p"), a67("q")), a67("r")),
+    o54.p2.implication(a67("p"), o54.p2.implication(a67("q"), a67("r")))
   )
 );
-var solution65 = z55.ir(
-  z55.ir(
-    z55.sRotLF(
-      z55.il(
-        z55.sRotRF(z55.nr(z55.sRotLF(z55.swl(o54.p1.negation(a67("q")), i66.i(a67("p")))))),
-        z55.sRotLF(z55.nl(z55.sRotRF(z55.swr(o54.p1.negation(a67("p")), i66.i(a67("q"))))))
+var solution65 = z57.ir(
+  z57.ir(
+    z57.ir(
+      z57.sRotLF(
+        z57.il(
+          z57.cr(
+            z57.sRotRF(z57.swl(a67("q"), z57.swr(a67("r"), i66.i(a67("p"))))),
+            z57.sRotLF(z57.sRotRF(z57.swl(a67("p"), z57.swr(a67("r"), i66.i(a67("q"))))))
+          ),
+          z57.sRotLB(z57.swl(a67("q"), z57.swl(a67("p"), i66.i(a67("r")))))
+        )
       )
     )
   )
 );
-var ch7completeness2 = challenge({ rules: rules67, goal: goal65, solution: solution65 });
+var ch7completeness4 = tutorial({ rules: rules67, goal: goal65, solution: solution65, pinned: pinned65 });
 
-// src/challenges/ch7-completeness-3.ts
-var { a: a68, o: o55, z: z56, i: i67 } = rk;
+// src/challenges/ch7-completeness-5.ts
+var { a: a68, o: o55, z: z58, i: i67 } = rk;
 var rules68 = [
   "i",
   "swl",
@@ -3772,44 +4306,27 @@ var rules68 = [
   "sRotRF",
   "sRotLB",
   "sRotRB",
+  "nl",
+  "nr",
+  "cl",
+  "cr",
+  "dl",
+  "dr",
   "il",
   "ir"
 ];
+var pinned66 = ["il"];
 var goal66 = conclusion(
   o55.p2.implication(
-    o55.p2.implication(a68("p"), a68("q")),
-    o55.p2.implication(
-      o55.p2.implication(a68("q"), a68("r")),
-      o55.p2.implication(a68("p"), a68("r"))
-    )
+    o55.p2.implication(o55.p2.implication(a68("p"), a68("q")), a68("p")),
+    a68("p")
   )
 );
-var solution66 = z56.ir(
-  z56.ir(
-    z56.ir(
-      z56.sRotLF(
-        z56.il(
-          z56.sRotLF(
-            z56.il(
-              z56.sRotRF(z56.swr(a68("r"), z56.swr(a68("q"), i67.i(a68("p"))))),
-              z56.sRotLF(z56.swl(a68("p"), z56.swr(a68("p"), i67.i(a68("r")))))
-            )
-          ),
-          z56.sRotLF(
-            z56.il(
-              z56.sRotLF(z56.sRotRF(z56.swl(a68("p"), z56.swr(a68("r"), i67.i(a68("q")))))),
-              z56.sRotLB(z56.swl(a68("q"), z56.swl(a68("p"), i67.i(a68("r")))))
-            )
-          )
-        )
-      )
-    )
-  )
-);
-var ch7completeness3 = challenge({ rules: rules68, goal: goal66, solution: solution66 });
+var solution66 = z58.ir(z58.il(z58.ir(z58.swr(a68("q"), i67.i(a68("p")))), i67.i(a68("p"))));
+var ch7completeness5 = tutorial({ rules: rules68, goal: goal66, solution: solution66, pinned: pinned66 });
 
-// src/challenges/ch7-completeness-4.ts
-var { a: a69, o: o56, z: z57, i: i68 } = rk;
+// src/challenges/ch7-completeness-6.ts
+var { a: a69, o: o56, z: z59, i: i68 } = rk;
 var rules69 = [
   "i",
   "swl",
@@ -3818,36 +4335,45 @@ var rules69 = [
   "sRotRF",
   "sRotLB",
   "sRotRB",
+  "nl",
+  "nr",
   "cl",
   "cr",
+  "dl",
+  "dr",
   "il",
   "ir"
 ];
+var pinned67 = ["il"];
 var goal67 = conclusion(
   o56.p2.implication(
-    o56.p2.implication(o56.p2.conjunction(a69("p"), a69("q")), a69("r")),
-    o56.p2.implication(a69("p"), o56.p2.implication(a69("q"), a69("r")))
+    o56.p2.implication(a69("p"), a69("q")),
+    o56.p2.implication(
+      o56.p2.implication(a69("p"), o56.p1.negation(a69("q"))),
+      o56.p1.negation(a69("p"))
+    )
   )
 );
-var solution67 = z57.ir(
-  z57.ir(
-    z57.ir(
-      z57.sRotLF(
-        z57.il(
-          z57.cr(
-            z57.sRotRF(z57.swl(a69("q"), z57.swr(a69("r"), i68.i(a69("p"))))),
-            z57.sRotLF(z57.sRotRF(z57.swl(a69("p"), z57.swr(a69("r"), i68.i(a69("q"))))))
-          ),
-          z57.sRotLB(z57.swl(a69("q"), z57.swl(a69("p"), i68.i(a69("r")))))
+var solution67 = z59.ir(
+  z59.ir(
+    z59.il(
+      z59.il(
+        z59.sRotRF(z59.nr(z59.swr(a69("p"), i68.i(a69("p"))))),
+        z59.sRotRF(z59.nr(z59.sRotLF(z59.swl(a69("q"), i68.i(a69("p"))))))
+      ),
+      z59.sRotLF(
+        z59.il(
+          z59.sRotRF(z59.nr(z59.sRotLF(z59.swl(o56.p1.negation(a69("q")), i68.i(a69("p")))))),
+          z59.sRotLF(z59.nl(z59.sRotRF(z59.swr(o56.p1.negation(a69("p")), i68.i(a69("q"))))))
         )
       )
     )
   )
 );
-var ch7completeness4 = challenge({ rules: rules69, goal: goal67, solution: solution67 });
+var ch7completeness6 = tutorial({ rules: rules69, goal: goal67, solution: solution67, pinned: pinned67 });
 
-// src/challenges/ch7-completeness-5.ts
-var { a: a70, o: o57, z: z58, i: i69 } = rk;
+// src/challenges/ch7-completeness-7.ts
+var { a: a70, o: o57, z: z60, i: i69 } = rk;
 var rules70 = [
   "i",
   "swl",
@@ -3856,22 +4382,32 @@ var rules70 = [
   "sRotRF",
   "sRotLB",
   "sRotRB",
+  "nl",
+  "nr",
   "cl",
   "cr",
+  "dl",
+  "dr",
   "il",
   "ir"
 ];
+var pinned68 = ["il"];
 var goal68 = conclusion(
   o57.p2.implication(
-    o57.p2.implication(o57.p2.implication(a70("p"), a70("q")), a70("p")),
-    a70("p")
+    o57.p2.implication(a70("p"), o57.p2.implication(a70("p"), a70("q"))),
+    o57.p2.implication(a70("p"), a70("q"))
   )
 );
-var solution68 = z58.ir(z58.il(z58.ir(z58.swr(a70("q"), i69.i(a70("p")))), i69.i(a70("p"))));
-var ch7completeness5 = challenge({ rules: rules70, goal: goal68, solution: solution68 });
+var solution68 = z60.ir(
+  z60.il(
+    z60.sRotRF(z60.ir(z60.swr(a70("q"), i69.i(a70("p"))))),
+    i69.i(o57.p2.implication(a70("p"), a70("q")))
+  )
+);
+var ch7completeness7 = tutorial({ rules: rules70, goal: goal68, solution: solution68, pinned: pinned68 });
 
-// src/challenges/ch7-completeness-6.ts
-var { a: a71, o: o58, z: z59, i: i70 } = rk;
+// src/challenges/ch7-completeness-8.ts
+var { a: a71, o: o58, z: z61, i: i70 } = rk;
 var rules71 = [
   "i",
   "swl",
@@ -3882,38 +4418,43 @@ var rules71 = [
   "sRotRB",
   "nl",
   "nr",
+  "cl",
+  "cr",
+  "dl",
+  "dr",
   "il",
   "ir"
 ];
+var pinned69 = ["il"];
 var goal69 = conclusion(
   o58.p2.implication(
-    o58.p2.implication(a71("p"), a71("q")),
-    o58.p2.implication(
-      o58.p2.implication(a71("p"), o58.p1.negation(a71("q"))),
-      o58.p1.negation(a71("p"))
-    )
+    o58.p2.implication(o58.p2.implication(a71("p"), a71("q")), a71("q")),
+    o58.p2.implication(o58.p2.implication(a71("q"), a71("p")), a71("p"))
   )
 );
-var solution69 = z59.ir(
-  z59.ir(
-    z59.il(
-      z59.il(
-        z59.sRotRF(z59.nr(z59.swr(a71("p"), i70.i(a71("p"))))),
-        z59.sRotRF(z59.nr(z59.sRotLF(z59.swl(a71("q"), i70.i(a71("p"))))))
-      ),
-      z59.sRotLF(
-        z59.il(
-          z59.sRotRF(z59.nr(z59.sRotLF(z59.swl(o58.p1.negation(a71("q")), i70.i(a71("p")))))),
-          z59.sRotLF(z59.nl(z59.sRotRF(z59.swr(o58.p1.negation(a71("p")), i70.i(a71("q"))))))
+var solution69 = z61.ir(
+  z61.ir(
+    z61.sRotLF(
+      z61.il(
+        z61.ir(
+          z61.sRotLF(
+            z61.swl(o58.p2.implication(a71("q"), a71("p")), z61.swr(a71("q"), i70.i(a71("p"))))
+          )
+        ),
+        z61.sRotLF(
+          z61.il(
+            z61.sRotRF(z61.swr(a71("p"), i70.i(a71("q")))),
+            z61.sRotLF(z61.swl(a71("q"), i70.i(a71("p"))))
+          )
         )
       )
     )
   )
 );
-var ch7completeness6 = challenge({ rules: rules71, goal: goal69, solution: solution69 });
+var ch7completeness8 = tutorial({ rules: rules71, goal: goal69, solution: solution69, pinned: pinned69 });
 
-// src/challenges/ch7-completeness-7.ts
-var { a: a72, o: o59, z: z60, i: i71 } = rk;
+// src/challenges/ch7-completeness-9.ts
+var { a: a72, o: o59, z: z62, i: i71 } = rk;
 var rules72 = [
   "i",
   "swl",
@@ -3922,25 +4463,41 @@ var rules72 = [
   "sRotRF",
   "sRotLB",
   "sRotRB",
+  "nl",
+  "nr",
+  "cl",
+  "cr",
+  "dl",
+  "dr",
   "il",
   "ir"
 ];
+var pinned70 = ["il"];
 var goal70 = conclusion(
   o59.p2.implication(
-    o59.p2.implication(a72("p"), o59.p2.implication(a72("p"), a72("q"))),
-    o59.p2.implication(a72("p"), a72("q"))
+    o59.p2.implication(a72("p"), o59.p2.implication(a72("q"), a72("r"))),
+    o59.p2.implication(o59.p2.conjunction(a72("p"), a72("q")), a72("r"))
   )
 );
-var solution70 = z60.ir(
-  z60.il(
-    z60.sRotRF(z60.ir(z60.swr(a72("q"), i71.i(a72("p"))))),
-    i71.i(o59.p2.implication(a72("p"), a72("q")))
+var solution70 = z62.ir(
+  z62.ir(
+    z62.cl(
+      z62.sRotLF(
+        z62.il(
+          z62.sRotRF(z62.swl(a72("q"), z62.swr(a72("r"), i71.i(a72("p"))))),
+          z62.il(
+            z62.sRotLF(z62.sRotRF(z62.swl(a72("p"), z62.swr(a72("r"), i71.i(a72("q")))))),
+            z62.sRotLB(z62.swl(a72("q"), z62.swl(a72("p"), i71.i(a72("r")))))
+          )
+        )
+      )
+    )
   )
 );
-var ch7completeness7 = challenge({ rules: rules72, goal: goal70, solution: solution70 });
+var ch7completeness9 = tutorial({ rules: rules72, goal: goal70, solution: solution70, pinned: pinned70 });
 
-// src/challenges/ch7-completeness-8.ts
-var { a: a73, o: o60, z: z61, i: i72 } = rk;
+// src/challenges/ch7-completeness-10.ts
+var { a: a73, o: o60, i: i72 } = rk;
 var rules73 = [
   "i",
   "swl",
@@ -3949,38 +4506,40 @@ var rules73 = [
   "sRotRF",
   "sRotLB",
   "sRotRB",
+  "nl",
+  "nr",
+  "cl",
+  "cr",
+  "dl",
+  "dr",
   "il",
   "ir"
 ];
-var goal71 = conclusion(
-  o60.p2.implication(
-    o60.p2.implication(o60.p2.implication(a73("p"), a73("q")), a73("q")),
-    o60.p2.implication(o60.p2.implication(a73("q"), a73("p")), a73("p"))
-  )
-);
-var solution71 = z61.ir(
-  z61.ir(
-    z61.sRotLF(
-      z61.il(
-        z61.ir(
-          z61.sRotLF(
-            z61.swl(o60.p2.implication(a73("q"), a73("p")), z61.swr(a73("q"), i72.i(a73("p"))))
-          )
-        ),
-        z61.sRotLF(
-          z61.il(
-            z61.sRotRF(z61.swr(a73("p"), i72.i(a73("q")))),
-            z61.sRotLF(z61.swl(a73("q"), i72.i(a73("p"))))
-          )
-        )
-      )
+var pinned71 = ["il"];
+var goal71 = sequent(
+  [
+    o60.p2.implication(
+      o60.p2.disjunction(a73("p"), a73("q")),
+      o60.p2.conjunction(a73("p"), a73("q"))
     )
+  ],
+  [
+    o60.p2.implication(
+      o60.p2.disjunction(a73("p"), a73("q")),
+      o60.p2.conjunction(a73("p"), a73("q"))
+    )
+  ]
+);
+var solution71 = i72.i(
+  o60.p2.implication(
+    o60.p2.disjunction(a73("p"), a73("q")),
+    o60.p2.conjunction(a73("p"), a73("q"))
   )
 );
-var ch7completeness8 = challenge({ rules: rules73, goal: goal71, solution: solution71 });
+var ch7completeness10 = tutorial({ rules: rules73, goal: goal71, solution: solution71, pinned: pinned71 });
 
-// src/challenges/ch7-completeness-9.ts
-var { a: a74, o: o61, z: z62, i: i73 } = rk;
+// src/challenges/ch7-completeness-11.ts
+var { a: a74, o: o61, i: i73 } = rk;
 var rules74 = [
   "i",
   "swl",
@@ -3989,81 +4548,107 @@ var rules74 = [
   "sRotRF",
   "sRotLB",
   "sRotRB",
+  "nl",
+  "nr",
   "cl",
   "cr",
+  "dl",
+  "dr",
   "il",
   "ir"
 ];
-var goal72 = conclusion(
-  o61.p2.implication(
-    o61.p2.implication(a74("p"), o61.p2.implication(a74("q"), a74("r"))),
-    o61.p2.implication(o61.p2.conjunction(a74("p"), a74("q")), a74("r"))
-  )
-);
-var solution72 = z62.ir(
-  z62.ir(
-    z62.cl(
-      z62.sRotLF(
-        z62.il(
-          z62.sRotRF(z62.swl(a74("q"), z62.swr(a74("r"), i73.i(a74("p"))))),
-          z62.il(
-            z62.sRotLF(z62.sRotRF(z62.swl(a74("p"), z62.swr(a74("r"), i73.i(a74("q")))))),
-            z62.sRotLB(z62.swl(a74("q"), z62.swl(a74("p"), i73.i(a74("r")))))
-          )
-        )
-      )
+var pinned72 = ["il"];
+var goal72 = sequent(
+  [
+    o61.p2.implication(
+      o61.p2.disjunction(a74("p"), o61.p1.negation(a74("q"))),
+      o61.p1.negation(o61.p2.conjunction(a74("r"), a74("s")))
     )
+  ],
+  [
+    o61.p2.implication(
+      o61.p2.disjunction(a74("p"), o61.p1.negation(a74("q"))),
+      o61.p1.negation(o61.p2.conjunction(a74("r"), a74("s")))
+    )
+  ]
+);
+var solution72 = i73.i(
+  o61.p2.implication(
+    o61.p2.disjunction(a74("p"), o61.p1.negation(a74("q"))),
+    o61.p1.negation(o61.p2.conjunction(a74("r"), a74("s")))
   )
 );
-var ch7completeness9 = challenge({ rules: rules74, goal: goal72, solution: solution72 });
+var ch7completeness11 = tutorial({ rules: rules74, goal: goal72, solution: solution72, pinned: pinned72 });
 
 // src/challenges/ch8-constants-1.ts
 var { a: a75, o: o62, z: z63, i: i74 } = rk;
 var rules75 = [
   "i",
+  "f",
+  "v",
   "swl",
   "swr",
   "sRotLF",
   "sRotRF",
   "sRotLB",
-  "sRotRB"
+  "sRotRB",
+  "nl",
+  "nr",
+  "cl",
+  "cr",
+  "dl",
+  "dr",
+  "il",
+  "ir"
 ];
+var pinned73 = ["f", "v"];
 var goal73 = sequent([a75("p"), o62.p0.verum, a75("q")], [a75("r"), o62.p0.verum, a75("s")]);
-var solution73 = z63.sRotLF(
-  z63.sRotRF(
-    z63.swl(a75("p"), z63.swl(a75("q"), z63.swr(a75("s"), z63.swr(a75("r"), i74.i(o62.p0.verum)))))
+var solution73 = z63.sRotRF(
+  z63.swl(
+    a75("q"),
+    z63.swl(o62.p0.verum, z63.swl(a75("p"), z63.swr(a75("s"), z63.swr(a75("r"), i74.v()))))
   )
 );
-var ch8constants1 = challenge({ rules: rules75, goal: goal73, solution: solution73 });
+var ch8constants1 = tutorial({ rules: rules75, goal: goal73, solution: solution73, pinned: pinned73 });
 
 // src/challenges/ch8-constants-2.ts
 var { a: a76, o: o63, z: z64, i: i75 } = rk;
 var rules76 = [
   "i",
+  "f",
+  "v",
   "swl",
   "swr",
   "sRotLF",
   "sRotRF",
   "sRotLB",
-  "sRotRB"
+  "sRotRB",
+  "nl",
+  "nr",
+  "cl",
+  "cr",
+  "dl",
+  "dr",
+  "il",
+  "ir"
 ];
+var pinned74 = ["f", "v"];
 var goal74 = sequent(
   [a76("s"), o63.p0.falsum, a76("r")],
   [a76("q"), o63.p0.falsum, a76("p")]
 );
 var solution74 = z64.sRotLF(
-  z64.sRotRF(
-    z64.swl(
-      a76("s"),
-      z64.swl(a76("r"), z64.swr(a76("p"), z64.swr(a76("q"), i75.i(o63.p0.falsum))))
-    )
+  z64.swl(
+    a76("s"),
+    z64.swl(a76("r"), z64.swr(a76("q"), z64.swr(o63.p0.falsum, z64.swr(a76("p"), i75.f()))))
   )
 );
-var ch8constants2 = challenge({ rules: rules76, goal: goal74, solution: solution74 });
+var ch8constants2 = tutorial({ rules: rules76, goal: goal74, solution: solution74, pinned: pinned74 });
 
 // src/challenges/ch8-constants-3.ts
 var { a: a77, o: o64, z: z65, i: i76 } = rk;
 var rules77 = [
+  "i",
   "f",
   "v",
   "swl",
@@ -4071,20 +4656,30 @@ var rules77 = [
   "sRotLF",
   "sRotRF",
   "sRotLB",
-  "sRotRB"
+  "sRotRB",
+  "nl",
+  "nr",
+  "cl",
+  "cr",
+  "dl",
+  "dr",
+  "il",
+  "ir"
 ];
-var goal75 = sequent([a77("p"), o64.p0.verum, a77("q")], [a77("q"), o64.p0.verum, a77("p")]);
+var pinned75 = ["f", "v"];
+var goal75 = sequent([a77("s"), a77("p"), a77("s")], [a77("r"), o64.p0.verum, a77("r")]);
 var solution75 = z65.sRotRF(
   z65.swl(
-    a77("q"),
-    z65.swl(o64.p0.verum, z65.swl(a77("p"), z65.swr(a77("p"), z65.swr(a77("q"), i76.v()))))
+    a77("s"),
+    z65.swl(a77("p"), z65.swl(a77("s"), z65.swr(a77("r"), z65.swr(a77("r"), i76.v()))))
   )
 );
-var ch8constants3 = challenge({ rules: rules77, goal: goal75, solution: solution75 });
+var ch8constants3 = tutorial({ rules: rules77, goal: goal75, solution: solution75, pinned: pinned75 });
 
 // src/challenges/ch8-constants-4.ts
 var { a: a78, o: o65, z: z66, i: i77 } = rk;
 var rules78 = [
+  "i",
   "f",
   "v",
   "swl",
@@ -4092,22 +4687,29 @@ var rules78 = [
   "sRotLF",
   "sRotRF",
   "sRotLB",
-  "sRotRB"
+  "sRotRB",
+  "nl",
+  "nr",
+  "cl",
+  "cr",
+  "dl",
+  "dr",
+  "il",
+  "ir"
 ];
-var goal76 = sequent(
-  [a78("r"), o65.p0.falsum, a78("s")],
-  [a78("s"), o65.p0.falsum, a78("r")]
-);
+var pinned76 = ["f", "v"];
+var goal76 = sequent([a78("s"), o65.p0.falsum, a78("s")], [a78("r"), a78("p"), a78("r")]);
 var solution76 = z66.sRotLF(
   z66.swl(
-    a78("r"),
-    z66.swl(a78("s"), z66.swr(a78("s"), z66.swr(o65.p0.falsum, z66.swr(a78("r"), i77.f()))))
+    a78("s"),
+    z66.swl(a78("s"), z66.swr(a78("r"), z66.swr(a78("p"), z66.swr(a78("r"), i77.f()))))
   )
 );
-var ch8constants4 = challenge({ rules: rules78, goal: goal76, solution: solution76 });
+var ch8constants4 = tutorial({ rules: rules78, goal: goal76, solution: solution76, pinned: pinned76 });
 
 // src/challenges/ch8-constants-5.ts
 var { a: a79, o: o66, z: z67, i: i78 } = rk;
+var pinned77 = ["f", "v"];
 var goal77 = conclusion(
   o66.p2.implication(
     o66.p2.implication(a79("p"), o66.p2.implication(a79("q"), o66.p1.negation(a79("p")))),
@@ -4128,10 +4730,11 @@ var solution77 = z67.ir(
     )
   )
 );
-var ch8constants5 = challenge({ rules: rules2, goal: goal77, solution: solution77 });
+var ch8constants5 = tutorial({ rules: rules2, goal: goal77, solution: solution77, pinned: pinned77 });
 
 // src/challenges/ch8-constants-6.ts
 var { a: a80, o: o67, z: z68, i: i79 } = rk;
+var pinned78 = ["f", "v"];
 var goal78 = conclusion(
   o67.p2.implication(
     o67.p1.negation(o67.p1.negation(o67.p0.falsum)),
@@ -4148,10 +4751,11 @@ var solution78 = z68.ir(
     )
   )
 );
-var ch8constants6 = challenge({ rules: rules2, goal: goal78, solution: solution78 });
+var ch8constants6 = tutorial({ rules: rules2, goal: goal78, solution: solution78, pinned: pinned78 });
 
 // src/challenges/ch8-constants-7.ts
 var { a: a81, o: o68, z: z69, i: i80 } = rk;
+var pinned79 = ["f", "v"];
 var goal79 = sequent(
   [o68.p2.disjunction(o68.p0.falsum, a81("p"))],
   [o68.p2.conjunction(o68.p0.verum, a81("p"))]
@@ -4160,10 +4764,11 @@ var solution79 = z69.dl(
   z69.swr(o68.p2.conjunction(o68.p0.verum, a81("p")), i80.f()),
   z69.cr(z69.swl(a81("p"), i80.v()), i80.i(a81("p")))
 );
-var ch8constants7 = challenge({ rules: rules2, goal: goal79, solution: solution79 });
+var ch8constants7 = tutorial({ rules: rules2, goal: goal79, solution: solution79, pinned: pinned79 });
 
 // src/challenges/ch8-constants-8.ts
 var { a: a82, o: o69, z: z70, i: i81 } = rk;
+var pinned80 = ["f", "v"];
 var goal80 = conclusion(
   o69.p2.implication(
     o69.p2.implication(a82("p"), a82("q")),
@@ -4199,10 +4804,11 @@ var solution80 = z70.ir(
     )
   )
 );
-var ch8constants8 = challenge({ rules: rules2, goal: goal80, solution: solution80 });
+var ch8constants8 = tutorial({ rules: rules2, goal: goal80, solution: solution80, pinned: pinned80 });
 
 // src/challenges/ch8-constants-9.ts
 var { a: a83, o: o70, z: z71, i: i82 } = rk;
+var pinned81 = ["f", "v"];
 var goal81 = sequent(
   [
     o70.p2.conjunction(
@@ -4247,7 +4853,7 @@ var solution81 = z71.cl(
     )
   )
 );
-var ch8constants9 = challenge({ rules: rules2, goal: goal81, solution: solution81 });
+var ch8constants9 = tutorial({ rules: rules2, goal: goal81, solution: solution81, pinned: pinned81 });
 
 // src/challenges/ch9-consolidation-1.ts
 var { a: a84, o: o71, z: z72, i: i83 } = rk;
@@ -4486,13 +5092,6 @@ var ch9consolidation7 = challenge({ rules: rules2, goal: goal88, solution: solut
 var challenges = {
   ch0identity1,
   ch0identity2,
-  ch0identity3,
-  ch0identity4,
-  ch0identity5,
-  ch0identity6,
-  ch0identity7,
-  ch0identity8,
-  ch0identity9,
   ch1weakening1,
   ch1weakening2,
   ch1weakening3,
@@ -4520,6 +5119,7 @@ var challenges = {
   ch3negation7,
   ch3negation8,
   ch3negation9,
+  ch3negation10,
   ch4theorem1,
   ch4theorem2,
   ch4theorem3,
@@ -4529,6 +5129,7 @@ var challenges = {
   ch4theorem7,
   ch4theorem8,
   ch4theorem9,
+  ch4theorem10,
   ch5composition1,
   ch5composition2,
   ch5composition3,
@@ -4538,6 +5139,8 @@ var challenges = {
   ch5composition7,
   ch5composition8,
   ch5composition9,
+  ch5composition10,
+  ch5composition11,
   ch6branching1,
   ch6branching2,
   ch6branching3,
@@ -4547,6 +5150,7 @@ var challenges = {
   ch6branching7,
   ch6branching8,
   ch6branching9,
+  ch6branching10,
   ch7completeness1,
   ch7completeness2,
   ch7completeness3,
@@ -4556,6 +5160,8 @@ var challenges = {
   ch7completeness7,
   ch7completeness8,
   ch7completeness9,
+  ch7completeness10,
+  ch7completeness11,
   ch8constants1,
   ch8constants2,
   ch8constants3,
@@ -5110,6 +5716,10 @@ var Workspace = class {
   }
   availableRules() {
     return get(this.theorems, this.selected).rules;
+  }
+  pinnedRules() {
+    const conf = get(this.theorems, this.selected);
+    return isTutorial(conf) ? conf.pinned : [];
   }
   applicableRules() {
     const available = this.availableRules();
@@ -5996,7 +6606,7 @@ var createButton = (label, disabled, onClick, hint, hintVariant = "base") => {
   }
   return el;
 };
-var rulesVisible = true;
+var rulesVisible = false;
 var setDefaultRulesVisible = (visible) => {
   rulesVisible = visible;
 };
@@ -6177,20 +6787,25 @@ var gazeHintBadgeForKind = (key, hints) => {
   }
   return null;
 };
-var createPanel = (className, ruleRecord, ls, rules79, solved, onApply, gazeHints) => {
+var createPanel = (className, ruleRecord, ls, rules79, pinned82, hideRules, solved, onApply, gazeHints) => {
   const panel = document.createElement("div");
   panel.setAttribute("class", className);
   entries(ruleRecord).forEach(([key, rule]) => {
     if (!rules79.includes(key)) return;
     const disabled = solved || !ls.includes(key);
+    const isPinned = pinned82.includes(key);
     const pre = document.createElement("pre");
-    pre.setAttribute("class", "rule button" + (disabled ? " disabled" : ""));
+    pre.setAttribute(
+      "class",
+      "rule button" + (disabled ? " disabled" : "") + (isPinned ? " pinned" : "")
+    );
     if (!disabled) pre.onclick = () => onApply(key);
     pre.innerHTML = fromDerivation(rule.example);
     const action = ruleAction[key];
     const hint = action !== void 0 ? getActionHint(action) : void 0;
     const ruleHintVariant = className === "main" ? "base" : "hot";
-    if (hint !== void 0) pre.appendChild(keyHintBadge(hint, ruleHintVariant));
+    if (hint !== void 0 && !hideRules)
+      pre.appendChild(keyHintBadge(hint, ruleHintVariant));
     const gazeBadges = [
       gazeHintBadgeForKind(key, gazeHints.connective),
       gazeHintBadgeForKind(key, gazeHints.weakening)
@@ -6243,21 +6858,52 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
     weakening: buildKindHints("weakening", getActionHint("gazeWeakening"))
   } : { connective: null, weakening: null };
   const hideRules = !rulesVisible || solved;
+  const pinned82 = workspace.pinnedRules();
   const panel = document.createElement("div");
   panel.setAttribute("class", "bench" + (hideRules ? " rules-hidden" : ""));
   panel.appendChild(
-    createPanel("left", left, ls, rules79, inactive, apply2, gazeHints)
+    createPanel(
+      "left",
+      left,
+      ls,
+      rules79,
+      pinned82,
+      hideRules,
+      inactive,
+      apply2,
+      gazeHints
+    )
   );
   const congrats = solved ? makeCongrats() : null;
   if (congrats) {
     panel.appendChild(congrats.hurray);
   } else {
     panel.appendChild(
-      createPanel("main", center, ls, rules79, inactive, applyCenter, gazeHints)
+      createPanel(
+        "main",
+        center,
+        ls,
+        rules79,
+        pinned82,
+        hideRules,
+        inactive,
+        applyCenter,
+        gazeHints
+      )
     );
   }
   panel.appendChild(
-    createPanel("right", right, ls, rules79, inactive, apply2, gazeHints)
+    createPanel(
+      "right",
+      right,
+      ls,
+      rules79,
+      pinned82,
+      hideRules,
+      inactive,
+      apply2,
+      gazeHints
+    )
   );
   panel.appendChild(createPlayArea(workspace));
   const zoomOut = createButton(
@@ -6349,9 +6995,10 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
     g.setAttribute("class", ["controls-group", ...cls].join(" "));
     return g;
   };
+  const allPinned = rules79.every((r) => pinned82.includes(r));
   const rulesBtn = createButton(
     "Rules",
-    false,
+    allPinned,
     () => {
       rulesVisible = !rulesVisible;
       rerender();
@@ -6371,7 +7018,7 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
     },
     getActionHint("axiom")
   );
-  const gazeGroup = makeGroup(...isGazeModeActive() ? ["gaze"] : []);
+  const gazeGroup = makeGroup(isGazeModeActive() ? "gaze" : "hot");
   gazeGroup.appendChild(gazeLeftBtn);
   gazeGroup.appendChild(gazeWeakeningBtn);
   gazeGroup.appendChild(gazeConnectiveBtn);
@@ -6531,6 +7178,9 @@ var createDispatch = (getWorkspace, rerender, navigate2, onSolved, onLevel, onMe
     return;
   }
   if (action === "toggleRules") {
+    const ws = getWorkspace();
+    const allPinned = ws.availableRules().every((r) => ws.pinnedRules().includes(r));
+    if (allPinned) return;
     rulesVisible = !rulesVisible;
     rerender();
     return;
@@ -6748,9 +7398,16 @@ var createListing = (ws, onSelect) => {
     title.setAttribute("class", "title");
     title.innerHTML = id;
     item.appendChild(title);
+    const pinned82 = isTutorial(challenge2) ? challenge2.pinned : [];
     const rules79 = document.createElement("div");
     rules79.setAttribute("class", "rules");
-    rules79.innerHTML = challenge2.rules.map((rule) => html(fromRuleId(rule)(basic))).join(", ");
+    rules79.innerHTML = challenge2.rules.map((rule) => {
+      const text = html(fromRuleId(rule)(basic));
+      if (pinned82.includes(rule)) {
+        return `<span class="pinned">${text}</span>`;
+      }
+      return text;
+    }).join(", ");
     item.appendChild(rules79);
     const goal89 = document.createElement("div");
     goal89.setAttribute("class", "goal");
@@ -6826,7 +7483,7 @@ var createCongrats = (ws, selectLevel, rerender) => {
   return { hurray, buttons };
 };
 var mountCampaign = (container, navigate2) => {
-  setDefaultRulesVisible(true);
+  setDefaultRulesVisible(false);
   let levelPresses = 0;
   const toggleLevel = (listingEl2) => {
     levelPresses += 1;
