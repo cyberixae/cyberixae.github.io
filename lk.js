@@ -1,29 +1,5 @@
-// src/web/menu.ts
-var mountMenu = (container, navigate2) => {
-  const panel = document.createElement("div");
-  panel.setAttribute("class", "menu");
-  const title = document.createElement("div");
-  title.setAttribute("class", "menu-title");
-  title.innerHTML = "LK";
-  panel.appendChild(title);
-  const modes = document.createElement("div");
-  modes.setAttribute("class", "menu-modes");
-  const randomBtn = document.createElement("div");
-  randomBtn.setAttribute("class", "button menu-mode");
-  randomBtn.innerHTML = "Random";
-  randomBtn.onclick = () => navigate2("random");
-  modes.appendChild(randomBtn);
-  const campaignBtn = document.createElement("div");
-  campaignBtn.setAttribute("class", "button menu-mode");
-  campaignBtn.innerHTML = "Campaign";
-  campaignBtn.onclick = () => navigate2("campaign");
-  modes.appendChild(campaignBtn);
-  panel.appendChild(modes);
-  container.innerHTML = "";
-  container.appendChild(panel);
-  return () => {
-  };
-};
+// src/model/mode.ts
+var gameModes = ["random", "campaign"];
 
 // src/utils/record.ts
 var keys = (s) => Object.keys(s);
@@ -130,9 +106,9 @@ var sequence = (seqs) => function* () {
     return;
   }
   const [first, ...rest] = seqs;
-  for (const t of first()) {
+  for (const t2 of first()) {
     for (const ts of sequence(rest)()) {
-      yield [t, ...ts];
+      yield [t2, ...ts];
     }
   }
 };
@@ -164,10 +140,10 @@ var valuations = (atoms2) => function* () {
     return;
   }
   const [x, ...xs] = atoms2;
-  const t = { [x]: true };
+  const t2 = { [x]: true };
   const f2 = { [x]: false };
   const vs = valuations(xs);
-  yield* map(vs, (v2) => ({ ...v2, ...t }))();
+  yield* map(vs, (v2) => ({ ...v2, ...t2 }))();
   yield* map(vs, (v2) => ({ ...v2, ...f2 }))();
 };
 var satisfies = (v2, p) => fold(p, {
@@ -388,8 +364,8 @@ var head3 = (a91) => {
   return h;
 };
 var tail = (a91) => {
-  const [_h, ...t] = a91;
-  return t;
+  const [_h, ...t2] = a91;
+  return t2;
 };
 var init2 = (a91) => {
   return a91.slice(0, -1);
@@ -578,22 +554,22 @@ var Negation = (negand) => ({
   kind: "negation",
   negand
 });
-var match2 = (t) => {
-  const check = (p, t2, bindings) => {
-    switch (t2.kind) {
+var match2 = (t2) => {
+  const check = (p, t3, bindings) => {
+    switch (t3.kind) {
       case "var": {
-        const bound = bindings.get(t2.name);
+        const bound = bindings.get(t3.name);
         if (bound !== void 0) return equals(bound, p);
-        bindings.set(t2.name, p);
+        bindings.set(t3.name, p);
         return true;
       }
       case "implication":
-        return p.kind === "implication" && check(p.antecedent, t2.antecedent, bindings) && check(p.consequent, t2.consequent, bindings);
+        return p.kind === "implication" && check(p.antecedent, t3.antecedent, bindings) && check(p.consequent, t3.consequent, bindings);
       case "negation":
-        return p.kind === "negation" && check(p.negand, t2.negand, bindings);
+        return p.kind === "negation" && check(p.negand, t3.negand, bindings);
     }
   };
-  return (p) => check(p, t, /* @__PURE__ */ new Map());
+  return (p) => check(p, t2, /* @__PURE__ */ new Map());
 };
 
 // src/rules/a1.ts
@@ -2143,11 +2119,503 @@ var parseEvent = (str) => {
   if (isReverseId0(str)) {
     return reverse02(str);
   }
-  const [cmd, ...args] = split(str, " ");
-  if (isReverseId1(cmd)) {
+  const [cmd2, ...args] = split(str, " ");
+  if (isReverseId1(cmd2)) {
     console.error("TBD, parse:" + JSON.stringify(args));
   }
   return null;
+};
+
+// src/render/block.ts
+var space = " ";
+function split2(s, d) {
+  const parts = s.split(d);
+  if (isNonEmptyArray(parts)) {
+    return parts;
+  }
+  return [s];
+}
+function align(a91, b) {
+  const last3 = lastLine(a91);
+  if (last3.trim().length < 1) {
+    return null;
+  }
+  const [first, ...rest] = split2(b, "\n");
+  if (first.trim() !== last3.trim()) {
+    return null;
+  }
+  const topLeft = Math.abs(last3.trimStart().length - last3.length);
+  const topRight = Math.abs(last3.trimEnd().length - last3.length);
+  const bottomLeft = Math.abs(first.trimStart().length - first.length);
+  const bottomRight = Math.abs(first.trimEnd().length - first.length);
+  const top = margin(
+    Math.max(0, bottomLeft - topLeft),
+    Math.max(0, bottomRight - topRight)
+  )(a91);
+  const bot = margin(
+    Math.max(0, topLeft - bottomLeft),
+    Math.max(0, topRight - bottomRight)
+  )(rest.join("\n"));
+  return [...top.split("\n"), ...bot.split("\n")].join("\n");
+}
+function margin(left4, right3 = 0, space2 = " ") {
+  return (str) => {
+    return str.split("\n").map((line2) => space2.repeat(left4) + line2 + space2.repeat(right3)).join("\n");
+  };
+}
+function width(str) {
+  return Math.max(...str.split("\n").map((line2) => line2.length));
+}
+function left2(wide) {
+  return (str) => {
+    const length = width(str);
+    const rightMargin = Math.max(0, wide - length);
+    return margin(0, rightMargin, " ")(str);
+  };
+}
+function concat(str1, str2) {
+  const lines1 = str1.split("\n").reverse();
+  const width1 = width(str1);
+  const lines2 = str2.split("\n").reverse();
+  const width2 = width(str2);
+  const count = Math.max(lines1.length, lines2.length);
+  return "x".repeat(count).split(String()).map(
+    (_, i90) => left2(width1)(lines1[i90] ?? String()) + left2(width2)(lines2[i90] ?? String())
+  ).reverse().join("\n");
+}
+function center2(wide) {
+  return (str) => {
+    const length = width(str);
+    const leftMargin = Math.max(0, Math.floor((wide - length) / 2));
+    const rightMargin = Math.max(0, wide - length - leftMargin);
+    return margin(leftMargin, rightMargin, " ")(str);
+  };
+}
+function line(width2) {
+  return "\u2015".repeat(width2);
+}
+function pad(str) {
+  const length = width(str);
+  const lines = str.split("\n");
+  return lines.map((line2) => line2.padEnd(length, space)).join("\n");
+}
+function spaced(blocks, n = 1) {
+  const [first, ...rest] = blocks;
+  if (typeof first !== "string") {
+    return "";
+  }
+  return rest.map(margin(n, 0)).reduce(concat, first);
+}
+var br = String();
+function leftify(...lines) {
+  return lines.join("\n");
+}
+function tree(root, branches2, note, lineWidth) {
+  const line1 = center2(lineWidth)(spaced(branches2, 2));
+  const last3 = center2(lineWidth)(lastLine(line1).trim());
+  const line2 = spaced([line(lineWidth), note]);
+  const line3 = center2(lineWidth)(root);
+  const aligned = align(line1, pad(leftify(last3, line2, line3)));
+  if (aligned != null) {
+    return aligned;
+  }
+  return pad(leftify(line1, line2, line3));
+}
+function lastLine(block) {
+  const [first, ...rest] = split2(block, "\n");
+  return rest.at(-1) ?? first;
+}
+function treeAuto(root, branches2, note) {
+  const branchBlock = spaced(branches2, 2);
+  const contentWidth = Math.max(
+    lastLine(branchBlock).trim().length + 2,
+    width(root) + 2
+  );
+  return tree(root, branches2, note, contentWidth);
+}
+var underline = (char) => (str) => [...str.split("\n"), char.repeat(width(str))].join("\n");
+
+// src/model/rule.ts
+var ruleId = {
+  a1: "a1",
+  a2: "a2",
+  a3: "a3",
+  cl1: "cl1",
+  cl2: "cl2",
+  cl: "cl",
+  cr: "cr",
+  cut: "cut",
+  dl: "dl",
+  fcr: "fcr",
+  fcut: "fcut",
+  fdl: "fdl",
+  fil: "fil",
+  dr1: "dr1",
+  dr2: "dr2",
+  dr: "dr",
+  f: "f",
+  i: "i",
+  il: "il",
+  ir: "ir",
+  mp: "mp",
+  nl: "nl",
+  nr: "nr",
+  sRotLB: "sRotLB",
+  sRotLF: "sRotLF",
+  sRotRB: "sRotRB",
+  sRotRF: "sRotRF",
+  scl: "scl",
+  scr: "scr",
+  swl: "swl",
+  swr: "swr",
+  sxl: "sxl",
+  sxr: "sxr",
+  v: "v"
+};
+var matchRuleId = (s, f2) => f2[s]();
+var isRuleId = (u) => typeof u === "string" && u in ruleId;
+
+// src/render/segment.ts
+function of2(text) {
+  return { text, active: false, connective: false };
+}
+function active(text) {
+  return { text, active: true, connective: false };
+}
+function connective(text, active2) {
+  return { text, active: active2, connective: true };
+}
+function paren(text) {
+  return { text, active: false, connective: false, parenthesis: true };
+}
+function raw(html2) {
+  return { text: html2, active: false, connective: false, raw: true };
+}
+function plain(segments) {
+  return segments.map((s) => s.raw === true ? "" : s.text).join("");
+}
+function escape(text) {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+function html(segments) {
+  return segments.map((s) => {
+    if (s.raw === true) {
+      return s.text;
+    }
+    if (s.connective) {
+      const cls = s.active ? "connective active" : "connective";
+      return `<span class="${cls}">${escape(s.text)}</span>`;
+    }
+    if (s.parenthesis === true) {
+      return `<span class="parenthesis">${escape(s.text)}</span>`;
+    }
+    return escape(s.text);
+  }).join("");
+}
+function trim(segments) {
+  const result = [...segments];
+  for (let i90 = 0; i90 < result.length; i90 += 1) {
+    const s = result[i90];
+    if (s === void 0) break;
+    if (s.raw === true) continue;
+    const trimmed = s.text.trimStart();
+    result[i90] = { ...s, text: trimmed };
+    if (trimmed.length > 0) break;
+  }
+  for (let i90 = result.length - 1; i90 >= 0; i90 -= 1) {
+    const s = result[i90];
+    if (s === void 0) break;
+    if (s.raw === true) continue;
+    const trimmed = s.text.trimEnd();
+    result[i90] = { ...s, text: trimmed };
+    if (trimmed.length > 0) break;
+  }
+  return result;
+}
+
+// src/render/print.ts
+var NullaryTemplateId = {
+  falsum: null,
+  verum: null
+};
+var isNullaryTemplateId = (s) => s in NullaryTemplateId;
+var UnaryTemplateId = {
+  atom: null,
+  optional: null,
+  parenthesis: null,
+  negation: null
+};
+var isUnaryTemplateId = (s) => s in UnaryTemplateId;
+var BinaryTemplateId = {
+  conjunction: null,
+  disjunction: null,
+  implication: null,
+  formulas: null,
+  sequent: null
+};
+var isBinaryTemplateId = (s) => s in BinaryTemplateId;
+var basic = {
+  falsum: ["\u22A5"],
+  verum: ["\u22A4"],
+  atom: ["", ""],
+  optional: ["", ""],
+  parenthesis: ["(", ")"],
+  negation: ["\xAC", ""],
+  conjunction: ["", "\u2227", ""],
+  disjunction: ["", "\u2228", ""],
+  implication: ["", "\u2192", ""],
+  formulas: ["", ",", ""],
+  sequent: ["", " \u22A2 ", ""]
+};
+var empty3 = String();
+function printNullary(key) {
+  return () => (theme) => {
+    const [s0] = theme[key];
+    return [of2(s0)];
+  };
+}
+function printUnary(key, activeConn = false, markConnective = false) {
+  return (a91) => (theme) => {
+    const [s0, s1] = theme[key];
+    if (key === "parenthesis") {
+      return [paren(s0), ...a91(theme), paren(s1)];
+    }
+    return [
+      markConnective ? connective(s0, activeConn) : activeConn ? active(s0) : of2(s0),
+      ...a91(theme),
+      of2(s1)
+    ];
+  };
+}
+function printBinary(key, activeConn = false, markConnective = false) {
+  return (a91, b) => (theme) => {
+    const [s0, s1, s2] = theme[key];
+    return [
+      of2(s0),
+      ...a91(theme),
+      markConnective ? connective(s1, activeConn) : activeConn ? active(s1) : of2(s1),
+      ...b(theme),
+      of2(s2)
+    ];
+  };
+}
+function print(key) {
+  if (isNullaryTemplateId(key)) {
+    return printNullary(key);
+  }
+  if (isUnaryTemplateId(key)) {
+    return printUnary(key);
+  }
+  if (isBinaryTemplateId(key)) {
+    return printBinary(key);
+  }
+  return assertNever(key);
+}
+var printString = (s) => (_theme) => [of2(s)];
+var printNothing = printString(empty3);
+function printNonEmptyArray(k) {
+  return ([head4, ...tail2]) => tail2.reduce(print(k), head4);
+}
+function printArray(k) {
+  return (ps) => isNonEmptyArray(ps) ? printNonEmptyArray(k)(ps) : printNothing;
+}
+function fromAtom({ value }) {
+  let chr = value;
+  if (value === "p") {
+    chr = "\u{1F427}";
+  }
+  if (value === "q") {
+    chr = "\u{1F99C}";
+  }
+  if (value === "r") {
+    chr = "\u{1F983}";
+  }
+  if (value === "s") {
+    chr = "\u{1F986}";
+  }
+  return print("atom")(printString(chr));
+}
+function fromFalsum(_falsum) {
+  return print("falsum")();
+}
+function fromVerum(_verum) {
+  return print("verum")();
+}
+var precedence = (p) => matchRaw(p, {
+  atom: () => 4,
+  falsum: () => 4,
+  verum: () => 4,
+  negation: () => 3,
+  conjunction: () => 2,
+  disjunction: () => 2,
+  implication: () => 1
+});
+var expand = (minPrec, operand) => {
+  if (operand.kind === "atom") return fromProp(operand);
+  return precedence(operand) >= minPrec ? print("optional")(fromProp(operand)) : print("parenthesis")(fromProp(operand));
+};
+function fromNegation({ negand }, activeConnective = false) {
+  return printUnary("negation", activeConnective, true)(expand(3, negand));
+}
+function fromConjunction({ leftConjunct, rightConjunct }, activeConnective = false) {
+  return printBinary(
+    "conjunction",
+    activeConnective,
+    true
+  )(expand(3, leftConjunct), expand(3, rightConjunct));
+}
+function fromDisjunction({ leftDisjunct, rightDisjunct }, activeConnective = false) {
+  return printBinary(
+    "disjunction",
+    activeConnective,
+    true
+  )(expand(3, leftDisjunct), expand(3, rightDisjunct));
+}
+function fromImplication({ antecedent, consequent }, activeConnective = false) {
+  return printBinary(
+    "implication",
+    activeConnective,
+    true
+  )(expand(2, antecedent), expand(2, consequent));
+}
+function fromProp(proposition, activeConnective = false) {
+  return matchRaw(proposition, {
+    atom: fromAtom,
+    falsum: fromFalsum,
+    verum: fromVerum,
+    negation: (p) => fromNegation(p, activeConnective),
+    conjunction: (p) => fromConjunction(p, activeConnective),
+    disjunction: (p) => fromDisjunction(p, activeConnective),
+    implication: (p) => fromImplication(p, activeConnective)
+  });
+}
+var wrapGazed = (p) => (t2) => [raw('<span class="gazed">'), ...p(t2), raw("</span>")];
+function fromSequent(judgement, gaze = null) {
+  const { antecedent, succedent } = judgement;
+  const antPrinters = antecedent.map((f2, i90) => {
+    const p = fromProp(f2, true);
+    return gaze && gaze.side === "left" && gaze.index === i90 ? wrapGazed(p) : p;
+  });
+  const sucPrinters = succedent.map((f2, i90) => {
+    const p = fromProp(f2, true);
+    return gaze && gaze.side === "right" && gaze.index === i90 ? wrapGazed(p) : p;
+  });
+  return (t2) => trim(
+    print("sequent")(
+      printArray("formulas")(antPrinters),
+      printArray("formulas")(sucPrinters)
+    )(t2)
+  );
+}
+function left3(label, n = null) {
+  return n != null ? label + n : label;
+}
+function right2(label, n = null) {
+  return n != null ? label + n : label;
+}
+function fromRuleId(s, l = "L", r = "R") {
+  return (t2) => [
+    of2(
+      matchRuleId(s, {
+        i: () => "I",
+        f: () => "\u22A5",
+        v: () => "\u22A4",
+        cl: () => t2.conjunction.join(empty3) + left3(l),
+        dr: () => t2.disjunction.join(empty3) + right2(r),
+        cl1: () => t2.conjunction.join(empty3) + left3(l, "\u2081"),
+        dr1: () => t2.disjunction.join(empty3) + right2(r, "\u2081"),
+        cl2: () => t2.conjunction.join(empty3) + left3(l, "\u2082"),
+        dr2: () => t2.disjunction.join(empty3) + right2(r, "\u2082"),
+        dl: () => t2.disjunction.join(empty3) + left3(l),
+        cr: () => t2.conjunction.join(empty3) + right2(r),
+        il: () => t2.implication.join(empty3) + left3(l),
+        ir: () => t2.implication.join(empty3) + right2(r),
+        nl: () => t2.negation.join(empty3) + left3(l),
+        nr: () => t2.negation.join(empty3) + right2(r),
+        swl: () => "W" + left3(l),
+        swr: () => "W" + right2(r),
+        scl: () => "C" + left3(l),
+        scr: () => "C" + right2(r),
+        sRotLF: () => "\u21B6" + left3(l),
+        sRotRF: () => "\u21B7" + right2(r),
+        sRotLB: () => "\u21B7" + left3(l),
+        sRotRB: () => "\u21B6" + right2(r),
+        sxl: () => "X" + left3(l),
+        sxr: () => "X" + right2(r),
+        a1: () => "a1",
+        a2: () => "a2",
+        a3: () => "a3",
+        cut: () => "cut",
+        fcut: () => "fcut",
+        fcr: () => t2.conjunction.join(empty3) + right2(r, "\u1DA0"),
+        fdl: () => t2.disjunction.join(empty3) + left3(l, "\u1DA0"),
+        fil: () => t2.implication.join(empty3) + left3(l, "\u1DA0"),
+        mp: () => "mp"
+      })
+    )
+  ];
+}
+function fromPremise({ result }) {
+  return plain(fromSequent(result)(basic));
+}
+function fromTransformation({ rule, deps, result }, l = "L", r = "R") {
+  return treeAuto(
+    plain(fromSequent(result)(basic)),
+    deps.map((d) => fromDerivation(d, l, r)),
+    "(" + plain(fromRuleId(rule, l, r)(basic)) + ")"
+  );
+}
+function fromDerivation(treelike, l = "L", r = "R") {
+  switch (treelike.kind) {
+    case "premise":
+      return fromPremise(treelike);
+    case "transformation":
+      return fromTransformation(treelike, l, r);
+  }
+}
+var unit = 16;
+var half = center2(2 * unit);
+var full = center2(4 * unit);
+function fromMeta(meta4) {
+  return leftify(
+    br,
+    br,
+    full(underline("*")(meta4.name)),
+    br,
+    ...meta4.propositions.flatMap(({ title, examples }) => [
+      br,
+      title,
+      br,
+      br,
+      ...examples.flatMap((line2) => [
+        half(
+          spaced(
+            line2.map((x) => plain(fromProp(x)(basic))),
+            1
+          )
+        ),
+        br
+      ])
+    ]),
+    br,
+    ...meta4.rules.flatMap(({ title, examples }) => [
+      br,
+      title,
+      br,
+      br,
+      ...examples.flatMap((line2) => [
+        spaced(
+          line2.map((x) => half(fromDerivation(x))),
+          0
+        ),
+        br,
+        br
+      ])
+    ])
+  );
+}
+var fromFocus = (s) => {
+  return fromDerivation(s.derivation);
 };
 
 // src/interactive/focus.ts
@@ -2221,8 +2689,8 @@ var apply = (s, edit) => {
 };
 var undo2 = (s) => {
   const path = activePath(s);
-  const current = subDerivation(s.derivation, path);
-  if (current?.kind === "transformation") {
+  const current2 = subDerivation(s.derivation, path);
+  if (current2?.kind === "transformation") {
     const derivation = editDerivation(
       s.derivation,
       path,
@@ -2348,10 +2816,625 @@ var rk = {
   z: zeta
 };
 
+// src/help/rk.ts
+var meta = {
+  name,
+  propositions: [
+    {
+      title: "Variables",
+      examples: [
+        [
+          alpha("p"),
+          alpha("q"),
+          alpha("r"),
+          alpha("s"),
+          alpha("t"),
+          alpha("u")
+        ]
+      ]
+    },
+    {
+      title: "Connectives",
+      examples: [
+        [
+          falsum,
+          verum,
+          negation(atom("A")),
+          implication(atom("A"), atom("B")),
+          conjunction(atom("A"), atom("B")),
+          disjunction(atom("A"), atom("B"))
+        ]
+      ]
+    }
+  ],
+  rules: [
+    {
+      title: "Axiom",
+      examples: [[ruleF.example, ruleV.example], [ruleI.example]]
+    },
+    {
+      title: "Cut",
+      examples: [[ruleCut.example]]
+    },
+    {
+      title: "Logical Rules",
+      examples: [
+        [ruleCL.example, ruleDR.example],
+        [ruleDL.example, ruleCR.example],
+        [ruleIL.example, ruleIR.example],
+        [ruleNL.example, ruleNR.example]
+      ]
+    },
+    {
+      title: "Structural Rules",
+      examples: [
+        [ruleSWL.example, ruleSWR.example],
+        [ruleSRotLF.example, ruleSRotRF.example],
+        [ruleSRotLB.example, ruleSRotRB.example]
+      ]
+    }
+  ]
+};
+var exampleProof = rk.z.ir(
+  rk.z.swl(
+    rk.o.p2.implication(
+      rk.a("p"),
+      rk.o.p2.implication(rk.a("q"), rk.o.p1.negation(rk.a("p")))
+    ),
+    rk.z.ir(rk.i.i(rk.a("p")))
+  )
+);
+
+// src/systems/fk.ts
+var alpha2 = (s) => atom(s);
+var omega2 = {
+  p0: { falsum, verum },
+  p1: { negation },
+  p2: { implication, conjunction, disjunction }
+};
+var iota2 = {
+  i: ruleI.apply,
+  v: ruleV.apply,
+  f: ruleF.apply
+};
+var zeta2 = {
+  fcut: ruleFCut.apply,
+  cl1: ruleCL1.apply,
+  dr1: ruleDR1.apply,
+  cl2: ruleCL2.apply,
+  dr2: ruleDR2.apply,
+  fdl: ruleFDL.apply,
+  fcr: ruleFCR.apply,
+  fil: ruleFIL.apply,
+  ir: ruleIR.apply,
+  nl: ruleNL.apply,
+  nr: ruleNR.apply,
+  swl: ruleSWL.apply,
+  swr: ruleSWR.apply,
+  scl: ruleSCL.apply,
+  scr: ruleSCR.apply,
+  sRotLF: ruleSRotLF.apply,
+  sRotLB: ruleSRotLB.apply,
+  sRotRF: ruleSRotRF.apply,
+  sRotRB: ruleSRotRB.apply,
+  sxl: ruleSXL.apply,
+  sxr: ruleSXR.apply
+};
+var name2 = "FK";
+var fk = {
+  a: alpha2,
+  o: omega2,
+  i: iota2,
+  z: zeta2
+};
+
+// src/help/fk.ts
+var meta2 = {
+  name: name2,
+  propositions: [
+    {
+      title: "Variables",
+      examples: [
+        [
+          alpha2("p"),
+          alpha2("q"),
+          alpha2("r"),
+          alpha2("s"),
+          alpha2("t"),
+          alpha2("u")
+        ]
+      ]
+    },
+    {
+      title: "Connectives",
+      examples: [
+        [
+          falsum,
+          verum,
+          negation(atom("A")),
+          implication(atom("A"), atom("B")),
+          conjunction(atom("A"), atom("B")),
+          disjunction(atom("A"), atom("B"))
+        ]
+      ]
+    }
+  ],
+  rules: [
+    {
+      title: "Axiom",
+      examples: [[ruleF.example, ruleV.example], [ruleI.example]]
+    },
+    {
+      title: "Logical Rules",
+      examples: [
+        [ruleCL1.example, ruleDR1.example],
+        [ruleCL2.example, ruleDR2.example],
+        [ruleFIL.example, ruleIR.example],
+        [ruleFDL.example, ruleFCR.example],
+        [ruleNL.example, ruleNR.example],
+        [ruleFCut.example]
+      ]
+    },
+    {
+      title: "Structural Rules",
+      examples: [
+        [ruleSWL.example, ruleSWR.example],
+        [ruleSCL.example, ruleSCR.example],
+        [ruleSRotLF.example, ruleSRotRF.example],
+        [ruleSRotLB.example, ruleSRotRB.example],
+        [ruleSXL.example, ruleSXR.example]
+      ]
+    }
+  ]
+};
+var exampleProof2 = fk.z.ir(
+  fk.z.swl(
+    fk.o.p2.implication(
+      fk.a("p"),
+      fk.o.p2.implication(fk.a("q"), fk.o.p1.negation(fk.a("p")))
+    ),
+    fk.z.ir(fk.i.i(fk.a("p")))
+  )
+);
+
+// src/systems/la3.ts
+var alpha3 = (s) => atom(s);
+var omega3 = {
+  p0: {},
+  p1: { negation },
+  p2: { implication }
+};
+var iota3 = {
+  a1: ruleA1.apply,
+  a2: ruleA2.apply,
+  a3: ruleA3.apply
+};
+var zeta3 = {
+  mp: ruleMP.apply
+};
+var name3 = "\u0141ukasiewicz Axioms 3";
+var la3 = {
+  a: alpha3,
+  o: omega3,
+  i: iota3,
+  z: zeta3
+};
+
+// src/help/la3.ts
+var meta3 = {
+  name: name3,
+  propositions: [
+    {
+      title: "Variables",
+      examples: [
+        [
+          alpha3("p"),
+          alpha3("q"),
+          alpha3("r"),
+          alpha3("s"),
+          alpha3("t"),
+          alpha3("u")
+        ]
+      ]
+    },
+    {
+      title: "Connectives",
+      examples: [[negation(atom("A")), implication(atom("A"), atom("B"))]]
+    }
+  ],
+  rules: [
+    {
+      title: "Axioms",
+      examples: [[ruleA1.example, ruleA2.example, ruleA3.example]]
+    },
+    {
+      title: "Rule",
+      examples: [[ruleMP.example]]
+    }
+  ]
+};
+var exampleProof3 = la3.z.mp(
+  la3.i.a2(
+    la3.a("p"),
+    la3.o.p2.implication(la3.a("q"), la3.o.p1.negation(la3.a("p"))),
+    la3.a("p")
+  ),
+  la3.i.a1(
+    la3.a("p"),
+    la3.o.p2.implication(la3.a("q"), la3.o.p1.negation(la3.a("p")))
+  )
+);
+
+// src/help/index.ts
+var helpSystems = {
+  rk: {
+    id: "rk",
+    name: meta.name,
+    meta,
+    exampleProof
+  },
+  fk: {
+    id: "fk",
+    name: meta2.name,
+    meta: meta2,
+    exampleProof: exampleProof2
+  },
+  la3: {
+    id: "la3",
+    name: meta3.name,
+    meta: meta3,
+    exampleProof: exampleProof3
+  }
+};
+var isHelpSystemId = (s) => s in helpSystems;
+var renderSystemHelp = (id) => {
+  const sys = helpSystems[id];
+  return fromMeta(sys.meta) + "\n\nSandbox\n\n" + fromDerivation(sys.exampleProof) + "\n";
+};
+
+// src/interactive/repl.ts
+function* repl(session2, factory2) {
+  let output = menuPrompt();
+  while (true) {
+    const input = yield [...output, of2("\n")];
+    if (input.trim() === "") {
+      output = session2.mode === null ? menuPrompt() : modeStatus(session2);
+      continue;
+    }
+    const [cmd2, ...args] = split(input, " ");
+    const global = handleGlobal(cmd2, args);
+    if (global) {
+      output = global;
+      continue;
+    }
+    if (session2.mode === null) {
+      const result2 = handleMenu(session2, factory2, cmd2);
+      if (result2 === null) return [of2("\nExiting...")];
+      output = result2;
+      continue;
+    }
+    const result = handleMode(session2, factory2, cmd2, args);
+    if (result === null) return [of2("\nExiting...")];
+    output = result;
+  }
+}
+var menuPrompt = () => [
+  of2(
+    "\n[Main Menu]\n" + gameModes.map(
+      (m) => "\n  " + m + " - " + m.charAt(0).toUpperCase() + m.slice(1) + " mode"
+    ).join("") + "\n  quit - Exit"
+  )
+];
+var handleGlobal = (cmd2, args) => {
+  switch (cmd2) {
+    case "systems":
+      return [
+        of2(
+          "\nSystems:\n" + Object.values(helpSystems).map((s) => "  " + s.id + " - " + s.name).join("\n")
+        )
+      ];
+    case "system": {
+      const [arg] = args;
+      if (arg == null || !isHelpSystemId(arg)) {
+        return [of2('\nUnknown system "' + arg + '"')];
+      }
+      return [of2("\n" + renderSystemHelp(arg))];
+    }
+    default:
+      return null;
+  }
+};
+var handleMenu = (session2, factory2, cmd2) => {
+  if (cmd2 === "quit") return null;
+  if (includes(gameModes, cmd2)) {
+    session2.enter(cmd2, factory2[cmd2]());
+    return modeStatus(session2);
+  }
+  return [of2('\nUnknown command "' + cmd2 + '"')];
+};
+var handleMode = (session2, factory2, cmd2, args) => {
+  switch (cmd2) {
+    case "quit":
+      return null;
+    case "menu":
+      session2.returnToMenu();
+      return menuPrompt();
+    case "new": {
+      if (session2.mode !== "random") {
+        return [of2('\nUnknown command "new"')];
+      }
+      session2.replaceWorkspace(factory2["random"]());
+      return modeStatus(session2);
+    }
+    case "help": {
+      const [arg] = args;
+      if (arg == null) {
+        return modeHelp(session2);
+      }
+      if (isRuleId(arg)) {
+        return [
+          of2('\nRule "' + arg + '":\n\n' + fromDerivation(rules[arg].example))
+        ];
+      }
+      return [of2('\nUnknown rule "' + arg + '"')];
+    }
+    case "list": {
+      if (session2.mode !== "campaign") {
+        return [of2('\nUnknown command "list"')];
+      }
+      return [
+        of2(
+          "\nConjectures:\n" + session2.workspace.listConjectures().map(
+            ([id]) => (id === session2.workspace.selected ? "*" : " ") + " " + id
+          ).join("\n")
+        )
+      ];
+    }
+    case "prev": {
+      if (session2.mode !== "campaign") {
+        return [of2('\nUnknown command "prev"')];
+      }
+      session2.workspace.selectConjecture(
+        session2.workspace.previousConjectureId()
+      );
+      return modeStatus(session2);
+    }
+    case "next": {
+      if (session2.mode !== "campaign") {
+        return [of2('\nUnknown command "next"')];
+      }
+      session2.workspace.selectConjecture(session2.workspace.nextConjectureId());
+      return modeStatus(session2);
+    }
+    case "select": {
+      if (session2.mode !== "campaign") {
+        return [of2('\nUnknown command "select"')];
+      }
+      const [conjectureId] = args;
+      if (!session2.workspace.isConjectureId(conjectureId)) {
+        return [of2('\nUnknown conjecture "' + conjectureId + '"')];
+      }
+      session2.workspace.selectConjecture(conjectureId);
+      return modeStatus(session2);
+    }
+    default: {
+      const ev = parseEvent(cmd2);
+      if (!ev) {
+        return [of2('\nUnknown command "' + cmd2 + '"')];
+      }
+      session2.workspace.applyEvent(ev);
+      return modeStatus(session2);
+    }
+  }
+};
+var modeHelp = (session2) => {
+  let text = "\nCommands:";
+  text += "\n  help - display this manual";
+  text += "\n  help <rule> - display rule description";
+  text += "\n  undo - undo applied rule";
+  text += "\n  reset - undo all applied rules";
+  if (session2.mode === "random") {
+    text += "\n  new - get a new random challenge";
+  }
+  text += "\n  menu - return to main menu";
+  text += "\n  quit - exit";
+  return [of2(text)];
+};
+var modeStatus = (session2) => {
+  const ws = session2.workspace;
+  const s = ws.currentConjecture();
+  const solved = isProof(s.derivation);
+  const availableRules = ws.applicableRules();
+  let title = "";
+  if (session2.mode === "campaign") {
+    title = "\n[Campaign: " + ws.selected + "]";
+  } else if (session2.mode === "random") {
+    title = "\n[Random]";
+  }
+  const commands = ["help", "undo", "reset"];
+  if (session2.mode === "random") commands.push("new");
+  commands.push("menu");
+  const result = [
+    of2(title + "\n\n"),
+    ...fromSequent(activeSequent(s))(basic),
+    of2("\n\n" + fromFocus(s)),
+    of2("\n\nRules: " + availableRules.join(", ")),
+    of2("\nCommands: " + commands.join(", "))
+  ];
+  if (solved) {
+    result.push(of2("\n\nConglaturations!\n"));
+    if (session2.mode === "campaign") {
+      result.push(of2('\nType "next" to continue'));
+    }
+    if (session2.mode === "random") {
+      result.push(of2('\nType "new" for a new challenge'));
+    }
+  }
+  return result;
+};
+
+// src/interactive/session.ts
+var Session = class {
+  _mode = null;
+  _workspace = null;
+  get mode() {
+    return this._mode;
+  }
+  get workspace() {
+    if (this._workspace === null) {
+      throw new Error("No active workspace");
+    }
+    return this._workspace;
+  }
+  enter(mode, workspace) {
+    this._mode = mode;
+    this._workspace = workspace;
+  }
+  returnToMenu() {
+    this._mode = null;
+    this._workspace = null;
+  }
+  replaceWorkspace(workspace) {
+    this._workspace = workspace;
+  }
+};
+
 // src/model/challenge.ts
 var challenge = (c) => c;
 var isTutorial = (c) => "pinned" in c && Array.isArray(c.pinned);
-var tutorial = (t) => t;
+var tutorial = (t2) => t2;
+
+// src/interactive/workspace.ts
+var Workspace = class {
+  theorems;
+  conjectures = {};
+  theoremKeys;
+  selected;
+  _gaze = null;
+  _gazeKind = "connective";
+  isSolved() {
+    return isProof(this.currentConjecture().derivation);
+  }
+  constructor(challenges2) {
+    this.theorems = challenges2;
+    const theoremKeys = keys(challenges2);
+    if (!isNonEmptyArray(theoremKeys)) {
+      throw new Error("no challenges");
+    }
+    this.theoremKeys = theoremKeys;
+    this.selected = theoremKeys[0];
+    this.selectConjecture(this.selected);
+  }
+  currentConjecture() {
+    const c = this.conjectures[this.selected];
+    if (c) return c;
+    console.warn(`Conjecture '${this.selected}' not initialized, recovering`);
+    const conf = get(this.theorems, this.selected);
+    const f2 = focus(premise(conf.goal));
+    this.conjectures[this.selected] = f2;
+    return f2;
+  }
+  previousConjectureId() {
+    const index = this.theoremKeys.findIndex((x) => x === this.selected);
+    return this.theoremKeys[index - 1] ?? head(this.theoremKeys);
+  }
+  nextConjectureId() {
+    const index = this.theoremKeys.findIndex((x) => x === this.selected);
+    return this.theoremKeys[index + 1] ?? last(this.theoremKeys);
+  }
+  availableRules() {
+    return get(this.theorems, this.selected).rules;
+  }
+  pinnedRules() {
+    const conf = get(this.theorems, this.selected);
+    return isTutorial(conf) ? conf.pinned : [];
+  }
+  applicableRules() {
+    const available = this.availableRules();
+    const appplicable = applicableRules2(this.currentConjecture());
+    return available.filter((rule) => appplicable.includes(rule));
+  }
+  selectConjecture(id) {
+    if (!(id in this.conjectures)) {
+      const conf = get(this.theorems, id);
+      this.conjectures[id] = focus(premise(conf.goal));
+    }
+    this.selected = id;
+  }
+  listConjectures() {
+    return entries(this.theorems);
+  }
+  isConjectureId(s) {
+    return typeof s === "string" && s in this.theorems;
+  }
+  applyEvent(ev) {
+    const oldGaze = this.gaze();
+    const cursor = this.currentConjecture();
+    const update = applyEvent(cursor, ev);
+    this.conjectures[this.selected] = update;
+    if (ev.kind === "nextBranch" || ev.kind === "prevBranch" || ev.kind === "reset") {
+      this._gaze = null;
+    } else {
+      const seq = activeSequent(update);
+      const sideLen = oldGaze.side === "left" ? seq.antecedent.length : seq.succedent.length;
+      if (sideLen > 0) {
+        this._gaze = {
+          side: oldGaze.side,
+          index: Math.min(oldGaze.index, sideLen - 1)
+        };
+      } else {
+        this._gaze = null;
+      }
+    }
+    this._gazeKind = "connective";
+  }
+  applyEventWithGaze(ev, nextGaze) {
+    const cursor = this.currentConjecture();
+    const update = applyEvent(cursor, ev);
+    this.conjectures[this.selected] = update;
+    this._gaze = nextGaze;
+  }
+  gazeKind() {
+    return this._gazeKind;
+  }
+  setGazeKind(kind) {
+    this._gazeKind = kind;
+  }
+  setGaze(gaze) {
+    this._gaze = gaze;
+    this._gazeKind = "connective";
+  }
+  gaze() {
+    if (this._gaze) return this._gaze;
+    return this.defaultGaze();
+  }
+  defaultGaze() {
+    const seq = activeSequent(this.currentConjecture());
+    if (seq.antecedent.length > 0) {
+      return { side: "left", index: seq.antecedent.length - 1 };
+    }
+    if (seq.succedent.length > 0) {
+      return { side: "right", index: 0 };
+    }
+    return { side: "left", index: 0 };
+  }
+  moveGaze(direction) {
+    const seq = activeSequent(this.currentConjecture());
+    const ant = seq.antecedent.length;
+    const suc = seq.succedent.length;
+    const total = ant + suc;
+    if (total === 0) {
+      this._gaze = null;
+      this._gazeKind = "connective";
+      return;
+    }
+    const current2 = this._gaze ?? this.defaultGaze();
+    const linear = current2.side === "left" ? current2.index : ant + current2.index;
+    const next2 = (linear + direction + total) % total;
+    this._gaze = next2 < ant ? { side: "left", index: next2 } : { side: "right", index: next2 - ant };
+    this._gazeKind = "connective";
+  }
+};
 
 // src/challenges/ch0-identity-1.ts
 var { a, i: i2 } = rk;
@@ -5182,1005 +6265,98 @@ var challenges = {
   // ch5compositionE,
 };
 
-// src/render/block.ts
-var space = " ";
-function split2(s, d) {
-  const parts = s.split(d);
-  if (isNonEmptyArray(parts)) {
-    return parts;
-  }
-  return [s];
-}
-function align(a91, b) {
-  const last3 = lastLine(a91);
-  if (last3.trim().length < 1) {
-    return null;
-  }
-  const [first, ...rest] = split2(b, "\n");
-  if (first.trim() !== last3.trim()) {
-    return null;
-  }
-  const topLeft = Math.abs(last3.trimStart().length - last3.length);
-  const topRight = Math.abs(last3.trimEnd().length - last3.length);
-  const bottomLeft = Math.abs(first.trimStart().length - first.length);
-  const bottomRight = Math.abs(first.trimEnd().length - first.length);
-  const top = margin(
-    Math.max(0, bottomLeft - topLeft),
-    Math.max(0, bottomRight - topRight)
-  )(a91);
-  const bot = margin(
-    Math.max(0, topLeft - bottomLeft),
-    Math.max(0, topRight - bottomRight)
-  )(rest.join("\n"));
-  return [...top.split("\n"), ...bot.split("\n")].join("\n");
-}
-function margin(left4, right3 = 0, space2 = " ") {
-  return (str) => {
-    return str.split("\n").map((line2) => space2.repeat(left4) + line2 + space2.repeat(right3)).join("\n");
-  };
-}
-function width(str) {
-  return Math.max(...str.split("\n").map((line2) => line2.length));
-}
-function left2(wide) {
-  return (str) => {
-    const length = width(str);
-    const rightMargin = Math.max(0, wide - length);
-    return margin(0, rightMargin, " ")(str);
-  };
-}
-function concat(str1, str2) {
-  const lines1 = str1.split("\n").reverse();
-  const width1 = width(str1);
-  const lines2 = str2.split("\n").reverse();
-  const width2 = width(str2);
-  const count = Math.max(lines1.length, lines2.length);
-  return "x".repeat(count).split(String()).map(
-    (_, i90) => left2(width1)(lines1[i90] ?? String()) + left2(width2)(lines2[i90] ?? String())
-  ).reverse().join("\n");
-}
-function center2(wide) {
-  return (str) => {
-    const length = width(str);
-    const leftMargin = Math.max(0, Math.floor((wide - length) / 2));
-    const rightMargin = Math.max(0, wide - length - leftMargin);
-    return margin(leftMargin, rightMargin, " ")(str);
-  };
-}
-function line(width2) {
-  return "\u2015".repeat(width2);
-}
-function pad(str) {
-  const length = width(str);
-  const lines = str.split("\n");
-  return lines.map((line2) => line2.padEnd(length, space)).join("\n");
-}
-function spaced(blocks, n = 1) {
-  const [first, ...rest] = blocks;
-  if (typeof first !== "string") {
-    return "";
-  }
-  return rest.map(margin(n, 0)).reduce(concat, first);
-}
-var br = String();
-function leftify(...lines) {
-  return lines.join("\n");
-}
-function tree(root, branches2, note, lineWidth) {
-  const line1 = center2(lineWidth)(spaced(branches2, 2));
-  const last3 = center2(lineWidth)(lastLine(line1).trim());
-  const line2 = spaced([line(lineWidth), note]);
-  const line3 = center2(lineWidth)(root);
-  const aligned = align(line1, pad(leftify(last3, line2, line3)));
-  if (aligned != null) {
-    return aligned;
-  }
-  return pad(leftify(line1, line2, line3));
-}
-function lastLine(block) {
-  const [first, ...rest] = split2(block, "\n");
-  return rest.at(-1) ?? first;
-}
-function treeAuto(root, branches2, note) {
-  const branchBlock = spaced(branches2, 2);
-  const contentWidth = Math.max(
-    lastLine(branchBlock).trim().length + 2,
-    width(root) + 2
-  );
-  return tree(root, branches2, note, contentWidth);
-}
-var underline = (char) => (str) => [...str.split("\n"), char.repeat(width(str))].join("\n");
+// src/web/i18n.ts
+var en = {
+  title: "LK",
+  random: "Random",
+  campaign: "Campaign",
+  menu: "menu",
+  undo: "undo",
+  level: "level",
+  paused: "Paused",
+  resumeGame: "Resume game",
+  resetChallenge: "Reset challenge",
+  freshChallenge: "Fresh challenge",
+  exitToMainMenu: "Exit to main menu",
+  left: "Left",
+  right: "Right",
+  drop: "Drop",
+  destruct: "Destruct",
+  rules: "Rules",
+  axiom: "Axiom",
+  playAgain: "Play Again",
+  newChallenge: "New Challenge",
+  prevLevel: "Prev Level",
+  nextLevel: "Next Level",
+  congratulations: "\u{1F389} Conglaturations! \u{1F389}",
+  systems: "Systems",
+  backToSystems: "\u2190 Systems",
+  sideLeft: "L",
+  sideRight: "R"
+};
+var fi = {
+  title: "LK",
+  random: "Satunnainen",
+  campaign: "Kampanja",
+  menu: "valikko",
+  undo: "kumoa",
+  level: "taso",
+  paused: "Pys\xE4ytetty",
+  resumeGame: "Jatka peli\xE4",
+  resetChallenge: "Aloita alusta",
+  freshChallenge: "Uusi haaste",
+  exitToMainMenu: "P\xE4\xE4valikkoon",
+  left: "Vasen",
+  right: "Oikea",
+  drop: "Pudota",
+  destruct: "Pura",
+  rules: "S\xE4\xE4nn\xF6t",
+  axiom: "Aksiooma",
+  playAgain: "Pelaa uudestaan",
+  newChallenge: "Uusi haaste",
+  prevLevel: "Edellinen",
+  nextLevel: "Seuraava",
+  congratulations: "\u{1F389} Oneski olkoon! \u{1F389}",
+  systems: "J\xE4rjestelm\xE4t",
+  backToSystems: "\u2190 J\xE4rjestelm\xE4t",
+  sideLeft: "V",
+  sideRight: "O"
+};
+var messages = { en, fi };
+var detectLocale = () => {
+  const lang = navigator.language.split("-")[0] ?? "en";
+  return lang in messages ? lang : "en";
+};
+var locale = detectLocale();
+var t = (key) => (messages[locale] ?? en)[key] ?? en[key];
 
-// src/model/rule.ts
-var ruleId = {
-  a1: "a1",
-  a2: "a2",
-  a3: "a3",
-  cl1: "cl1",
-  cl2: "cl2",
-  cl: "cl",
-  cr: "cr",
-  cut: "cut",
-  dl: "dl",
-  fcr: "fcr",
-  fcut: "fcut",
-  fdl: "fdl",
-  fil: "fil",
-  dr1: "dr1",
-  dr2: "dr2",
-  dr: "dr",
-  f: "f",
-  i: "i",
-  il: "il",
-  ir: "ir",
-  mp: "mp",
-  nl: "nl",
-  nr: "nr",
-  sRotLB: "sRotLB",
-  sRotLF: "sRotLF",
-  sRotRB: "sRotRB",
-  sRotRF: "sRotRF",
-  scl: "scl",
-  scr: "scr",
-  swl: "swl",
-  swr: "swr",
-  sxl: "sxl",
-  sxr: "sxr",
-  v: "v"
+// src/web/menu.ts
+var modeLabel = {
+  random: () => t("random"),
+  campaign: () => t("campaign")
 };
-var matchRuleId = (s, f2) => f2[s]();
-var isRuleId = (u) => typeof u === "string" && u in ruleId;
-
-// src/render/segment.ts
-function of2(text) {
-  return { text, active: false, connective: false };
-}
-function active(text) {
-  return { text, active: true, connective: false };
-}
-function connective(text, active2) {
-  return { text, active: active2, connective: true };
-}
-function paren(text) {
-  return { text, active: false, connective: false, parenthesis: true };
-}
-function raw(html2) {
-  return { text: html2, active: false, connective: false, raw: true };
-}
-function plain(segments) {
-  return segments.map((s) => s.raw === true ? "" : s.text).join("");
-}
-function escape(text) {
-  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-function html(segments) {
-  return segments.map((s) => {
-    if (s.raw === true) {
-      return s.text;
-    }
-    if (s.connective) {
-      const cls = s.active ? "connective active" : "connective";
-      return `<span class="${cls}">${escape(s.text)}</span>`;
-    }
-    if (s.parenthesis === true) {
-      return `<span class="parenthesis">${escape(s.text)}</span>`;
-    }
-    return escape(s.text);
-  }).join("");
-}
-function trim(segments) {
-  const result = [...segments];
-  for (let i90 = 0; i90 < result.length; i90 += 1) {
-    const s = result[i90];
-    if (s === void 0) break;
-    if (s.raw === true) continue;
-    const trimmed = s.text.trimStart();
-    result[i90] = { ...s, text: trimmed };
-    if (trimmed.length > 0) break;
+var mountMenu = (container, navigate2) => {
+  const panel = document.createElement("div");
+  panel.setAttribute("class", "menu");
+  const title = document.createElement("div");
+  title.setAttribute("class", "menu-title");
+  title.innerHTML = t("title");
+  panel.appendChild(title);
+  const modes = document.createElement("div");
+  modes.setAttribute("class", "menu-modes");
+  for (const mode of gameModes) {
+    const btn = document.createElement("div");
+    btn.setAttribute("class", "button menu-mode");
+    btn.innerHTML = modeLabel[mode]();
+    btn.onclick = () => navigate2(mode);
+    modes.appendChild(btn);
   }
-  for (let i90 = result.length - 1; i90 >= 0; i90 -= 1) {
-    const s = result[i90];
-    if (s === void 0) break;
-    if (s.raw === true) continue;
-    const trimmed = s.text.trimEnd();
-    result[i90] = { ...s, text: trimmed };
-    if (trimmed.length > 0) break;
-  }
-  return result;
-}
-
-// src/render/print.ts
-var NullaryTemplateId = {
-  falsum: null,
-  verum: null
-};
-var isNullaryTemplateId = (s) => s in NullaryTemplateId;
-var UnaryTemplateId = {
-  atom: null,
-  optional: null,
-  parenthesis: null,
-  negation: null
-};
-var isUnaryTemplateId = (s) => s in UnaryTemplateId;
-var BinaryTemplateId = {
-  conjunction: null,
-  disjunction: null,
-  implication: null,
-  formulas: null,
-  sequent: null
-};
-var isBinaryTemplateId = (s) => s in BinaryTemplateId;
-var basic = {
-  falsum: ["\u22A5"],
-  verum: ["\u22A4"],
-  atom: ["", ""],
-  optional: ["", ""],
-  parenthesis: ["(", ")"],
-  negation: ["\xAC", ""],
-  conjunction: ["", "\u2227", ""],
-  disjunction: ["", "\u2228", ""],
-  implication: ["", "\u2192", ""],
-  formulas: ["", ",", ""],
-  sequent: ["", " \u22A2 ", ""]
-};
-var empty3 = String();
-function printNullary(key) {
-  return () => (theme) => {
-    const [s0] = theme[key];
-    return [of2(s0)];
-  };
-}
-function printUnary(key, activeConn = false, markConnective = false) {
-  return (a91) => (theme) => {
-    const [s0, s1] = theme[key];
-    if (key === "parenthesis") {
-      return [paren(s0), ...a91(theme), paren(s1)];
-    }
-    return [
-      markConnective ? connective(s0, activeConn) : activeConn ? active(s0) : of2(s0),
-      ...a91(theme),
-      of2(s1)
-    ];
-  };
-}
-function printBinary(key, activeConn = false, markConnective = false) {
-  return (a91, b) => (theme) => {
-    const [s0, s1, s2] = theme[key];
-    return [
-      of2(s0),
-      ...a91(theme),
-      markConnective ? connective(s1, activeConn) : activeConn ? active(s1) : of2(s1),
-      ...b(theme),
-      of2(s2)
-    ];
-  };
-}
-function print(key) {
-  if (isNullaryTemplateId(key)) {
-    return printNullary(key);
-  }
-  if (isUnaryTemplateId(key)) {
-    return printUnary(key);
-  }
-  if (isBinaryTemplateId(key)) {
-    return printBinary(key);
-  }
-  return assertNever(key);
-}
-var printString = (s) => (_theme) => [of2(s)];
-var printNothing = printString(empty3);
-function printNonEmptyArray(k) {
-  return ([head4, ...tail2]) => tail2.reduce(print(k), head4);
-}
-function printArray(k) {
-  return (ps) => isNonEmptyArray(ps) ? printNonEmptyArray(k)(ps) : printNothing;
-}
-function fromAtom({ value }) {
-  let chr = value;
-  if (value === "p") {
-    chr = "\u{1F427}";
-  }
-  if (value === "q") {
-    chr = "\u{1F99C}";
-  }
-  if (value === "r") {
-    chr = "\u{1F983}";
-  }
-  if (value === "s") {
-    chr = "\u{1F986}";
-  }
-  return print("atom")(printString(chr));
-}
-function fromFalsum(_falsum) {
-  return print("falsum")();
-}
-function fromVerum(_verum) {
-  return print("verum")();
-}
-var precedence = (p) => matchRaw(p, {
-  atom: () => 4,
-  falsum: () => 4,
-  verum: () => 4,
-  negation: () => 3,
-  conjunction: () => 2,
-  disjunction: () => 2,
-  implication: () => 1
-});
-var expand = (minPrec, operand) => {
-  if (operand.kind === "atom") return fromProp(operand);
-  return precedence(operand) >= minPrec ? print("optional")(fromProp(operand)) : print("parenthesis")(fromProp(operand));
-};
-function fromNegation({ negand }, activeConnective = false) {
-  return printUnary("negation", activeConnective, true)(expand(3, negand));
-}
-function fromConjunction({ leftConjunct, rightConjunct }, activeConnective = false) {
-  return printBinary(
-    "conjunction",
-    activeConnective,
-    true
-  )(expand(3, leftConjunct), expand(3, rightConjunct));
-}
-function fromDisjunction({ leftDisjunct, rightDisjunct }, activeConnective = false) {
-  return printBinary(
-    "disjunction",
-    activeConnective,
-    true
-  )(expand(3, leftDisjunct), expand(3, rightDisjunct));
-}
-function fromImplication({ antecedent, consequent }, activeConnective = false) {
-  return printBinary(
-    "implication",
-    activeConnective,
-    true
-  )(expand(2, antecedent), expand(2, consequent));
-}
-function fromProp(proposition, activeConnective = false) {
-  return matchRaw(proposition, {
-    atom: fromAtom,
-    falsum: fromFalsum,
-    verum: fromVerum,
-    negation: (p) => fromNegation(p, activeConnective),
-    conjunction: (p) => fromConjunction(p, activeConnective),
-    disjunction: (p) => fromDisjunction(p, activeConnective),
-    implication: (p) => fromImplication(p, activeConnective)
-  });
-}
-var wrapGazed = (p) => (t) => [raw('<span class="gazed">'), ...p(t), raw("</span>")];
-function fromSequent(judgement, gaze = null) {
-  const { antecedent, succedent } = judgement;
-  const antPrinters = antecedent.map((f2, i90) => {
-    const p = fromProp(f2, true);
-    return gaze && gaze.side === "left" && gaze.index === i90 ? wrapGazed(p) : p;
-  });
-  const sucPrinters = succedent.map((f2, i90) => {
-    const p = fromProp(f2, true);
-    return gaze && gaze.side === "right" && gaze.index === i90 ? wrapGazed(p) : p;
-  });
-  return (t) => trim(
-    print("sequent")(
-      printArray("formulas")(antPrinters),
-      printArray("formulas")(sucPrinters)
-    )(t)
-  );
-}
-function left3(n = null) {
-  const l = "L";
-  return n != null ? l + n : l;
-}
-function right2(n = null) {
-  const r = "R";
-  return n != null ? r + n : r;
-}
-function fromRuleId(s) {
-  return (t) => [
-    of2(
-      matchRuleId(s, {
-        i: () => "I",
-        f: () => "\u22A5",
-        v: () => "\u22A4",
-        cl: () => t.conjunction.join(empty3) + left3(),
-        dr: () => t.disjunction.join(empty3) + right2(),
-        cl1: () => t.conjunction.join(empty3) + left3("\u2081"),
-        dr1: () => t.disjunction.join(empty3) + right2("\u2081"),
-        cl2: () => t.conjunction.join(empty3) + left3("\u2082"),
-        dr2: () => t.disjunction.join(empty3) + right2("\u2082"),
-        dl: () => t.disjunction.join(empty3) + left3(),
-        cr: () => t.conjunction.join(empty3) + right2(),
-        il: () => t.implication.join(empty3) + left3(),
-        ir: () => t.implication.join(empty3) + right2(),
-        nl: () => t.negation.join(empty3) + left3(),
-        nr: () => t.negation.join(empty3) + right2(),
-        swl: () => "WL",
-        swr: () => "WR",
-        scl: () => "CL",
-        scr: () => "CR",
-        sRotLF: () => "\u21B6L",
-        sRotRF: () => "\u21B7R",
-        sRotLB: () => "\u21B7L",
-        sRotRB: () => "\u21B6R",
-        sxl: () => "XL",
-        sxr: () => "XR",
-        a1: () => "a1",
-        a2: () => "a2",
-        a3: () => "a3",
-        cut: () => "cut",
-        fcut: () => "fcut",
-        fcr: () => t.conjunction.join(empty3) + right2("\u1DA0"),
-        fdl: () => t.disjunction.join(empty3) + left3("\u1DA0"),
-        fil: () => t.implication.join(empty3) + left3("\u1DA0"),
-        mp: () => "mp"
-      })
-    )
-  ];
-}
-function fromPremise({ result }) {
-  return plain(fromSequent(result)(basic));
-}
-function fromTransformation({ rule, deps, result }) {
-  return treeAuto(
-    plain(fromSequent(result)(basic)),
-    deps.map(fromDerivation),
-    "(" + plain(fromRuleId(rule)(basic)) + ")"
-  );
-}
-function fromDerivation(treelike) {
-  switch (treelike.kind) {
-    case "premise":
-      return fromPremise(treelike);
-    case "transformation":
-      return fromTransformation(treelike);
-  }
-}
-var unit = 16;
-var half = center2(2 * unit);
-var full = center2(4 * unit);
-function fromMeta(meta4) {
-  return leftify(
-    br,
-    br,
-    full(underline("*")(meta4.name)),
-    br,
-    ...meta4.propositions.flatMap(({ title, examples }) => [
-      br,
-      title,
-      br,
-      br,
-      ...examples.flatMap((line2) => [
-        half(
-          spaced(
-            line2.map((x) => plain(fromProp(x)(basic))),
-            1
-          )
-        ),
-        br
-      ])
-    ]),
-    br,
-    ...meta4.rules.flatMap(({ title, examples }) => [
-      br,
-      title,
-      br,
-      br,
-      ...examples.flatMap((line2) => [
-        spaced(
-          line2.map((x) => half(fromDerivation(x))),
-          0
-        ),
-        br,
-        br
-      ])
-    ])
-  );
-}
-var fromFocus = (s) => {
-  return fromDerivation(s.derivation);
-};
-
-// src/interactive/workspace.ts
-var Workspace = class {
-  theorems;
-  conjectures = {};
-  theoremKeys;
-  selected;
-  _gaze = null;
-  _gazeKind = "connective";
-  isSolved() {
-    return isProof(this.currentConjecture().derivation);
-  }
-  constructor(challenges2) {
-    this.theorems = challenges2;
-    const theoremKeys = keys(challenges2);
-    if (!isNonEmptyArray(theoremKeys)) {
-      throw new Error("no challenges");
-    }
-    this.theoremKeys = theoremKeys;
-    this.selected = theoremKeys[0];
-    this.selectConjecture(this.selected);
-  }
-  currentConjecture() {
-    const c = this.conjectures[this.selected];
-    if (c) return c;
-    console.warn(`Conjecture '${this.selected}' not initialized, recovering`);
-    const conf = get(this.theorems, this.selected);
-    const f2 = focus(premise(conf.goal));
-    this.conjectures[this.selected] = f2;
-    return f2;
-  }
-  previousConjectureId() {
-    const index = this.theoremKeys.findIndex((x) => x === this.selected);
-    return this.theoremKeys[index - 1] ?? head(this.theoremKeys);
-  }
-  nextConjectureId() {
-    const index = this.theoremKeys.findIndex((x) => x === this.selected);
-    return this.theoremKeys[index + 1] ?? last(this.theoremKeys);
-  }
-  availableRules() {
-    return get(this.theorems, this.selected).rules;
-  }
-  pinnedRules() {
-    const conf = get(this.theorems, this.selected);
-    return isTutorial(conf) ? conf.pinned : [];
-  }
-  applicableRules() {
-    const available = this.availableRules();
-    const appplicable = applicableRules2(this.currentConjecture());
-    return available.filter((rule) => appplicable.includes(rule));
-  }
-  selectConjecture(id) {
-    if (!(id in this.conjectures)) {
-      const conf = get(this.theorems, id);
-      this.conjectures[id] = focus(premise(conf.goal));
-    }
-    this.selected = id;
-  }
-  listConjectures() {
-    return entries(this.theorems);
-  }
-  isConjectureId(s) {
-    return typeof s === "string" && s in this.theorems;
-  }
-  applyEvent(ev) {
-    const oldGaze = this.gaze();
-    const cursor = this.currentConjecture();
-    const update = applyEvent(cursor, ev);
-    this.conjectures[this.selected] = update;
-    if (ev.kind === "nextBranch" || ev.kind === "prevBranch" || ev.kind === "reset") {
-      this._gaze = null;
-    } else {
-      const seq = activeSequent(update);
-      const sideLen = oldGaze.side === "left" ? seq.antecedent.length : seq.succedent.length;
-      if (sideLen > 0) {
-        this._gaze = {
-          side: oldGaze.side,
-          index: Math.min(oldGaze.index, sideLen - 1)
-        };
-      } else {
-        this._gaze = null;
-      }
-    }
-    this._gazeKind = "connective";
-  }
-  applyEventWithGaze(ev, nextGaze) {
-    const cursor = this.currentConjecture();
-    const update = applyEvent(cursor, ev);
-    this.conjectures[this.selected] = update;
-    this._gaze = nextGaze;
-  }
-  gazeKind() {
-    return this._gazeKind;
-  }
-  setGazeKind(kind) {
-    this._gazeKind = kind;
-  }
-  setGaze(gaze) {
-    this._gaze = gaze;
-    this._gazeKind = "connective";
-  }
-  gaze() {
-    if (this._gaze) return this._gaze;
-    return this.defaultGaze();
-  }
-  defaultGaze() {
-    const seq = activeSequent(this.currentConjecture());
-    if (seq.antecedent.length > 0) {
-      return { side: "left", index: seq.antecedent.length - 1 };
-    }
-    if (seq.succedent.length > 0) {
-      return { side: "right", index: 0 };
-    }
-    return { side: "left", index: 0 };
-  }
-  moveGaze(direction) {
-    const seq = activeSequent(this.currentConjecture());
-    const ant = seq.antecedent.length;
-    const suc = seq.succedent.length;
-    const total = ant + suc;
-    if (total === 0) {
-      this._gaze = null;
-      this._gazeKind = "connective";
-      return;
-    }
-    const current = this._gaze ?? this.defaultGaze();
-    const linear = current.side === "left" ? current.index : ant + current.index;
-    const next2 = (linear + direction + total) % total;
-    this._gaze = next2 < ant ? { side: "left", index: next2 } : { side: "right", index: next2 - ant };
-    this._gazeKind = "connective";
-  }
-};
-
-// src/help/rk.ts
-var meta = {
-  name,
-  propositions: [
-    {
-      title: "Variables",
-      examples: [
-        [
-          alpha("p"),
-          alpha("q"),
-          alpha("r"),
-          alpha("s"),
-          alpha("t"),
-          alpha("u")
-        ]
-      ]
-    },
-    {
-      title: "Connectives",
-      examples: [
-        [
-          falsum,
-          verum,
-          negation(atom("A")),
-          implication(atom("A"), atom("B")),
-          conjunction(atom("A"), atom("B")),
-          disjunction(atom("A"), atom("B"))
-        ]
-      ]
-    }
-  ],
-  rules: [
-    {
-      title: "Axiom",
-      examples: [[ruleF.example, ruleV.example], [ruleI.example]]
-    },
-    {
-      title: "Cut",
-      examples: [[ruleCut.example]]
-    },
-    {
-      title: "Logical Rules",
-      examples: [
-        [ruleCL.example, ruleDR.example],
-        [ruleDL.example, ruleCR.example],
-        [ruleIL.example, ruleIR.example],
-        [ruleNL.example, ruleNR.example]
-      ]
-    },
-    {
-      title: "Structural Rules",
-      examples: [
-        [ruleSWL.example, ruleSWR.example],
-        [ruleSRotLF.example, ruleSRotRF.example],
-        [ruleSRotLB.example, ruleSRotRB.example]
-      ]
-    }
-  ]
-};
-var exampleProof = rk.z.ir(
-  rk.z.swl(
-    rk.o.p2.implication(
-      rk.a("p"),
-      rk.o.p2.implication(rk.a("q"), rk.o.p1.negation(rk.a("p")))
-    ),
-    rk.z.ir(rk.i.i(rk.a("p")))
-  )
-);
-
-// src/systems/fk.ts
-var alpha2 = (s) => atom(s);
-var omega2 = {
-  p0: { falsum, verum },
-  p1: { negation },
-  p2: { implication, conjunction, disjunction }
-};
-var iota2 = {
-  i: ruleI.apply,
-  v: ruleV.apply,
-  f: ruleF.apply
-};
-var zeta2 = {
-  fcut: ruleFCut.apply,
-  cl1: ruleCL1.apply,
-  dr1: ruleDR1.apply,
-  cl2: ruleCL2.apply,
-  dr2: ruleDR2.apply,
-  fdl: ruleFDL.apply,
-  fcr: ruleFCR.apply,
-  fil: ruleFIL.apply,
-  ir: ruleIR.apply,
-  nl: ruleNL.apply,
-  nr: ruleNR.apply,
-  swl: ruleSWL.apply,
-  swr: ruleSWR.apply,
-  scl: ruleSCL.apply,
-  scr: ruleSCR.apply,
-  sRotLF: ruleSRotLF.apply,
-  sRotLB: ruleSRotLB.apply,
-  sRotRF: ruleSRotRF.apply,
-  sRotRB: ruleSRotRB.apply,
-  sxl: ruleSXL.apply,
-  sxr: ruleSXR.apply
-};
-var name2 = "FK";
-var fk = {
-  a: alpha2,
-  o: omega2,
-  i: iota2,
-  z: zeta2
-};
-
-// src/help/fk.ts
-var meta2 = {
-  name: name2,
-  propositions: [
-    {
-      title: "Variables",
-      examples: [
-        [
-          alpha2("p"),
-          alpha2("q"),
-          alpha2("r"),
-          alpha2("s"),
-          alpha2("t"),
-          alpha2("u")
-        ]
-      ]
-    },
-    {
-      title: "Connectives",
-      examples: [
-        [
-          falsum,
-          verum,
-          negation(atom("A")),
-          implication(atom("A"), atom("B")),
-          conjunction(atom("A"), atom("B")),
-          disjunction(atom("A"), atom("B"))
-        ]
-      ]
-    }
-  ],
-  rules: [
-    {
-      title: "Axiom",
-      examples: [[ruleF.example, ruleV.example], [ruleI.example]]
-    },
-    {
-      title: "Logical Rules",
-      examples: [
-        [ruleCL1.example, ruleDR1.example],
-        [ruleCL2.example, ruleDR2.example],
-        [ruleFIL.example, ruleIR.example],
-        [ruleFDL.example, ruleFCR.example],
-        [ruleNL.example, ruleNR.example],
-        [ruleFCut.example]
-      ]
-    },
-    {
-      title: "Structural Rules",
-      examples: [
-        [ruleSWL.example, ruleSWR.example],
-        [ruleSCL.example, ruleSCR.example],
-        [ruleSRotLF.example, ruleSRotRF.example],
-        [ruleSRotLB.example, ruleSRotRB.example],
-        [ruleSXL.example, ruleSXR.example]
-      ]
-    }
-  ]
-};
-var exampleProof2 = fk.z.ir(
-  fk.z.swl(
-    fk.o.p2.implication(
-      fk.a("p"),
-      fk.o.p2.implication(fk.a("q"), fk.o.p1.negation(fk.a("p")))
-    ),
-    fk.z.ir(fk.i.i(fk.a("p")))
-  )
-);
-
-// src/systems/la3.ts
-var alpha3 = (s) => atom(s);
-var omega3 = {
-  p0: {},
-  p1: { negation },
-  p2: { implication }
-};
-var iota3 = {
-  a1: ruleA1.apply,
-  a2: ruleA2.apply,
-  a3: ruleA3.apply
-};
-var zeta3 = {
-  mp: ruleMP.apply
-};
-var name3 = "\u0141ukasiewicz Axioms 3";
-var la3 = {
-  a: alpha3,
-  o: omega3,
-  i: iota3,
-  z: zeta3
-};
-
-// src/help/la3.ts
-var meta3 = {
-  name: name3,
-  propositions: [
-    {
-      title: "Variables",
-      examples: [
-        [
-          alpha3("p"),
-          alpha3("q"),
-          alpha3("r"),
-          alpha3("s"),
-          alpha3("t"),
-          alpha3("u")
-        ]
-      ]
-    },
-    {
-      title: "Connectives",
-      examples: [[negation(atom("A")), implication(atom("A"), atom("B"))]]
-    }
-  ],
-  rules: [
-    {
-      title: "Axioms",
-      examples: [[ruleA1.example, ruleA2.example, ruleA3.example]]
-    },
-    {
-      title: "Rule",
-      examples: [[ruleMP.example]]
-    }
-  ]
-};
-var exampleProof3 = la3.z.mp(
-  la3.i.a2(
-    la3.a("p"),
-    la3.o.p2.implication(la3.a("q"), la3.o.p1.negation(la3.a("p"))),
-    la3.a("p")
-  ),
-  la3.i.a1(
-    la3.a("p"),
-    la3.o.p2.implication(la3.a("q"), la3.o.p1.negation(la3.a("p")))
-  )
-);
-
-// src/help/index.ts
-var helpSystems = {
-  rk: {
-    id: "rk",
-    name: meta.name,
-    meta,
-    exampleProof
-  },
-  fk: {
-    id: "fk",
-    name: meta2.name,
-    meta: meta2,
-    exampleProof: exampleProof2
-  },
-  la3: {
-    id: "la3",
-    name: meta3.name,
-    meta: meta3,
-    exampleProof: exampleProof3
-  }
-};
-var isHelpSystemId = (s) => s in helpSystems;
-var renderSystemHelp = (id) => {
-  const sys = helpSystems[id];
-  return fromMeta(sys.meta) + "\n\nSandbox\n\n" + fromDerivation(sys.exampleProof) + "\n";
-};
-
-// src/interactive/repl.ts
-function* repl(workspace) {
-  let output = [of2('\nWelcome!\n\nType "help" for help')];
-  while (true) {
-    const input = yield [...output, of2("\n")];
-    const [cmd, ...args] = split(input, " ");
-    switch (cmd) {
-      case "quit":
-        return [of2("\nExiting...")];
-      case "help": {
-        const [arg] = args;
-        if (arg == null) {
-          output = [
-            of2(
-              "\nSystem commands:\n  help - display this manual\n  help <rule> - display rule description\n  systems - list available logic systems\n  system <id> - display logic system documentation\n  list - list all conjectures\n  prev - select previous conjecture\n  next - select next conjecture\n  undo - undo applied rule in current conjecture\n  reset - undo all applied rules of current conjecture\n  select <conjecture> - select active conjecture"
-            )
-          ];
-          break;
-        }
-        if (isRuleId(arg)) {
-          output = [
-            of2(
-              '\nRule "' + arg + '":\n\n' + fromDerivation(rules[arg].example)
-            )
-          ];
-          break;
-        }
-        output = [of2('\nUnknown rule "' + arg + '"')];
-        break;
-      }
-      case "systems":
-        output = [
-          of2(
-            "\nSystems:\n" + Object.values(helpSystems).map((s) => "  " + s.id + " - " + s.name).join("\n")
-          )
-        ];
-        break;
-      case "system": {
-        const [arg] = args;
-        if (arg == null || !isHelpSystemId(arg)) {
-          output = [of2('\nUnknown system "' + arg + '"')];
-          break;
-        }
-        output = [of2("\n" + renderSystemHelp(arg))];
-        break;
-      }
-      case "list":
-        output = [
-          of2(
-            "\nConjectures:\n" + workspace.listConjectures().map(
-              ([id]) => (id === workspace.selected ? "*" : " ") + " " + id
-            ).join("\n")
-          )
-        ];
-        break;
-      case "prev":
-        workspace.selectConjecture(workspace.previousConjectureId());
-        output = status(workspace.currentConjecture());
-        break;
-      case "next":
-        workspace.selectConjecture(workspace.nextConjectureId());
-        output = status(workspace.currentConjecture());
-        break;
-      case "select": {
-        const [conjectureId] = args;
-        if (!workspace.isConjectureId(conjectureId)) {
-          output = [of2('\nUnknown conjecture "' + conjectureId + '"')];
-          break;
-        }
-        workspace.selectConjecture(conjectureId);
-        output = status(workspace.currentConjecture());
-        break;
-      }
-      default: {
-        const ev = parseEvent(cmd);
-        if (!ev) {
-          output = [of2('\nUnknown command "' + cmd + '"')];
-          break;
-        }
-        workspace.applyEvent(ev);
-        output = status(workspace.currentConjecture());
-      }
-    }
-  }
-}
-var status = (s) => {
-  const rules79 = applicableRules2(s);
-  return [
-    of2("\n"),
-    ...fromSequent(activeSequent(s))(basic),
-    of2("\n\n" + fromFocus(s)),
-    of2("\nRules: " + rules79.join(", ")),
-    of2("\nProof: undo, reset"),
-    of2("\nConjectures: prev, next, select, list"),
-    of2("\nSystem: quit, help, systems\n"),
-    ...isProof(s.derivation) ? [of2("\nConglaturations!\n")] : []
-  ];
+  panel.appendChild(modes);
+  container.innerHTML = "";
+  container.appendChild(panel);
+  return { cleanup: () => {
+  }, rerender: () => {
+  } };
 };
 
 // src/web/tree.ts
@@ -6221,7 +6397,9 @@ var renderGhost = (chain) => {
     inference.setAttribute("class", "tree-inference ghost");
     const label = document.createElement("div");
     label.setAttribute("class", "tree-rule-label");
-    label.innerHTML = html(fromRuleId(step.rule)(basic));
+    label.innerHTML = html(
+      fromRuleId(step.rule, t("sideLeft"), t("sideRight"))(basic)
+    );
     inference.appendChild(label);
     wrap.appendChild(inference);
   }
@@ -6232,7 +6410,9 @@ var renderInferenceLine = (ruleId2) => {
   container.setAttribute("class", "tree-inference");
   const label = document.createElement("div");
   label.setAttribute("class", "tree-rule-label");
-  label.innerHTML = html(fromRuleId(ruleId2)(basic));
+  label.innerHTML = html(
+    fromRuleId(ruleId2, t("sideLeft"), t("sideRight"))(basic)
+  );
   container.appendChild(label);
   return container;
 };
@@ -6276,7 +6456,10 @@ var renderDerivation = (derivation, activePath2, gaze = null, ghost = null, curr
   if (currentPath.length === 0) {
     node.addEventListener("copy", (e) => {
       e.preventDefault();
-      e.clipboardData?.setData("text/plain", fromDerivation(derivation));
+      e.clipboardData?.setData(
+        "text/plain",
+        fromDerivation(derivation, t("sideLeft"), t("sideRight"))
+      );
     });
   }
   return node;
@@ -6343,9 +6526,9 @@ var findConnectiveRule = (seq, side, available) => {
 var stepRotation = (seq, side, available) => {
   const rule = side === "left" ? reverseStructure0.sRotLB : reverseStructure0.sRotRB;
   if (!available.has(rule.id)) return null;
-  const t = rule.tryReverse(premise(seq));
-  if (!t || t.kind !== "transformation") return null;
-  const dep = t.deps[0];
+  const t2 = rule.tryReverse(premise(seq));
+  if (!t2 || t2.kind !== "transformation") return null;
+  const dep = t2.deps[0];
   if (!dep) return null;
   return { id: rule.id, next: dep.result };
 };
@@ -6353,25 +6536,25 @@ var stepFinal = (seq, side, kind, available) => {
   if (kind === "weakening") {
     const rule2 = side === "left" ? reverseStructure0.swl : reverseStructure0.swr;
     if (!available.has(rule2.id)) return null;
-    const t2 = rule2.tryReverse(premise(seq));
-    if (!t2 || t2.kind !== "transformation") return null;
-    const nexts2 = t2.deps.map((d) => d.result);
+    const t3 = rule2.tryReverse(premise(seq));
+    if (!t3 || t3.kind !== "transformation") return null;
+    const nexts2 = t3.deps.map((d) => d.result);
     if (nexts2.length === 0) return null;
     return { id: rule2.id, nexts: nexts2 };
   }
   const id = findConnectiveRule(seq, side, available);
   if (!id) return null;
   const rule = reverseLogic0[id];
-  const t = rule.tryReverse(premise(seq));
-  if (!t || t.kind !== "transformation") return null;
-  const nexts = t.deps.map((d) => d.result);
+  const t2 = rule.tryReverse(premise(seq));
+  if (!t2 || t2.kind !== "transformation") return null;
+  const nexts = t2.deps.map((d) => d.result);
   if (nexts.length === 0) return null;
   return { id, nexts };
 };
-var computeGhostChain = (current, gaze, kind, availableRules) => {
+var computeGhostChain = (current2, gaze, kind, availableRules) => {
   const available = new Set(availableRules);
   const chain = [];
-  let seq = current;
+  let seq = current2;
   let g = gaze;
   for (let i90 = 0; i90 < MAX_STEPS; i90 += 1) {
     const ant = seq.antecedent.length;
@@ -6800,7 +6983,7 @@ var createPanel = (className, ruleRecord, ls, rules79, pinned82, hideRules, solv
       "rule button" + (disabled ? " disabled" : "") + (isPinned ? " pinned" : "")
     );
     if (!disabled) pre.onclick = () => onApply(key);
-    pre.innerHTML = fromDerivation(rule.example);
+    pre.innerHTML = fromDerivation(rule.example, t("sideLeft"), t("sideRight"));
     const action = ruleAction[key];
     const hint = action !== void 0 ? getActionHint(action) : void 0;
     const ruleHintVariant = className === "main" ? "base" : "hot";
@@ -6937,7 +7120,7 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
   const leftDisabled = isGazeModeActive() ? !gazeMovable : inactive || seq.antecedent.length === 0;
   const rightDisabled = isGazeModeActive() ? !gazeMovable : inactive || seq.succedent.length === 0;
   const gazeLeftBtn = createButton(
-    "Left",
+    t("left"),
     leftDisabled,
     () => {
       if (!isGazeModeActive()) {
@@ -6954,7 +7137,7 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
     getActionHint("gazeLeft")
   );
   const gazeRightBtn = createButton(
-    "Right",
+    t("right"),
     rightDisabled,
     () => {
       if (!isGazeModeActive()) {
@@ -6968,7 +7151,7 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
     getActionHint("gazeRight")
   );
   const gazeWeakeningBtn = createButton(
-    "Drop",
+    t("drop"),
     !isGazeModeActive() || inactive,
     () => {
       workspace.setGazeKind("weakening");
@@ -6981,7 +7164,7 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
   const connectiveLabel = connectiveRule !== null ? ruleConnectiveLabel[connectiveRule] ?? "" : "";
   const connectiveDisabled = !isGazeModeActive() || inactive || connectiveLabel === "";
   const gazeConnectiveBtn = createButton(
-    "Destruct",
+    t("destruct"),
     connectiveDisabled,
     () => {
       workspace.setGazeKind("connective");
@@ -6997,7 +7180,7 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
   };
   const allPinned = rules79.every((r) => pinned82.includes(r));
   const rulesBtn = createButton(
-    "Rules",
+    t("rules"),
     allPinned,
     () => {
       rulesVisible = !rulesVisible;
@@ -7010,7 +7193,7 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
   rulesLed.setAttribute("class", "led" + (rulesVisible ? " on" : ""));
   rulesBtn.appendChild(rulesLed);
   const axiomBtn = createButton(
-    "Axiom",
+    t("axiom"),
     inactive || !keys(center).some((k) => ls.includes(k)),
     () => {
       autoRule(workspace, keys(center));
@@ -7099,19 +7282,19 @@ var createPausePopup = (onResume, onExit, onReset, resetDisabled, onFresh) => {
   };
   const title = document.createElement("div");
   title.setAttribute("class", "pause-title");
-  title.textContent = "Paused";
+  title.textContent = t("paused");
   panel.appendChild(title);
   const buttons = document.createElement("div");
   buttons.setAttribute("class", "pause-buttons");
   buttons.appendChild(
-    createButton("Resume game", false, onResume, dualHint("m", "undo"))
+    createButton(t("resumeGame"), false, onResume, dualHint("m", "undo"))
   );
   const spacer = document.createElement("div");
   spacer.setAttribute("class", "pause-buttons-spacer");
   buttons.appendChild(spacer);
   buttons.appendChild(
     createButton(
-      "Reset challenge",
+      t("resetChallenge"),
       resetDisabled,
       onReset,
       getActionHint("reset")
@@ -7119,11 +7302,11 @@ var createPausePopup = (onResume, onExit, onReset, resetDisabled, onFresh) => {
   );
   if (onFresh) {
     buttons.appendChild(
-      createButton("Fresh challenge", false, onFresh, kbdHint("n"))
+      createButton(t("freshChallenge"), false, onFresh, kbdHint("n"))
     );
   }
   buttons.appendChild(
-    createButton("Exit to main menu", false, onExit, getActionHint("exit"))
+    createButton(t("exitToMainMenu"), false, onExit, getActionHint("exit"))
   );
   panel.appendChild(buttons);
   shroud.appendChild(panel);
@@ -7402,7 +7585,9 @@ var createListing = (ws, onSelect) => {
     const rules79 = document.createElement("div");
     rules79.setAttribute("class", "rules");
     rules79.innerHTML = challenge2.rules.map((rule) => {
-      const text = html(fromRuleId(rule)(basic));
+      const text = html(
+        fromRuleId(rule, t("sideLeft"), t("sideRight"))(basic)
+      );
       if (pinned82.includes(rule)) {
         return `<span class="pinned">${text}</span>`;
       }
@@ -7424,15 +7609,17 @@ var createControls = (ws, _listingEl, rerender, onMenu, showLevelButton, onLevel
   const undoEnabled = canUndo || isGazeModeActive();
   const panel = document.createElement("div");
   panel.setAttribute("class", "controls");
-  panel.appendChild(createButton("menu", false, onMenu, getActionHint("menu")));
+  panel.appendChild(
+    createButton(t("menu"), false, onMenu, getActionHint("menu"))
+  );
   if (showLevelButton) {
     panel.appendChild(
-      createButton("level", false, onLevel, getActionHint("level"))
+      createButton(t("level"), false, onLevel, getActionHint("level"))
     );
   }
   panel.appendChild(
     createButton(
-      "undo",
+      t("undo"),
       !undoEnabled,
       () => {
         if (canUndo) {
@@ -7450,12 +7637,12 @@ var createControls = (ws, _listingEl, rerender, onMenu, showLevelButton, onLevel
 var createCongrats = (ws, selectLevel, rerender) => {
   const hurray = document.createElement("div");
   hurray.setAttribute("class", "hurray");
-  hurray.innerHTML = "\u{1F389} Conglaturations! \u{1F389}";
+  hurray.innerHTML = t("congratulations");
   const buttons = document.createElement("div");
   buttons.setAttribute("class", "congrabuttons");
   buttons.appendChild(
     createButton(
-      "Prev Level",
+      t("prevLevel"),
       false,
       () => selectLevel(ws.previousConjectureId()),
       dualHint("p", "undo")
@@ -7463,7 +7650,7 @@ var createCongrats = (ws, selectLevel, rerender) => {
   );
   buttons.appendChild(
     createButton(
-      "Play Again",
+      t("playAgain"),
       false,
       () => {
         ws.applyEvent(reset());
@@ -7474,7 +7661,7 @@ var createCongrats = (ws, selectLevel, rerender) => {
   );
   buttons.appendChild(
     createButton(
-      "Next Level",
+      t("nextLevel"),
       false,
       () => selectLevel(ws.nextConjectureId()),
       dualHint("\u2423", "axiom")
@@ -7482,7 +7669,7 @@ var createCongrats = (ws, selectLevel, rerender) => {
   );
   return { hurray, buttons };
 };
-var mountCampaign = (container, navigate2) => {
+var mountCampaign = (container, navigate2, session2) => {
   setDefaultRulesVisible(false);
   let levelPresses = 0;
   const toggleLevel = (listingEl2) => {
@@ -7499,7 +7686,7 @@ var mountCampaign = (container, navigate2) => {
       listingEl2.setAttribute("style", "display: none;");
     }
   };
-  const ws = new Workspace(challenges);
+  const ws = session2.workspace;
   const selectLevel = (id) => {
     if (ws.isConjectureId(id)) {
       ws.selectConjecture(id);
@@ -7635,21 +7822,245 @@ var mountCampaign = (container, navigate2) => {
   document.addEventListener("keydown", handleKey);
   const cleanupGamepad = setupGamepad(dispatch);
   const unsubscribeGamepad = subscribeGamepad(rerender);
-  const gen = repl(ws);
-  gen.next("");
-  Object.assign(window, {
-    cmd: (input) => {
-      const result = gen.next(input);
-      console.log(plain(result.value));
-      rerender();
-      return result.done;
-    }
-  });
-  return () => {
+  const cleanup = () => {
     document.removeEventListener("keydown", handleKey);
     cleanupGamepad();
     unsubscribeGamepad();
   };
+  return { cleanup, rerender };
+};
+
+// src/web/random.ts
+var createControls2 = (getWorkspace, rerender, onMenu) => {
+  const ws = getWorkspace();
+  const canUndo = activePath(ws.currentConjecture()).length > 0;
+  const undoEnabled = canUndo || isGazeModeActive();
+  const panel = document.createElement("div");
+  panel.setAttribute("class", "controls");
+  panel.appendChild(
+    createButton(t("menu"), false, onMenu, getActionHint("menu"))
+  );
+  panel.appendChild(
+    createButton(
+      t("undo"),
+      !undoEnabled,
+      () => {
+        if (canUndo) {
+          ws.applyEvent({ kind: "undo" });
+        } else {
+          setGazeModeActive(false);
+        }
+        rerender();
+      },
+      getActionHint("undo")
+    )
+  );
+  return panel;
+};
+var createCongrats2 = (getWorkspace, onNew, rerender) => {
+  const ws = getWorkspace();
+  const hurray = document.createElement("div");
+  hurray.setAttribute("class", "hurray");
+  hurray.innerHTML = t("congratulations");
+  const buttons = document.createElement("div");
+  buttons.setAttribute("class", "congrabuttons");
+  buttons.appendChild(
+    createButton(
+      t("playAgain"),
+      false,
+      () => {
+        ws.applyEvent(reset());
+        rerender();
+      },
+      getActionHint("reset")
+    )
+  );
+  buttons.appendChild(
+    createButton(t("newChallenge"), false, onNew, dualHint("n", "axiom"))
+  );
+  return { hurray, buttons };
+};
+var mountRandom = (container, navigate2, session2, onNewChallenge) => {
+  setDefaultRulesVisible(false);
+  const getWorkspace = () => session2.workspace;
+  const onNew = () => {
+    onNewChallenge();
+    setGazeModeActive(false);
+    rerender();
+  };
+  let pausePopupOpen = false;
+  const togglePausePopup = () => {
+    pausePopupOpen = !pausePopupOpen;
+    rerender();
+  };
+  const closePausePopup = () => {
+    pausePopupOpen = false;
+    rerender();
+  };
+  const exitToMenu = () => {
+    pausePopupOpen = false;
+    navigate2("menu");
+  };
+  const resetFromPopup = () => {
+    const ws = getWorkspace();
+    if (activePath(ws.currentConjecture()).length > 0) {
+      ws.applyEvent(reset());
+    }
+    setGazeModeActive(false);
+    pausePopupOpen = false;
+    rerender();
+  };
+  const freshFromPopup = () => {
+    pausePopupOpen = false;
+    onNew();
+  };
+  const rerender = () => {
+    const ws = getWorkspace();
+    container.innerHTML = "";
+    const controlsEl = createControls2(getWorkspace, rerender, togglePausePopup);
+    const makeCongrats = () => createCongrats2(getWorkspace, onNew, rerender);
+    container.appendChild(createBench(ws, makeCongrats, controlsEl, rerender));
+    if (pausePopupOpen) {
+      const canReset = activePath(ws.currentConjecture()).length > 0;
+      const resetEnabled = canReset || isGazeModeActive();
+      container.appendChild(
+        createPausePopup(
+          closePausePopup,
+          exitToMenu,
+          resetFromPopup,
+          !resetEnabled,
+          freshFromPopup
+        )
+      );
+    }
+  };
+  const onSolved = (action) => {
+    const ws = getWorkspace();
+    switch (action) {
+      case "leftWeakening":
+      case "rightWeakening":
+        ws.applyEvent(reset());
+        break;
+      case "axiom":
+      case "rightConnective":
+        onNew();
+        return;
+    }
+    rerender();
+  };
+  const baseDispatch = createDispatch(
+    getWorkspace,
+    rerender,
+    navigate2,
+    onSolved,
+    void 0,
+    togglePausePopup
+  );
+  const dispatch = (action) => {
+    if (action === "exit") {
+      if (pausePopupOpen) exitToMenu();
+      return;
+    }
+    if (action === "reset" && pausePopupOpen) {
+      resetFromPopup();
+      return;
+    }
+    if (action === "undo" && pausePopupOpen) {
+      closePausePopup();
+      return;
+    }
+    if (pausePopupOpen && action !== "menu") return;
+    baseDispatch(action);
+  };
+  rerender();
+  const handleKey = (ev) => {
+    markKeyboardInput();
+    if (ev.code === "KeyN") {
+      onNew();
+      return;
+    }
+    if (ev.code === "Slash" || ev.code === "Equal") {
+      zoomTreeOut();
+      rerender();
+      return;
+    }
+    if (ev.code === "Minus") {
+      zoomTreeIn();
+      rerender();
+      return;
+    }
+    if (ev.code === "Digit0") {
+      zoomTreeReset();
+      rerender();
+      return;
+    }
+    const action = qwertyKeyMap[ev.code];
+    if (action) dispatch(action);
+  };
+  document.addEventListener("keydown", handleKey);
+  const cleanupGamepad = setupGamepad(dispatch);
+  const unsubscribeGamepad = subscribeGamepad(rerender);
+  const cleanup = () => {
+    document.removeEventListener("keydown", handleKey);
+    cleanupGamepad();
+    unsubscribeGamepad();
+  };
+  return { cleanup, rerender };
+};
+
+// src/web/system.ts
+var mountSystem = (container, _navigate) => {
+  const render = () => {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    container.innerHTML = "";
+    const panel = document.createElement("div");
+    panel.setAttribute("class", "system");
+    if (id != null && isHelpSystemId(id)) {
+      const back = document.createElement("a");
+      back.setAttribute("class", "button system-back");
+      back.setAttribute("href", "?mode=system");
+      back.innerHTML = t("backToSystems");
+      back.onclick = (e) => {
+        e.preventDefault();
+        history.pushState({ screen: "system" }, "", "?mode=system");
+        render();
+      };
+      panel.appendChild(back);
+      const pre = document.createElement("pre");
+      pre.setAttribute("class", "system-doc");
+      pre.textContent = renderSystemHelp(id);
+      panel.appendChild(pre);
+    } else {
+      const title = document.createElement("div");
+      title.setAttribute("class", "system-title");
+      title.innerHTML = t("systems");
+      panel.appendChild(title);
+      const list = document.createElement("div");
+      list.setAttribute("class", "system-list");
+      for (const sys of Object.values(helpSystems)) {
+        const link = document.createElement("a");
+        link.setAttribute("class", "button system-item");
+        link.setAttribute("href", `?mode=system&id=${sys.id}`);
+        link.innerHTML = sys.name;
+        link.onclick = (e) => {
+          e.preventDefault();
+          history.pushState(
+            { screen: "system" },
+            "",
+            `?mode=system&id=${sys.id}`
+          );
+          render();
+        };
+        list.appendChild(link);
+      }
+      panel.appendChild(list);
+    }
+    container.appendChild(panel);
+  };
+  render();
+  return { cleanup: () => {
+  }, rerender: render };
 };
 
 // src/solver/bruteStructure0.ts
@@ -7666,13 +8077,13 @@ var buildStructurePath = (d, rules79, p) => {
   const nodes = /* @__PURE__ */ new Map([[startKey, d]]);
   let found = false;
   outer: while (queue.length > 0) {
-    const current = queue.shift();
-    if (!current) break;
-    const currentKey = seqKey(current.result);
+    const current2 = queue.shift();
+    if (!current2) break;
+    const currentKey = seqKey(current2.result);
     for (const [rId, rule] of entries(reverseStructure0)) {
       const ruleId2 = rId;
       if (!includes(rules79, ruleId2)) continue;
-      const reversed = rule.tryReverse(current);
+      const reversed = rule.tryReverse(current2);
       if (!reversed || reversed.kind !== "transformation") continue;
       const [dep] = reversed.deps;
       if (!dep || dep.kind !== "premise") continue;
@@ -7841,16 +8252,16 @@ var hypoStructure = (d, rules79) => function* () {
   const visited = /* @__PURE__ */ new Set();
   const queue = [d];
   while (queue.length > 0) {
-    const current = queue.shift();
-    if (!current) break;
-    const key = seqKey(current.result);
+    const current2 = queue.shift();
+    if (!current2) break;
+    const key = seqKey(current2.result);
     if (visited.has(key)) continue;
     visited.add(key);
-    yield current;
+    yield current2;
     for (const [rId, rule] of entries(reverseStructure0)) {
       const ruleId2 = rId;
       if (!includes(rules79, ruleId2)) continue;
-      const reversed = rule.tryReverse(current);
+      const reversed = rule.tryReverse(current2);
       if (!reversed || reversed.kind !== "transformation") continue;
       const [dep] = reversed.deps;
       if (!dep || dep.kind !== "premise") continue;
@@ -7908,9 +8319,9 @@ function* bruteSearch(c) {
   }
 }
 var brute = (c) => {
-  const gen = bruteSearch(c);
+  const gen2 = bruteSearch(c);
   while (true) {
-    const { done, value } = gen.next();
+    const { done, value } = gen2.next();
     if (done === true) return value;
   }
 };
@@ -7997,240 +8408,33 @@ var ChallengePool = class {
   }
 };
 
-// src/web/random.ts
-var newWorkspace = (pool) => new Workspace({ challenge: pool.take() });
-var createControls2 = (ws, rerender, onMenu) => {
-  const canUndo = activePath(ws.currentConjecture()).length > 0;
-  const undoEnabled = canUndo || isGazeModeActive();
-  const panel = document.createElement("div");
-  panel.setAttribute("class", "controls");
-  panel.appendChild(createButton("menu", false, onMenu, getActionHint("menu")));
-  panel.appendChild(
-    createButton(
-      "undo",
-      !undoEnabled,
-      () => {
-        if (canUndo) {
-          ws.applyEvent({ kind: "undo" });
-        } else {
-          setGazeModeActive(false);
-        }
-        rerender();
-      },
-      getActionHint("undo")
-    )
-  );
-  return panel;
-};
-var createCongrats2 = (ws, onNew, rerender) => {
-  const hurray = document.createElement("div");
-  hurray.setAttribute("class", "hurray");
-  hurray.innerHTML = "\u{1F389} Conglaturations! \u{1F389}";
-  const buttons = document.createElement("div");
-  buttons.setAttribute("class", "congrabuttons");
-  buttons.appendChild(
-    createButton(
-      "Play Again",
-      false,
-      () => {
-        ws.applyEvent(reset());
-        rerender();
-      },
-      getActionHint("reset")
-    )
-  );
-  buttons.appendChild(
-    createButton("New Challenge", false, onNew, dualHint("n", "axiom"))
-  );
-  return { hurray, buttons };
-};
-var mountRandom = (container, navigate2) => {
-  setDefaultRulesVisible(false);
-  const pool = new ChallengePool();
-  let ws = newWorkspace(pool);
-  const onNew = () => {
-    ws = newWorkspace(pool);
-    setGazeModeActive(false);
-    rerender();
-  };
-  let pausePopupOpen = false;
-  const togglePausePopup = () => {
-    pausePopupOpen = !pausePopupOpen;
-    rerender();
-  };
-  const closePausePopup = () => {
-    pausePopupOpen = false;
-    rerender();
-  };
-  const exitToMenu = () => {
-    pausePopupOpen = false;
-    navigate2("menu");
-  };
-  const resetFromPopup = () => {
-    if (activePath(ws.currentConjecture()).length > 0) {
-      ws.applyEvent(reset());
-    }
-    setGazeModeActive(false);
-    pausePopupOpen = false;
-    rerender();
-  };
-  const freshFromPopup = () => {
-    pausePopupOpen = false;
-    onNew();
-  };
-  const rerender = () => {
-    container.innerHTML = "";
-    const controlsEl = createControls2(ws, rerender, togglePausePopup);
-    const makeCongrats = () => createCongrats2(ws, onNew, rerender);
-    container.appendChild(createBench(ws, makeCongrats, controlsEl, rerender));
-    if (pausePopupOpen) {
-      const canReset = activePath(ws.currentConjecture()).length > 0;
-      const resetEnabled = canReset || isGazeModeActive();
-      container.appendChild(
-        createPausePopup(
-          closePausePopup,
-          exitToMenu,
-          resetFromPopup,
-          !resetEnabled,
-          freshFromPopup
-        )
-      );
-    }
-  };
-  const onSolved = (action) => {
-    switch (action) {
-      case "leftWeakening":
-      case "rightWeakening":
-        ws.applyEvent(reset());
-        break;
-      case "axiom":
-      case "rightConnective":
-        onNew();
-        return;
-    }
-    rerender();
-  };
-  const baseDispatch = createDispatch(
-    () => ws,
-    rerender,
-    navigate2,
-    onSolved,
-    void 0,
-    togglePausePopup
-  );
-  const dispatch = (action) => {
-    if (action === "exit") {
-      if (pausePopupOpen) exitToMenu();
-      return;
-    }
-    if (action === "reset" && pausePopupOpen) {
-      resetFromPopup();
-      return;
-    }
-    if (action === "undo" && pausePopupOpen) {
-      closePausePopup();
-      return;
-    }
-    if (pausePopupOpen && action !== "menu") return;
-    baseDispatch(action);
-  };
-  rerender();
-  const handleKey = (ev) => {
-    markKeyboardInput();
-    if (ev.code === "KeyN") {
-      onNew();
-      return;
-    }
-    if (ev.code === "Slash" || ev.code === "Equal") {
-      zoomTreeOut();
-      rerender();
-      return;
-    }
-    if (ev.code === "Minus") {
-      zoomTreeIn();
-      rerender();
-      return;
-    }
-    if (ev.code === "Digit0") {
-      zoomTreeReset();
-      rerender();
-      return;
-    }
-    const action = qwertyKeyMap[ev.code];
-    if (action) dispatch(action);
-  };
-  document.addEventListener("keydown", handleKey);
-  const cleanupGamepad = setupGamepad(dispatch);
-  const unsubscribeGamepad = subscribeGamepad(rerender);
-  return () => {
-    document.removeEventListener("keydown", handleKey);
-    cleanupGamepad();
-    unsubscribeGamepad();
-    pool.cleanup();
-  };
-};
-
-// src/web/system.ts
-var mountSystem = (container, _navigate) => {
-  const render = () => {
-    const params = new URLSearchParams(window.location.search);
-    const id = params.get("id");
-    container.innerHTML = "";
-    const panel = document.createElement("div");
-    panel.setAttribute("class", "system");
-    if (id != null && isHelpSystemId(id)) {
-      const back = document.createElement("a");
-      back.setAttribute("class", "button system-back");
-      back.setAttribute("href", "?mode=system");
-      back.innerHTML = "&larr; Systems";
-      back.onclick = (e) => {
-        e.preventDefault();
-        history.pushState({ screen: "system" }, "", "?mode=system");
-        render();
-      };
-      panel.appendChild(back);
-      const pre = document.createElement("pre");
-      pre.setAttribute("class", "system-doc");
-      pre.textContent = renderSystemHelp(id);
-      panel.appendChild(pre);
-    } else {
-      const title = document.createElement("div");
-      title.setAttribute("class", "system-title");
-      title.innerHTML = "Systems";
-      panel.appendChild(title);
-      const list = document.createElement("div");
-      list.setAttribute("class", "system-list");
-      for (const sys of Object.values(helpSystems)) {
-        const link = document.createElement("a");
-        link.setAttribute("class", "button system-item");
-        link.setAttribute("href", `?mode=system&id=${sys.id}`);
-        link.innerHTML = sys.name;
-        link.onclick = (e) => {
-          e.preventDefault();
-          history.pushState(
-            { screen: "system" },
-            "",
-            `?mode=system&id=${sys.id}`
-          );
-          render();
-        };
-        list.appendChild(link);
-      }
-      panel.appendChild(list);
-    }
-    container.appendChild(panel);
-  };
-  render();
-  return () => {
-  };
-};
-
 // src/web.ts
-var cleanup = () => {
+var pool = new ChallengePool();
+var session = new Session();
+var factory = {
+  campaign: () => new Workspace(challenges),
+  random: () => new Workspace({ challenge: pool.take() })
 };
+var gen = repl(session, factory);
+gen.next("");
+var current = { cleanup: () => {
+}, rerender: () => {
+} };
+var currentScreen = "menu";
+var enterMode = (mode) => {
+  session.enter(mode, factory[mode]());
+};
+var screenForSession = () => session.mode ?? "menu";
 var navigate = (screen) => {
-  cleanup();
-  if (screen === "menu") setGazeModeActive(false);
+  current.cleanup();
+  if (screen === "menu") {
+    setGazeModeActive(false);
+    session.returnToMenu();
+  }
+  if (includes(gameModes, screen)) {
+    enterMode(screen);
+  }
+  currentScreen = screen;
   history.pushState(
     { screen },
     "",
@@ -8243,34 +8447,72 @@ var mount = (screen) => {
   if (!body) return;
   switch (screen) {
     case "menu":
-      cleanup = mountMenu(body, navigate);
+      current = mountMenu(body, navigate);
       break;
     case "campaign":
-      cleanup = mountCampaign(body, navigate);
+      current = mountCampaign(body, navigate, session);
       break;
     case "random":
-      cleanup = mountRandom(body, navigate);
+      current = mountRandom(body, navigate, session, () => {
+        const ws = factory["random"]();
+        session.replaceWorkspace(ws);
+      });
       break;
     case "system":
-      cleanup = mountSystem(body, navigate);
+      current = mountSystem(body, navigate);
       break;
   }
 };
+var syncScreen = () => {
+  const expected = screenForSession();
+  if (expected === currentScreen) return;
+  current.cleanup();
+  if (expected === "menu") setGazeModeActive(false);
+  currentScreen = expected;
+  history.pushState(
+    { screen: expected },
+    "",
+    expected === "menu" ? window.location.pathname : `?mode=${expected}`
+  );
+  mount(expected);
+};
+var cmd = (input) => {
+  const result = gen.next(input);
+  console.log(plain(result.value));
+  syncScreen();
+  current.rerender();
+};
+Object.assign(window, { cmd });
 var init3 = () => {
   const params = new URLSearchParams(window.location.search);
   const mode = params.get("mode");
-  if (mode === "campaign" || mode === "random" || mode === "system") {
+  if (mode === "campaign" || mode === "random") {
+    enterMode(mode);
+    currentScreen = mode;
     mount(mode);
+  } else if (mode === "system") {
+    currentScreen = "system";
+    mount("system");
   } else if (params.get("level") !== null) {
+    enterMode("campaign");
+    currentScreen = "campaign";
     mount("campaign");
   } else {
+    currentScreen = "menu";
     mount("menu");
   }
 };
 document.addEventListener("DOMContentLoaded", init3);
 window.addEventListener("popstate", (event) => {
-  cleanup();
+  current.cleanup();
   const screen = event.state?.screen ?? "menu";
-  if (screen === "menu") setGazeModeActive(false);
+  if (screen === "menu") {
+    setGazeModeActive(false);
+    session.returnToMenu();
+  }
+  if (includes(gameModes, screen)) {
+    enterMode(screen);
+  }
+  currentScreen = screen;
   mount(screen);
 });
