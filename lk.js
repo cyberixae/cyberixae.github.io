@@ -2213,7 +2213,7 @@ function leftify(...lines) {
 function tree(root, branches2, note, lineWidth) {
   const line1 = center2(lineWidth)(spaced(branches2, 2));
   const last3 = center2(lineWidth)(lastLine(line1).trim());
-  const line2 = spaced([line(lineWidth), note]);
+  const line2 = note !== null ? spaced([line(lineWidth), note]) : line(lineWidth);
   const line3 = center2(lineWidth)(root);
   const aligned = align(line1, pad(leftify(last3, line2, line3)));
   if (aligned != null) {
@@ -2558,19 +2558,19 @@ function fromRuleId(s, l = "L", r = "R") {
 function fromPremise({ result }) {
   return plain(fromSequent(result)(basic));
 }
-function fromTransformation({ rule, deps, result }, l = "L", r = "R") {
+function fromTransformation({ rule, deps, result }, l = "L", r = "R", showLabel = true) {
   return treeAuto(
     plain(fromSequent(result)(basic)),
-    deps.map((d) => fromDerivation(d, l, r)),
-    "(" + plain(fromRuleId(rule, l, r)(basic)) + ")"
+    deps.map((d) => fromDerivation(d, l, r, showLabel)),
+    showLabel ? "(" + plain(fromRuleId(rule, l, r)(basic)) + ")" : null
   );
 }
-function fromDerivation(treelike, l = "L", r = "R") {
+function fromDerivation(treelike, l = "L", r = "R", showLabel = true) {
   switch (treelike.kind) {
     case "premise":
       return fromPremise(treelike);
     case "transformation":
-      return fromTransformation(treelike, l, r);
+      return fromTransformation(treelike, l, r, showLabel);
   }
 }
 var unit = 16;
@@ -6285,9 +6285,12 @@ var en = {
   rules: "Rules",
   axiom: "Axiom",
   playAgain: "Play Again",
+  playAgainShort: "Again",
   newChallenge: "New Challenge",
   prevLevel: "Prev Level",
+  prevLevelShort: "Prev",
   nextLevel: "Next Level",
+  nextLevelShort: "Next",
   congratulations: "\u{1F389} Conglaturations! \u{1F389}",
   systems: "Systems",
   backToSystems: "\u2190 Systems",
@@ -6313,9 +6316,12 @@ var fi = {
   rules: "S\xE4\xE4nn\xF6t",
   axiom: "Aksiooma",
   playAgain: "Pelaa uudestaan",
+  playAgainShort: "Uudestaan",
   newChallenge: "Uusi haaste",
   prevLevel: "Edellinen",
+  prevLevelShort: "Edellinen",
   nextLevel: "Seuraava",
+  nextLevelShort: "Seuraava",
   congratulations: "\u{1F389} Oneski olkoon! \u{1F389}",
   systems: "J\xE4rjestelm\xE4t",
   backToSystems: "\u2190 J\xE4rjestelm\xE4t",
@@ -6361,53 +6367,18 @@ var mountMenu = (container, navigate2) => {
 
 // src/web/tree.ts
 var equalPaths = (a91, b) => a91.length === b.length && a91.every((v2, i90) => v2 === b[i90]);
-var renderSequent = (derivation, isActive, gaze) => {
+var startsWith = (path, prefix) => path.length >= prefix.length && prefix.every((v2, i90) => v2 === path[i90]);
+var renderSequent = (derivation, isActive, gaze, ghost = false) => {
   const el = document.createElement("div");
-  el.setAttribute("class", "tree-sequent");
+  el.setAttribute("class", "tree-sequent" + (ghost ? " ghost" : ""));
   el.innerHTML = html(
     fromSequent(derivation.result, isActive ? gaze : null)(basic)
   );
   return el;
 };
-var renderGhost = (chain) => {
-  const wrap = document.createElement("div");
-  wrap.setAttribute("class", "ghost-tree");
-  for (let i90 = chain.length - 1; i90 >= 0; i90 -= 1) {
-    const step = chain[i90];
-    if (!step) continue;
-    if (step.sequents.length <= 1) {
-      const only = step.sequents[0];
-      if (!only) continue;
-      const sequent2 = document.createElement("div");
-      sequent2.setAttribute("class", "tree-sequent ghost");
-      sequent2.innerHTML = html(fromSequent(only, null)(basic));
-      wrap.appendChild(sequent2);
-    } else {
-      const premises = document.createElement("div");
-      premises.setAttribute("class", "tree-premises ghost-premises");
-      for (const s of step.sequents) {
-        const sequent2 = document.createElement("div");
-        sequent2.setAttribute("class", "tree-sequent ghost");
-        sequent2.innerHTML = html(fromSequent(s, null)(basic));
-        premises.appendChild(sequent2);
-      }
-      wrap.appendChild(premises);
-    }
-    const inference = document.createElement("div");
-    inference.setAttribute("class", "tree-inference ghost");
-    const label = document.createElement("div");
-    label.setAttribute("class", "tree-rule-label");
-    label.innerHTML = html(
-      fromRuleId(step.rule, t("sideLeft"), t("sideRight"))(basic)
-    );
-    inference.appendChild(label);
-    wrap.appendChild(inference);
-  }
-  return wrap;
-};
-var renderInferenceLine = (ruleId2) => {
+var renderInferenceLine = (ruleId2, ghost = false) => {
   const container = document.createElement("div");
-  container.setAttribute("class", "tree-inference");
+  container.setAttribute("class", "tree-inference" + (ghost ? " ghost" : ""));
   const label = document.createElement("div");
   label.setAttribute("class", "tree-rule-label");
   label.innerHTML = html(
@@ -6416,12 +6387,14 @@ var renderInferenceLine = (ruleId2) => {
   container.appendChild(label);
   return container;
 };
-var renderDerivation = (derivation, activePath2, gaze = null, ghost = null, currentPath = []) => {
-  const isActive = equalPaths(currentPath, activePath2);
-  const isOpenActive = isActive && derivation.kind === "premise";
-  const isClosedActive = isActive && derivation.kind === "transformation";
+var renderDerivation = (derivation, activePath2, gaze = null, currentPath = [], ghostPath = null) => {
+  const isGhostBoundary = ghostPath !== null && equalPaths(currentPath, ghostPath);
+  const isGhostNode = ghostPath !== null && currentPath.length > ghostPath.length && startsWith(currentPath, ghostPath);
+  const isActive = equalPaths(currentPath, activePath2) || isGhostBoundary;
+  const isOpenActive = isActive && derivation.kind === "premise" && !isGhostBoundary;
+  const isClosedActive = isActive && derivation.kind === "transformation" && !isGhostBoundary;
   const node = document.createElement("div");
-  const cls = "tree-node" + (isOpenActive ? " tree-active" : "") + (isClosedActive ? " tree-closed-active" : "");
+  const cls = "tree-node" + (isOpenActive ? " tree-active" : "") + (isClosedActive ? " tree-closed-active" : "") + (isGhostBoundary ? " tree-active" : "") + (isGhostNode ? " ghost-node" : "");
   node.setAttribute("class", cls);
   let leafDepth = 0;
   if (derivation.kind === "transformation") {
@@ -6434,23 +6407,32 @@ var renderDerivation = (derivation, activePath2, gaze = null, ghost = null, curr
     premises.setAttribute("class", "tree-premises");
     let maxChildDepth = -1;
     derivation.deps.forEach((dep, i90) => {
-      const child = renderDerivation(dep, activePath2, gaze, ghost, [
-        ...currentPath,
-        i90
-      ]);
+      const child = renderDerivation(
+        dep,
+        activePath2,
+        gaze,
+        [...currentPath, i90],
+        ghostPath
+      );
       const childDepth = Number(child.dataset["leafDepth"] ?? "0");
       if (childDepth > maxChildDepth) maxChildDepth = childDepth;
       premises.appendChild(child);
     });
     leafDepth = maxChildDepth < 0 ? 0 : maxChildDepth + 1;
     node.appendChild(premises);
-    node.appendChild(renderInferenceLine(derivation.rule));
-    node.appendChild(renderSequent(derivation, false, null));
+    node.appendChild(
+      renderInferenceLine(derivation.rule, isGhostBoundary || isGhostNode)
+    );
+    node.appendChild(
+      renderSequent(
+        derivation,
+        isGhostBoundary || isOpenActive,
+        isGhostBoundary ? gaze : null,
+        isGhostNode
+      )
+    );
   } else {
-    if (isOpenActive && ghost && ghost.length > 0) {
-      node.appendChild(renderGhost(ghost));
-    }
-    node.appendChild(renderSequent(derivation, isOpenActive, gaze));
+    node.appendChild(renderSequent(derivation, isOpenActive, gaze, isGhostNode));
   }
   node.dataset["leafDepth"] = String(leafDepth);
   if (currentPath.length === 0) {
@@ -6470,8 +6452,9 @@ var stabilizeWidths = (node) => {
   const sequentWidth = sequent2 ? sequent2.getBoundingClientRect().width : 0;
   const premises = node.querySelector(":scope > .tree-premises");
   const inference = node.querySelector(":scope > .tree-inference");
-  let childSequentSum = 0;
   let childSubtreeSum = 0;
+  let firstChildPad = 0;
+  let lastChildPad = 0;
   let gap = 0;
   let count = 0;
   if (premises) {
@@ -6480,23 +6463,31 @@ var stabilizeWidths = (node) => {
     );
     count = children.length;
     gap = parseFloat(getComputedStyle(premises).gap) || 0;
-    for (const child of children) {
+    for (let i90 = 0; i90 < children.length; i90 += 1) {
+      const child = children[i90];
+      if (!child) continue;
       const cw = stabilizeWidths(child);
-      childSequentSum += cw.sequent;
       childSubtreeSum += cw.subtree;
+      const pad2 = (cw.subtree - cw.sequent) / 2;
+      if (i90 === 0) firstChildPad = pad2;
+      lastChildPad = pad2;
     }
   }
   const totalGap = Math.max(0, count - 1) * gap;
+  const contentSpan = childSubtreeSum + totalGap - firstChildPad - lastChildPad;
   const lineWidth = Math.ceil(
-    Math.max(sequentWidth, childSequentSum + totalGap) + LINE_PAD * 2
+    Math.max(sequentWidth, contentSpan) + LINE_PAD * 2
   );
+  const premisesWidth = childSubtreeSum + totalGap;
+  const subtreeWidth = Math.ceil(Math.max(lineWidth, premisesWidth));
   if (inference) {
     inference.style.width = `${lineWidth}px`;
     inference.style.alignSelf = "center";
+    const lineShift = (firstChildPad - lastChildPad) / 2;
+    if (Math.abs(lineShift) > 0.5) {
+      inference.style.transform = `translateX(${lineShift}px)`;
+    }
   }
-  const subtreeWidth = Math.ceil(
-    Math.max(lineWidth, childSubtreeSum + totalGap)
-  );
   node.style.width = `${subtreeWidth}px`;
   return { sequent: sequentWidth, subtree: subtreeWidth };
 };
@@ -6719,7 +6710,15 @@ var setGamepadActive = (v2) => {
   gamepadActive = v2;
   notifyGamepadListeners();
 };
-var markKeyboardInput = () => setGamepadActive(false);
+var markKeyboardInput = () => {
+  setGamepadActive(false);
+  if (typeof document !== "undefined") {
+    document.documentElement.classList.add("keyboard-detected");
+  }
+};
+if (typeof window !== "undefined" && !window.matchMedia("(max-width: 600px)").matches) {
+  document.documentElement.classList.add("keyboard-detected");
+}
 var markGamepadInput = () => setGamepadActive(true);
 var onGamepadConnected = () => setGamepadActive(true);
 var onGamepadDisconnected = () => setGamepadActive(false);
@@ -6740,6 +6739,23 @@ var kbdHint = (s) => gamepadActive ? void 0 : s;
 var dualHint = (kbd, padAction) => gamepadActive ? activeActionPadHint()[padAction] : kbd;
 
 // src/web/game.ts
+var ghostToDerivation = (chain, activeSequent2) => {
+  let deps = [];
+  for (let i90 = chain.length - 1; i90 >= 0; i90 -= 1) {
+    const step = chain[i90];
+    if (!step) continue;
+    if (deps.length === 0) {
+      deps = step.sequents.map((s) => premise(s));
+    }
+    if (i90 === 0) {
+      return transformation(activeSequent2, deps, step.rule);
+    }
+    const result = chain[i90 - 1]?.sequents[0];
+    if (!result) continue;
+    deps = [transformation(result, deps, step.rule)];
+  }
+  return premise(activeSequent2);
+};
 var ruleAction = {
   swl: "leftWeakening",
   sRotLF: "leftRotateLeft",
@@ -6783,7 +6799,10 @@ var createButton = (label, disabled, onClick, hint, hintVariant = "base") => {
   if (!disabled && onClick) el.onclick = onClick;
   if (hint !== void 0) {
     el.appendChild(keyHintBadge(hint, hintVariant));
-    el.appendChild(document.createTextNode(" " + label));
+    const labelSpan = document.createElement("span");
+    labelSpan.setAttribute("class", "button-label");
+    labelSpan.textContent = " " + label;
+    el.appendChild(labelSpan);
   } else {
     el.innerHTML = label;
   }
@@ -6792,8 +6811,12 @@ var createButton = (label, disabled, onClick, hint, hintVariant = "base") => {
 var rulesVisible = false;
 var setDefaultRulesVisible = (visible) => {
   rulesVisible = visible;
+  treeZoom = BASE_ZOOM;
+  autoZoomedDerivation = null;
 };
-var treeZoom = 1;
+var isCompact = () => window.matchMedia("(max-width: 600px)").matches;
+var BASE_ZOOM = isCompact() ? 0.6 : 1;
+var treeZoom = BASE_ZOOM;
 var ZOOM_MIN = 0.4;
 var ZOOM_MAX = 2;
 var ZOOM_STEP = 0.2;
@@ -6802,12 +6825,12 @@ var zoomTreeOut = () => {
   treeZoom = Math.max(ZOOM_MIN, treeZoom - ZOOM_STEP);
 };
 var zoomTreeReset = () => {
-  treeZoom = 1;
+  treeZoom = BASE_ZOOM;
 };
 var zoomTreeIn = () => {
   treeZoom = Math.min(ZOOM_MAX, treeZoom + ZOOM_STEP);
 };
-var AUTO_ZOOM_MAX = 1.2;
+var AUTO_ZOOM_MAX = isCompact() ? 0.6 : 1.2;
 var AUTO_ZOOM_PAD = 0.9;
 var CHECK_STEP_MS = 120;
 var CHECK_HOLD_MS = 260;
@@ -6853,18 +6876,24 @@ var createPlayArea = (workspace) => {
   const focus2 = workspace.currentConjecture();
   const solved = workspace.isSolved();
   const gaze = isGazeModeActive() ? workspace.gaze() : null;
-  const ghost = isGazeModeActive() ? computeGhostChain(
+  const ghostChain = isGazeModeActive() ? computeGhostChain(
     activeSequent(focus2),
     workspace.gaze(),
     workspace.gazeKind(),
     workspace.availableRules()
   ) : null;
-  const tree2 = renderDerivation(
-    focus2.derivation,
-    solved ? [-1] : activePath(focus2),
-    gaze,
-    ghost
-  );
+  const path = solved ? [-1] : activePath(focus2);
+  let derivation = focus2.derivation;
+  let ghostPath = null;
+  if (ghostChain !== null && ghostChain.length > 0) {
+    const edit = (leaf) => ghostToDerivation(ghostChain, leaf.result);
+    const withGhost = editDerivation(focus2.derivation, path, edit);
+    if (withGhost) {
+      derivation = withGhost;
+      ghostPath = path;
+    }
+  }
+  const tree2 = renderDerivation(derivation, path, gaze, [], ghostPath);
   const isFresh = focus2.derivation.kind === "premise";
   tree2.style.visibility = "hidden";
   panel.appendChild(tree2);
@@ -6885,7 +6914,7 @@ var createPlayArea = (workspace) => {
         }
       });
     }
-    if (isFresh && !solved && autoZoomedDerivation !== focus2.derivation) {
+    if (!isCompact() && isFresh && !solved && autoZoomedDerivation !== focus2.derivation) {
       autoZoomedDerivation = focus2.derivation;
       const rootSequent = tree2.querySelector(
         ":scope > .tree-sequent"
@@ -6893,8 +6922,10 @@ var createPlayArea = (workspace) => {
       if (rootSequent) {
         const sequentRect = rootSequent.getBoundingClientRect();
         const areaRect = panel.getBoundingClientRect();
-        const fontPx = parseFloat(getComputedStyle(panel).fontSize);
-        const availW = areaRect.width - 2 * 8 * fontPx;
+        const panelStyle = getComputedStyle(panel);
+        const padLeft = parseFloat(panelStyle.paddingLeft);
+        const padRight = parseFloat(panelStyle.paddingRight);
+        const availW = areaRect.width - padLeft - padRight;
         if (sequentRect.width > 0 && availW > 0) {
           const target = Math.max(
             ZOOM_MIN,
@@ -6912,12 +6943,14 @@ var createPlayArea = (workspace) => {
       }
     }
     tree2.style.visibility = "";
-    if (solved) {
+    if (solved && !isCompact()) {
       const treeRect = tree2.getBoundingClientRect();
       const areaRect = panel.getBoundingClientRect();
-      const fontPx = parseFloat(getComputedStyle(panel).fontSize);
-      const availW = areaRect.width - 2 * 8 * fontPx;
-      const availH = (areaRect.height - (8 + 1) * fontPx) * 0.85;
+      const panelStyle = getComputedStyle(panel);
+      const padH = parseFloat(panelStyle.paddingLeft) + parseFloat(panelStyle.paddingRight);
+      const padV = parseFloat(panelStyle.paddingTop) + parseFloat(panelStyle.paddingBottom);
+      const availW = areaRect.width - padH;
+      const availH = (areaRect.height - padV) * 0.85;
       const scale = Math.min(
         1,
         availW / treeRect.width,
@@ -6970,36 +7003,59 @@ var gazeHintBadgeForKind = (key, hints) => {
   }
   return null;
 };
+var createRuleCard = (key, rule, disabled, pinned82, hideRules, onApply, gazeHints, panelClass) => {
+  const isPinned = pinned82.includes(key);
+  const pre = document.createElement("pre");
+  pre.setAttribute(
+    "class",
+    "rule button" + (disabled ? " disabled" : "") + (isPinned ? " pinned" : "")
+  );
+  pre.dataset["rule"] = key;
+  const group = key in leftStructural || key in rightStructural ? "structural" : key in leftLogical || key in rightLogical ? "logical" : "center";
+  pre.dataset["group"] = group;
+  if (!disabled) pre.onclick = () => onApply(key);
+  const compact = window.matchMedia("(max-width: 600px)").matches;
+  pre.innerHTML = fromDerivation(
+    rule.example,
+    t("sideLeft"),
+    t("sideRight"),
+    !compact
+  );
+  const action = ruleAction[key];
+  const hint = action !== void 0 ? getActionHint(action) : void 0;
+  const ruleHintVariant = panelClass === "main" ? "base" : "hot";
+  if (hint !== void 0 && !hideRules)
+    pre.appendChild(keyHintBadge(hint, ruleHintVariant));
+  const gazeBadges = [
+    gazeHintBadgeForKind(key, gazeHints.connective),
+    gazeHintBadgeForKind(key, gazeHints.weakening)
+  ].filter(isNonNullable);
+  if (gazeBadges.length > 0) {
+    const stack = document.createElement("span");
+    stack.setAttribute("class", "gaze-hint-stack");
+    for (const b of gazeBadges) stack.appendChild(b);
+    pre.appendChild(stack);
+  }
+  return pre;
+};
 var createPanel = (className, ruleRecord, ls, rules79, pinned82, hideRules, solved, onApply, gazeHints) => {
   const panel = document.createElement("div");
   panel.setAttribute("class", className);
   entries(ruleRecord).forEach(([key, rule]) => {
     if (!rules79.includes(key)) return;
     const disabled = solved || !ls.includes(key);
-    const isPinned = pinned82.includes(key);
-    const pre = document.createElement("pre");
-    pre.setAttribute(
-      "class",
-      "rule button" + (disabled ? " disabled" : "") + (isPinned ? " pinned" : "")
+    panel.appendChild(
+      createRuleCard(
+        key,
+        rule,
+        disabled,
+        pinned82,
+        hideRules,
+        onApply,
+        gazeHints,
+        className
+      )
     );
-    if (!disabled) pre.onclick = () => onApply(key);
-    pre.innerHTML = fromDerivation(rule.example, t("sideLeft"), t("sideRight"));
-    const action = ruleAction[key];
-    const hint = action !== void 0 ? getActionHint(action) : void 0;
-    const ruleHintVariant = className === "main" ? "base" : "hot";
-    if (hint !== void 0 && !hideRules)
-      pre.appendChild(keyHintBadge(hint, ruleHintVariant));
-    const gazeBadges = [
-      gazeHintBadgeForKind(key, gazeHints.connective),
-      gazeHintBadgeForKind(key, gazeHints.weakening)
-    ].filter(isNonNullable);
-    if (gazeBadges.length > 0) {
-      const stack = document.createElement("span");
-      stack.setAttribute("class", "gaze-hint-stack");
-      for (const b of gazeBadges) stack.appendChild(b);
-      pre.appendChild(stack);
-    }
-    panel.appendChild(pre);
   });
   return panel;
 };
@@ -7043,7 +7099,11 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
   const hideRules = !rulesVisible || solved;
   const pinned82 = workspace.pinnedRules();
   const panel = document.createElement("div");
-  panel.setAttribute("class", "bench" + (hideRules ? " rules-hidden" : ""));
+  const hasPinned = !solved && pinned82.length > 0;
+  panel.setAttribute(
+    "class",
+    "bench" + (hideRules ? " rules-hidden" : "") + (hasPinned ? " has-pinned" : "")
+  );
   panel.appendChild(
     createPanel(
       "left",
@@ -7088,6 +7148,69 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
       gazeHints
     )
   );
+  const rulesSheet = document.createElement("div");
+  const sheetMode = isGazeModeActive() ? "gaze" : "hot";
+  rulesSheet.setAttribute("class", "rules-sheet " + sheetMode);
+  if (!congrats) {
+    const sheetCenter = document.createElement("div");
+    sheetCenter.setAttribute("class", "rules-sheet-center");
+    entries(center).forEach(([key, rule]) => {
+      if (!rules79.includes(key)) return;
+      const disabled = solved || !ls.includes(key);
+      const card = createRuleCard(
+        key,
+        rule,
+        disabled,
+        pinned82,
+        hideRules,
+        applyCenter,
+        gazeHints,
+        "main"
+      );
+      sheetCenter.appendChild(card);
+    });
+    rulesSheet.appendChild(sheetCenter);
+  }
+  const sheetSides = document.createElement("div");
+  sheetSides.setAttribute("class", "rules-sheet-sides");
+  const leftCol = document.createElement("div");
+  leftCol.setAttribute("class", "rules-sheet-col");
+  entries(left).forEach(([key, rule]) => {
+    if (!rules79.includes(key)) return;
+    const disabled = inactive || !ls.includes(key);
+    const card = createRuleCard(
+      key,
+      rule,
+      disabled,
+      pinned82,
+      hideRules,
+      apply2,
+      gazeHints,
+      "left"
+    );
+    leftCol.appendChild(card);
+  });
+  const rightCol = document.createElement("div");
+  rightCol.setAttribute("class", "rules-sheet-col");
+  entries(right).forEach(([key, rule]) => {
+    if (!rules79.includes(key)) return;
+    const disabled = inactive || !ls.includes(key);
+    const card = createRuleCard(
+      key,
+      rule,
+      disabled,
+      pinned82,
+      hideRules,
+      apply2,
+      gazeHints,
+      "right"
+    );
+    rightCol.appendChild(card);
+  });
+  sheetSides.appendChild(leftCol);
+  sheetSides.appendChild(rightCol);
+  rulesSheet.appendChild(sheetSides);
+  panel.appendChild(rulesSheet);
   panel.appendChild(createPlayArea(workspace));
   const zoomOut = createButton(
     "\u2212",
@@ -7207,8 +7330,10 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
   gazeGroup.appendChild(gazeConnectiveBtn);
   gazeGroup.appendChild(gazeRightBtn);
   const rulesGroup = makeGroup();
+  rulesGroup.setAttribute("class", "controls-group controls-rules");
   rulesGroup.appendChild(rulesBtn);
   const axiomGroup = makeGroup();
+  axiomGroup.setAttribute("class", "controls-group controls-axiom");
   axiomGroup.appendChild(axiomBtn);
   const zoomGroup = makeGroup();
   zoomGroup.appendChild(zoomOut);
@@ -7258,6 +7383,34 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
   controlsBar.appendChild(centerCell);
   controlsBar.appendChild(rightCell);
   panel.appendChild(controlsBar);
+  if (!solved && pinned82.length > 0) {
+    const pinnedStrip = document.createElement("div");
+    pinnedStrip.setAttribute("class", "pinned-strip");
+    const allRules = {
+      ...left,
+      ...center,
+      ...right
+    };
+    for (const key of pinned82) {
+      const rule = allRules[key];
+      if (rule === void 0 || !rules79.includes(key)) continue;
+      const disabled = inactive || !ls.includes(key);
+      const panelClass = key in left ? "left" : key in right ? "right" : "main";
+      const onApplyPinned = panelClass === "main" ? applyCenter : apply2;
+      const card = createRuleCard(
+        key,
+        rule,
+        disabled,
+        pinned82,
+        false,
+        onApplyPinned,
+        gazeHints,
+        panelClass
+      );
+      pinnedStrip.appendChild(card);
+    }
+    panel.appendChild(pinnedStrip);
+  }
   return panel;
 };
 var autoRule = (workspace, rules79) => {
@@ -7638,11 +7791,12 @@ var createCongrats = (ws, selectLevel, rerender) => {
   const hurray = document.createElement("div");
   hurray.setAttribute("class", "hurray");
   hurray.innerHTML = t("congratulations");
+  const compact = window.matchMedia("(max-width: 600px)").matches;
   const buttons = document.createElement("div");
   buttons.setAttribute("class", "congrabuttons");
   buttons.appendChild(
     createButton(
-      t("prevLevel"),
+      t(compact ? "prevLevelShort" : "prevLevel"),
       false,
       () => selectLevel(ws.previousConjectureId()),
       dualHint("p", "undo")
@@ -7650,7 +7804,7 @@ var createCongrats = (ws, selectLevel, rerender) => {
   );
   buttons.appendChild(
     createButton(
-      t("playAgain"),
+      t(compact ? "playAgainShort" : "playAgain"),
       false,
       () => {
         ws.applyEvent(reset());
@@ -7661,7 +7815,7 @@ var createCongrats = (ws, selectLevel, rerender) => {
   );
   buttons.appendChild(
     createButton(
-      t("nextLevel"),
+      t(compact ? "nextLevelShort" : "nextLevel"),
       false,
       () => selectLevel(ws.nextConjectureId()),
       dualHint("\u2423", "axiom")
