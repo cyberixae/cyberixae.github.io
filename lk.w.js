@@ -319,6 +319,62 @@
     }
     return negation(random(next)());
   };
+  var pickWeighted = (choices) => {
+    const total = choices.reduce((sum, c) => sum + c.weight, 0);
+    if (total <= 0) return void 0;
+    let rand = Math.random() * total;
+    for (const c of choices) {
+      rand -= c.weight;
+      if (rand < 0) return c.value;
+    }
+    const last2 = choices[choices.length - 1];
+    return last2?.value;
+  };
+  var randomWeighted = (size, connectives2, symbols) => () => {
+    if (size < 1) {
+      const leaf = pickWeighted([
+        { weight: symbols.p, value: atom("p") },
+        { weight: symbols.q, value: atom("q") },
+        { weight: symbols.r, value: atom("r") },
+        { weight: symbols.s, value: atom("s") },
+        { weight: symbols.u, value: atom("u") },
+        { weight: symbols.v, value: atom("v") },
+        { weight: symbols.falsum, value: falsum },
+        { weight: symbols.verum, value: verum }
+      ]);
+      return leaf ?? atom("p");
+    }
+    const next = size - 1;
+    const [left2, right2] = splitAt(next, Math.random());
+    const branch = pickWeighted([
+      {
+        weight: connectives2.conjunction,
+        value: () => conjunction(
+          randomWeighted(left2, connectives2, symbols)(),
+          randomWeighted(right2, connectives2, symbols)()
+        )
+      },
+      {
+        weight: connectives2.disjunction,
+        value: () => disjunction(
+          randomWeighted(left2, connectives2, symbols)(),
+          randomWeighted(right2, connectives2, symbols)()
+        )
+      },
+      {
+        weight: connectives2.implication,
+        value: () => implication(
+          randomWeighted(left2, connectives2, symbols)(),
+          randomWeighted(right2, connectives2, symbols)()
+        )
+      },
+      {
+        weight: connectives2.negation,
+        value: () => negation(randomWeighted(next, connectives2, symbols)())
+      }
+    ]);
+    return branch ? branch() : atom("p");
+  };
 
   // src/utils/tuple.ts
   var head2 = (a) => {
@@ -2173,26 +2229,44 @@
   };
 
   // src/random/challenge.ts
+  var RULES = [
+    "i",
+    "f",
+    "v",
+    "swl",
+    "swr",
+    "sRotLF",
+    "sRotRF",
+    "sRotLB",
+    "sRotRB",
+    "nl",
+    "nr",
+    "cl",
+    "cr",
+    "dl",
+    "dr",
+    "il",
+    "ir"
+  ];
+  var STRUCTURAL_RULES = /* @__PURE__ */ new Set([
+    "swl",
+    "swr",
+    "scl",
+    "scr",
+    "sRotLF",
+    "sRotLB",
+    "sRotRF",
+    "sRotRB",
+    "sxl",
+    "sxr"
+  ]);
+  var countNonStructural = (d) => {
+    if (d.kind === "premise") return 0;
+    const self2 = STRUCTURAL_RULES.has(d.rule) ? 0 : 1;
+    return self2 + d.deps.reduce((sum, dep) => sum + countNonStructural(dep), 0);
+  };
   var random2 = (size = 10, minDifficulty = 8) => () => {
-    const rules = [
-      "i",
-      "f",
-      "v",
-      "swl",
-      "swr",
-      "sRotLF",
-      "sRotRF",
-      "sRotLB",
-      "sRotRB",
-      "nl",
-      "nr",
-      "cl",
-      "cr",
-      "dl",
-      "dr",
-      "il",
-      "ir"
-    ];
+    const rules = RULES;
     let solution;
     while (typeof solution === "undefined") {
       ;
@@ -2215,26 +2289,241 @@
       solution
     };
   };
+  var bellRandom = (min, max, center2) => {
+    const mid = center2 ?? (min + max) / 2;
+    const stddev = Math.max(max - mid, mid - min) / 3;
+    let value;
+    do {
+      const u1 = Math.random();
+      const u2 = Math.random();
+      const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+      value = Math.round(mid + z * stddev);
+    } while (value < min || value > max);
+    return value;
+  };
+  var CONNECTIVE_KEYS = [
+    "negation",
+    "implication",
+    "conjunction",
+    "disjunction"
+  ];
+  var randomSubsetConnectives = (connectives2) => {
+    const keys = CONNECTIVE_KEYS.filter((k) => connectives2[k] > 0);
+    if (keys.length <= 1) return connectives2;
+    const count = bellRandom(1, keys.length);
+    let selected;
+    do {
+      const shuffled = keys.sort(() => Math.random() - 0.5);
+      selected = new Set(shuffled.slice(0, count));
+    } while (selected.size === 1 && selected.has("negation"));
+    return {
+      negation: selected.has("negation") ? connectives2.negation : 0,
+      implication: selected.has("implication") ? connectives2.implication : 0,
+      conjunction: selected.has("conjunction") ? connectives2.conjunction : 0,
+      disjunction: selected.has("disjunction") ? connectives2.disjunction : 0
+    };
+  };
+  var SYMBOL_KEYS = [
+    "p",
+    "q",
+    "r",
+    "s",
+    "u",
+    "v",
+    "falsum",
+    "verum"
+  ];
+  var randomSubsetSymbols = (symbols) => {
+    const keys = SYMBOL_KEYS.filter((k) => symbols[k] > 0);
+    if (keys.length <= 1) return symbols;
+    const count = bellRandom(1, keys.length, Math.min(4, keys.length));
+    const shuffled = keys.sort(() => Math.random() - 0.5);
+    const selected = new Set(shuffled.slice(0, count));
+    const result = {
+      p: 0,
+      q: 0,
+      r: 0,
+      s: 0,
+      u: 0,
+      v: 0,
+      falsum: 0,
+      verum: 0
+    };
+    for (const k of selected) {
+      result[k] = symbols[k];
+    }
+    return result;
+  };
+  function* randomConfiguredStep(config, getTimeout = () => 5e3) {
+    const rules = RULES;
+    const maxDepth = config.targetNonStructural + 10;
+    const bypass = config.bypassPercent / 100;
+    let formulasTried = 0;
+    let tautologiesFound = 0;
+    let solved = 0;
+    const progress = () => ({
+      formulasTried,
+      tautologiesFound,
+      solved
+    });
+    while (true) {
+      const size = bellRandom(1, config.size);
+      const connectives2 = randomSubsetConnectives(config.connectives);
+      const symbols = randomSubsetSymbols(config.symbols);
+      const formula = randomWeighted(size, connectives2, symbols)();
+      formulasTried += 1;
+      yield progress();
+      const isBypassed = Math.random() < bypass;
+      if (isBypassed) {
+        return {
+          challenge: { rules, goal: conclusion(formula) },
+          nonStructuralCount: 0,
+          bypassed: true,
+          formulasTried,
+          tautologiesFound,
+          solved
+        };
+      }
+      if (!isTautology(formula)) continue;
+      tautologiesFound += 1;
+      const solver = bruteSearch({ goal: conclusion(formula), rules });
+      let proof;
+      let depth = 0;
+      const solveStart = Date.now();
+      while (depth <= maxDepth) {
+        const step = solver.next();
+        if (step.done === true) {
+          proof = step.value[0];
+          break;
+        }
+        depth += 1;
+        if (Date.now() - solveStart > getTimeout()) break;
+        yield progress();
+      }
+      if (proof === void 0) continue;
+      solved += 1;
+      const nonStructuralCount = countNonStructural(proof);
+      if (isFinite(config.targetNonStructural) && nonStructuralCount !== config.targetNonStructural)
+        continue;
+      return {
+        challenge: { rules, goal: proof.result },
+        nonStructuralCount,
+        bypassed: false,
+        formulasTried,
+        tautologiesFound,
+        solved
+      };
+    }
+  }
+
+  // src/web/challenge-protocol.ts
+  var deserializeConfig = (config) => config;
 
   // src/web/challenge-worker.ts
-  var running = true;
-  var generate = () => {
-    const { goal, rules } = random2()();
-    return { goal, rules };
+  var running = false;
+  var loopGeneration = 0;
+  var currentConfig;
+  var currentTimeout = 5e3;
+  var STATS_INTERVAL = 200;
+  var lastStatsTime = 0;
+  var reportedFormulas = 0;
+  var reportedTautologies = 0;
+  var reportedSolved = 0;
+  var reportStats = (formulasTried, tautologiesFound, solved) => {
+    const now = Date.now();
+    const newFormulas = formulasTried - reportedFormulas;
+    if (now - lastStatsTime >= STATS_INTERVAL && newFormulas > 0) {
+      self.postMessage({
+        type: "stats",
+        formulasTried: newFormulas,
+        tautologiesFound: tautologiesFound - reportedTautologies,
+        solved: solved - reportedSolved
+      });
+      reportedFormulas = formulasTried;
+      reportedTautologies = tautologiesFound;
+      reportedSolved = solved;
+      lastStatsTime = now;
+    }
   };
-  var loop = () => {
-    if (!running) return;
-    const challenge = generate();
-    self.postMessage({ type: "challenge", challenge });
-    setTimeout(loop, 0);
+  var loopConfigured = (config, generation) => {
+    const gen = randomConfiguredStep(config, () => currentTimeout);
+    const tick = () => {
+      if (!running || generation !== loopGeneration) return;
+      const { done, value } = gen.next();
+      if (done === true) {
+        const result = {
+          challenge: value.challenge,
+          nonStructuralCount: value.nonStructuralCount,
+          bypassed: value.bypassed,
+          formulasTried: value.formulasTried
+        };
+        const unreportedFormulas = value.formulasTried - reportedFormulas;
+        const unreportedTautologies = value.tautologiesFound - reportedTautologies;
+        const unreportedSolved = value.solved - reportedSolved;
+        if (unreportedFormulas > 0) {
+          self.postMessage({
+            type: "stats",
+            formulasTried: unreportedFormulas,
+            tautologiesFound: unreportedTautologies,
+            solved: unreportedSolved
+          });
+        }
+        reportedFormulas = 0;
+        reportedTautologies = 0;
+        reportedSolved = 0;
+        lastStatsTime = Date.now();
+        self.postMessage({
+          type: "challenge",
+          result
+        });
+        loopConfigured(config, generation);
+      } else {
+        reportStats(value.formulasTried, value.tautologiesFound, value.solved);
+        setTimeout(tick, 0);
+      }
+    };
+    setTimeout(tick, 0);
+  };
+  var loopDefault = (generation) => {
+    if (!running || generation !== loopGeneration) return;
+    const challenge = random2()();
+    const result = {
+      challenge,
+      nonStructuralCount: countNonStructural(challenge.solution),
+      bypassed: false,
+      formulasTried: 0
+    };
+    self.postMessage({ type: "challenge", result });
+    setTimeout(() => loopDefault(generation), 0);
+  };
+  var startLoop = () => {
+    loopGeneration += 1;
+    reportedFormulas = 0;
+    reportedTautologies = 0;
+    reportedSolved = 0;
+    lastStatsTime = Date.now();
+    const gen = loopGeneration;
+    if (currentConfig) {
+      loopConfigured(currentConfig, gen);
+    } else {
+      loopDefault(gen);
+    }
   };
   self.onmessage = (e) => {
     if (e.data.type === "pause") {
       running = false;
-    } else if (e.data.type === "resume" && !running) {
-      running = true;
-      loop();
+    } else if (e.data.type === "resume") {
+      if (!running) {
+        running = true;
+        startLoop();
+      }
+    } else if (e.data.type === "configure") {
+      currentConfig = deserializeConfig(e.data.config);
+      if (running) {
+        startLoop();
+      }
+    } else if (e.data.type === "timeout") {
+      currentTimeout = e.data.ms;
     }
   };
-  loop();
 })();

@@ -357,6 +357,62 @@ var random = (size = 10) => () => {
   }
   return negation(random(next2)());
 };
+var pickWeighted = (choices) => {
+  const total = choices.reduce((sum, c) => sum + c.weight, 0);
+  if (total <= 0) return void 0;
+  let rand = Math.random() * total;
+  for (const c of choices) {
+    rand -= c.weight;
+    if (rand < 0) return c.value;
+  }
+  const last3 = choices[choices.length - 1];
+  return last3?.value;
+};
+var randomWeighted = (size, connectives2, symbols) => () => {
+  if (size < 1) {
+    const leaf = pickWeighted([
+      { weight: symbols.p, value: atom("p") },
+      { weight: symbols.q, value: atom("q") },
+      { weight: symbols.r, value: atom("r") },
+      { weight: symbols.s, value: atom("s") },
+      { weight: symbols.u, value: atom("u") },
+      { weight: symbols.v, value: atom("v") },
+      { weight: symbols.falsum, value: falsum },
+      { weight: symbols.verum, value: verum }
+    ]);
+    return leaf ?? atom("p");
+  }
+  const next2 = size - 1;
+  const [left4, right3] = splitAt(next2, Math.random());
+  const branch = pickWeighted([
+    {
+      weight: connectives2.conjunction,
+      value: () => conjunction(
+        randomWeighted(left4, connectives2, symbols)(),
+        randomWeighted(right3, connectives2, symbols)()
+      )
+    },
+    {
+      weight: connectives2.disjunction,
+      value: () => disjunction(
+        randomWeighted(left4, connectives2, symbols)(),
+        randomWeighted(right3, connectives2, symbols)()
+      )
+    },
+    {
+      weight: connectives2.implication,
+      value: () => implication(
+        randomWeighted(left4, connectives2, symbols)(),
+        randomWeighted(right3, connectives2, symbols)()
+      )
+    },
+    {
+      weight: connectives2.negation,
+      value: () => negation(randomWeighted(next2, connectives2, symbols)())
+    }
+  ]);
+  return branch ? branch() : atom("p");
+};
 
 // src/utils/tuple.ts
 var head3 = (a91) => {
@@ -2432,6 +2488,12 @@ function fromAtom({ value }) {
   }
   if (value === "s") {
     chr = "\u{1F986}";
+  }
+  if (value === "u") {
+    chr = "\u{1F413}";
+  }
+  if (value === "v") {
+    chr = "\u{1F99A}";
   }
   return print("atom")(printString(chr));
 }
@@ -6295,7 +6357,22 @@ var en = {
   systems: "Systems",
   backToSystems: "\u2190 Systems",
   sideLeft: "L",
-  sideRight: "R"
+  sideRight: "R",
+  randomConfig: "Random",
+  formulaShape: "Settings",
+  size: "Formula Length",
+  connectives: "Connectives",
+  symbols: "Symbols",
+  negationWeight: "Negation",
+  implicationWeight: "Implication",
+  conjunctionWeight: "Conjunction",
+  disjunctionWeight: "Disjunction",
+  filter: "Parameters",
+  bypassPercent: "Unsolvability (%)",
+  targetNonStructural: "Solution Size",
+  start: "Start",
+  back: "Back",
+  preview: "Preview"
 };
 var fi = {
   title: "LK",
@@ -6326,7 +6403,22 @@ var fi = {
   systems: "J\xE4rjestelm\xE4t",
   backToSystems: "\u2190 J\xE4rjestelm\xE4t",
   sideLeft: "V",
-  sideRight: "O"
+  sideRight: "O",
+  randomConfig: "Satunnainen",
+  formulaShape: "Asetukset",
+  size: "Kaavan pituus",
+  connectives: "Konnektiivit",
+  symbols: "Symbolit",
+  negationWeight: "Negaatio",
+  implicationWeight: "Implikaatio",
+  conjunctionWeight: "Konjunktio",
+  disjunctionWeight: "Disjunktio",
+  filter: "Parametrit",
+  bypassPercent: "Ratkeamattomuus (%)",
+  targetNonStructural: "Ratkaisun koko",
+  start: "Aloita",
+  back: "Takaisin",
+  preview: "Esikatselu"
 };
 var messages = { en, fi };
 var detectLocale = () => {
@@ -6335,6 +6427,15 @@ var detectLocale = () => {
 };
 var locale = detectLocale();
 var t = (key) => (messages[locale] ?? en)[key] ?? en[key];
+var statsFormatters = {
+  en: (p) => `Generated ${p.formulas} formulas (${p.rate}/s), ${p.tautologies} tautologies, ${p.solved} solved. Updated ${p.sinceUpdate}s ago.`,
+  fi: (p) => `Tuotettu ${p.formulas} kaavaa (${p.rate}/s), ${p.tautologies} tautologiaa, ${p.solved} ratkaisua. P\xE4ivitetty ${p.sinceUpdate}s sitten.`
+};
+var formatStats = (p) => {
+  const fmt = statsFormatters[locale] ?? statsFormatters["en"];
+  if (!fmt) return "";
+  return fmt(p);
+};
 
 // src/web/menu.ts
 var modeLabel = {
@@ -6354,7 +6455,7 @@ var mountMenu = (container, navigate2) => {
     const btn = document.createElement("div");
     btn.setAttribute("class", "button menu-mode");
     btn.innerHTML = modeLabel[mode]();
-    btn.onclick = () => navigate2(mode);
+    btn.onclick = () => navigate2(mode === "random" ? "random-config" : mode);
     modes.appendChild(btn);
   }
   panel.appendChild(modes);
@@ -8217,6 +8318,430 @@ var mountSystem = (container, _navigate) => {
   }, rerender: render };
 };
 
+// src/random/config.ts
+var defaultRandomConfig = () => ({
+  size: 10,
+  connectives: {
+    negation: 1,
+    implication: 3,
+    conjunction: 3,
+    disjunction: 3
+  },
+  symbols: {
+    p: 6,
+    q: 5,
+    r: 5,
+    s: 2,
+    u: 1,
+    v: 1,
+    falsum: 1,
+    verum: 1
+  },
+  targetNonStructural: 10,
+  bypassPercent: 0
+});
+
+// src/web/challenge-protocol.ts
+var serializeConfig = (config) => config;
+
+// src/web/random-config.ts
+var TARGET_COUNT = 10;
+var entryDistance = (nonStructural, config) => {
+  const diff = nonStructural - config.targetNonStructural;
+  if (diff === 0) return 0;
+  return diff > 0 ? diff * 2 - 1 : -diff * 2;
+};
+var insertSorted = (entries2, entry) => {
+  const result = [...entries2];
+  const idx = result.findIndex((e) => e.distance > entry.distance);
+  if (idx === -1) {
+    result.push(entry);
+  } else {
+    result.splice(idx, 0, entry);
+  }
+  return result.slice(0, TARGET_COUNT);
+};
+var isDone = (entries2) => entries2.length >= TARGET_COUNT && entries2.every((e) => e.distance === 0);
+var renderAtom = (name4) => html(fromAtom(atom(name4))(basic));
+var renderFormula = (p) => {
+  const segments = fromProp(p)(basic);
+  return html(segments);
+};
+var timeoutForBuffer = (bufferSize) => {
+  if (bufferSize === 0) return 3e4;
+  if (bufferSize < 5) return 1e4;
+  return 2e3;
+};
+var createPreviewWorker = (config, onResult) => {
+  const worker = new Worker("lk.w.js");
+  worker.onmessage = (e) => {
+    onResult(e.data);
+  };
+  const send = (msg) => {
+    worker.postMessage(msg);
+  };
+  const workerConfig = () => ({
+    ...config,
+    bypassPercent: 0,
+    targetNonStructural: Infinity
+  });
+  send({ type: "configure", config: serializeConfig(workerConfig()) });
+  send({ type: "timeout", ms: timeoutForBuffer(0) });
+  send({ type: "resume" });
+  return {
+    configure: (newConfig) => {
+      config = newConfig;
+      send({ type: "pause" });
+      send({
+        type: "configure",
+        config: serializeConfig(workerConfig())
+      });
+      send({ type: "timeout", ms: timeoutForBuffer(0) });
+      send({ type: "resume" });
+    },
+    updateTimeout: (bufferSize) => {
+      send({ type: "timeout", ms: timeoutForBuffer(bufferSize) });
+    },
+    terminate: () => {
+      worker.terminate();
+    }
+  };
+};
+var renderPreviewList = (entries2) => {
+  const list = document.querySelector(".config-preview-list");
+  if (!list) return;
+  list.innerHTML = "";
+  for (const entry of entries2) {
+    const item = document.createElement("div");
+    item.className = "config-preview-item" + (entry.distance > 0 ? " approximate" : "");
+    const count = document.createElement("span");
+    count.className = "config-preview-count";
+    count.textContent = String(entry.nonStructural);
+    item.appendChild(count);
+    const formula = document.createElement("span");
+    formula.innerHTML = renderFormula(entry.formula);
+    item.appendChild(formula);
+    list.appendChild(item);
+  }
+};
+var createNumberInput = (value, onChange, min = 0, max, step = 1, placeholder) => {
+  const input = document.createElement("input");
+  input.type = "number";
+  input.className = "config-input";
+  input.min = String(min);
+  if (max !== void 0) input.max = String(max);
+  input.step = String(step);
+  if (value === Infinity) {
+    input.value = "";
+    input.placeholder = placeholder ?? "";
+  } else {
+    input.value = String(value);
+  }
+  input.onchange = () => {
+    const parsed = parseFloat(input.value);
+    if (input.value === "") {
+      onChange(Infinity);
+    } else if (!isNaN(parsed)) {
+      onChange(parsed);
+    }
+  };
+  return input;
+};
+var createRow = (label, input) => {
+  const row = document.createElement("div");
+  row.className = "config-row";
+  const labelEl = document.createElement("label");
+  labelEl.className = "config-label";
+  labelEl.textContent = label;
+  row.appendChild(labelEl);
+  row.appendChild(input);
+  return row;
+};
+var createSection = (title) => {
+  const section = document.createElement("div");
+  section.className = "config-section";
+  const heading = document.createElement("div");
+  heading.className = "config-section-title";
+  heading.textContent = title;
+  section.appendChild(heading);
+  return section;
+};
+var mountRandomConfig = (container, navigate2, onStart) => {
+  const config = defaultRandomConfig();
+  let entries2 = [];
+  let totalFormulasTried = 0;
+  let totalTautologiesFound = 0;
+  let totalSolved = 0;
+  let searchStartTime = Date.now();
+  let lastWorkerUpdate = Date.now();
+  let clockInterval;
+  const updateStats = () => {
+    const el = document.querySelector(".config-stats");
+    if (!el) return;
+    const now = Date.now();
+    const elapsed = (now - searchStartTime) / 1e3;
+    const rate = elapsed > 0 ? totalFormulasTried / elapsed : 0;
+    const sinceUpdate = ((now - lastWorkerUpdate) / 1e3).toFixed(1);
+    el.textContent = formatStats({
+      formulas: totalFormulasTried,
+      rate: rate.toFixed(1),
+      tautologies: totalTautologiesFound,
+      solved: totalSolved,
+      sinceUpdate
+    });
+  };
+  const startClock = () => {
+    stopClock();
+    clockInterval = setInterval(updateStats, 200);
+  };
+  const stopClock = () => {
+    if (clockInterval !== void 0) {
+      clearInterval(clockInterval);
+      clockInterval = void 0;
+    }
+  };
+  const handleResult = (msg) => {
+    lastWorkerUpdate = Date.now();
+    if (msg.type === "stats") {
+      totalFormulasTried += msg.formulasTried;
+      totalTautologiesFound += msg.tautologiesFound;
+      totalSolved += msg.solved;
+      updateStats();
+      return;
+    }
+    if (msg.type === "challenge") {
+      totalFormulasTried += msg.result.formulasTried;
+      updateStats();
+      if (isDone(entries2)) return;
+      const { challenge: challenge2, nonStructuralCount } = msg.result;
+      const formula = challenge2.goal.succedent[0];
+      if (formula === void 0) return;
+      const distance = entryDistance(nonStructuralCount, config);
+      const entry = {
+        formula,
+        nonStructural: nonStructuralCount,
+        distance
+      };
+      entries2 = insertSorted(entries2, entry);
+      renderPreviewList(entries2);
+      previewWorker?.updateTimeout(entries2.length);
+      if (isDone(entries2) && previewWorker) {
+        previewWorker.terminate();
+        previewWorker = void 0;
+        stopClock();
+      }
+    }
+  };
+  let previewWorker = createPreviewWorker(
+    config,
+    handleResult
+  );
+  const restartSearch = () => {
+    entries2 = [];
+    totalFormulasTried = 0;
+    totalTautologiesFound = 0;
+    totalSolved = 0;
+    searchStartTime = Date.now();
+    lastWorkerUpdate = Date.now();
+    if (previewWorker) previewWorker.terminate();
+    previewWorker = createPreviewWorker(config, handleResult);
+    renderPreviewList(entries2);
+    startClock();
+  };
+  const onInputChange = (setter) => (v2) => {
+    setter(v2);
+    restartSearch();
+  };
+  const rerender = () => {
+    container.innerHTML = "";
+    const layout = document.createElement("div");
+    layout.className = "random-config";
+    const title = document.createElement("div");
+    title.className = "config-title";
+    title.textContent = t("randomConfig");
+    layout.appendChild(title);
+    const columns = document.createElement("div");
+    columns.className = "config-columns";
+    const settings = document.createElement("div");
+    settings.className = "config-settings";
+    const shapeSection = createSection(t("formulaShape"));
+    const connectiveHeading = document.createElement("div");
+    connectiveHeading.className = "config-subsection-title";
+    connectiveHeading.textContent = t("connectives");
+    shapeSection.appendChild(connectiveHeading);
+    const defaultConnectives = defaultRandomConfig().connectives;
+    const connectiveKeys = [
+      { key: "implication", label: t("implicationWeight"), symbol: "\u2192" },
+      { key: "conjunction", label: t("conjunctionWeight"), symbol: "\u2227" },
+      { key: "disjunction", label: t("disjunctionWeight"), symbol: "\u2228" },
+      { key: "negation", label: t("negationWeight"), symbol: "\xAC" }
+    ];
+    const createToggle = (content, useHtml, title2, isActive, onToggle) => {
+      const btn = document.createElement("pre");
+      btn.className = "button toggle";
+      if (useHtml) {
+        btn.innerHTML = content;
+      } else {
+        btn.textContent = content;
+      }
+      btn.title = title2;
+      const led = document.createElement("span");
+      led.className = "led" + (isActive() ? " on" : "");
+      btn.appendChild(led);
+      btn.onclick = () => {
+        onToggle();
+        led.className = "led" + (isActive() ? " on" : "");
+        restartSearch();
+      };
+      return btn;
+    };
+    const connectiveToggles = document.createElement("div");
+    connectiveToggles.className = "config-toggles";
+    for (const { key, label, symbol } of connectiveKeys) {
+      connectiveToggles.appendChild(
+        createToggle(
+          symbol,
+          false,
+          label,
+          () => config.connectives[key] > 0,
+          () => {
+            config.connectives[key] = config.connectives[key] > 0 ? 0 : defaultConnectives[key];
+          }
+        )
+      );
+    }
+    const defaultSymbols = defaultRandomConfig().symbols;
+    const constantKeys = [
+      { key: "falsum", symbol: "\u22A5" },
+      { key: "verum", symbol: "\u22A4" }
+    ];
+    for (const { key, symbol } of constantKeys) {
+      connectiveToggles.appendChild(
+        createToggle(
+          symbol,
+          false,
+          symbol,
+          () => config.symbols[key] > 0,
+          () => {
+            config.symbols[key] = config.symbols[key] > 0 ? 0 : defaultSymbols[key];
+          }
+        )
+      );
+    }
+    shapeSection.appendChild(connectiveToggles);
+    const symbolHeading = document.createElement("div");
+    symbolHeading.className = "config-subsection-title";
+    symbolHeading.textContent = t("symbols");
+    shapeSection.appendChild(symbolHeading);
+    const symbolKeys = [
+      "p",
+      "q",
+      "r",
+      "s",
+      "u",
+      "v"
+    ];
+    const symbolToggles = document.createElement("div");
+    symbolToggles.className = "config-toggles";
+    for (const key of symbolKeys) {
+      symbolToggles.appendChild(
+        createToggle(
+          renderAtom(key),
+          true,
+          key,
+          () => config.symbols[key] > 0,
+          () => {
+            config.symbols[key] = config.symbols[key] > 0 ? 0 : defaultSymbols[key];
+          }
+        )
+      );
+    }
+    shapeSection.appendChild(symbolToggles);
+    settings.appendChild(shapeSection);
+    const filterHeading = document.createElement("div");
+    filterHeading.className = "config-subsection-title";
+    filterHeading.textContent = t("filter");
+    shapeSection.appendChild(filterHeading);
+    shapeSection.appendChild(
+      createRow(
+        t("size"),
+        createNumberInput(
+          config.size,
+          onInputChange((v2) => {
+            config.size = v2;
+          }),
+          1,
+          30
+        )
+      )
+    );
+    shapeSection.appendChild(
+      createRow(
+        t("targetNonStructural"),
+        createNumberInput(
+          config.targetNonStructural,
+          onInputChange((v2) => {
+            config.targetNonStructural = v2;
+          }),
+          1
+        )
+      )
+    );
+    shapeSection.appendChild(
+      createRow(
+        t("bypassPercent"),
+        createNumberInput(
+          config.bypassPercent,
+          onInputChange((v2) => {
+            config.bypassPercent = v2;
+          }),
+          0,
+          100
+        )
+      )
+    );
+    const buttons = document.createElement("div");
+    buttons.className = "config-buttons";
+    const backBtn = document.createElement("div");
+    backBtn.className = "button";
+    backBtn.textContent = t("back");
+    backBtn.onclick = () => navigate2("menu");
+    buttons.appendChild(backBtn);
+    const startBtn = document.createElement("div");
+    startBtn.className = "button";
+    startBtn.textContent = t("start");
+    startBtn.onclick = () => onStart(config);
+    buttons.appendChild(startBtn);
+    settings.appendChild(buttons);
+    columns.appendChild(settings);
+    const preview = document.createElement("div");
+    preview.className = "config-preview";
+    const previewTitle = document.createElement("div");
+    previewTitle.className = "config-section-title";
+    previewTitle.textContent = t("preview");
+    preview.appendChild(previewTitle);
+    const stats = document.createElement("div");
+    stats.className = "config-stats";
+    preview.appendChild(stats);
+    const list = document.createElement("div");
+    list.className = "config-preview-list";
+    preview.appendChild(list);
+    columns.appendChild(preview);
+    layout.appendChild(columns);
+    container.appendChild(layout);
+    restartSearch();
+  };
+  rerender();
+  const cleanup = () => {
+    stopClock();
+    if (previewWorker) {
+      previewWorker.terminate();
+      previewWorker = void 0;
+    }
+  };
+  return { cleanup, rerender };
+};
+
 // src/solver/bruteStructure0.ts
 var seqKey = (s) => JSON.stringify([s.antecedent, s.succedent]);
 var buildStructurePath = (d, rules79, p) => {
@@ -8481,26 +9006,44 @@ var brute = (c) => {
 };
 
 // src/random/challenge.ts
+var RULES = [
+  "i",
+  "f",
+  "v",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB",
+  "nl",
+  "nr",
+  "cl",
+  "cr",
+  "dl",
+  "dr",
+  "il",
+  "ir"
+];
+var STRUCTURAL_RULES = /* @__PURE__ */ new Set([
+  "swl",
+  "swr",
+  "scl",
+  "scr",
+  "sRotLF",
+  "sRotLB",
+  "sRotRF",
+  "sRotRB",
+  "sxl",
+  "sxr"
+]);
+var countNonStructural = (d) => {
+  if (d.kind === "premise") return 0;
+  const self = STRUCTURAL_RULES.has(d.rule) ? 0 : 1;
+  return self + d.deps.reduce((sum, dep) => sum + countNonStructural(dep), 0);
+};
 var random2 = (size = 10, minDifficulty = 8) => () => {
-  const rules79 = [
-    "i",
-    "f",
-    "v",
-    "swl",
-    "swr",
-    "sRotLF",
-    "sRotRF",
-    "sRotLB",
-    "sRotRB",
-    "nl",
-    "nr",
-    "cl",
-    "cr",
-    "dl",
-    "dr",
-    "il",
-    "ir"
-  ];
+  const rules79 = RULES;
   let solution89;
   while (typeof solution89 === "undefined") {
     ;
@@ -8523,18 +9066,183 @@ var random2 = (size = 10, minDifficulty = 8) => () => {
     solution: solution89
   };
 };
+var bellRandom = (min, max, center3) => {
+  const mid = center3 ?? (min + max) / 2;
+  const stddev = Math.max(max - mid, mid - min) / 3;
+  let value;
+  do {
+    const u1 = Math.random();
+    const u2 = Math.random();
+    const z79 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+    value = Math.round(mid + z79 * stddev);
+  } while (value < min || value > max);
+  return value;
+};
+var CONNECTIVE_KEYS = [
+  "negation",
+  "implication",
+  "conjunction",
+  "disjunction"
+];
+var randomSubsetConnectives = (connectives2) => {
+  const keys2 = CONNECTIVE_KEYS.filter((k) => connectives2[k] > 0);
+  if (keys2.length <= 1) return connectives2;
+  const count = bellRandom(1, keys2.length);
+  let selected;
+  do {
+    const shuffled = keys2.sort(() => Math.random() - 0.5);
+    selected = new Set(shuffled.slice(0, count));
+  } while (selected.size === 1 && selected.has("negation"));
+  return {
+    negation: selected.has("negation") ? connectives2.negation : 0,
+    implication: selected.has("implication") ? connectives2.implication : 0,
+    conjunction: selected.has("conjunction") ? connectives2.conjunction : 0,
+    disjunction: selected.has("disjunction") ? connectives2.disjunction : 0
+  };
+};
+var SYMBOL_KEYS = [
+  "p",
+  "q",
+  "r",
+  "s",
+  "u",
+  "v",
+  "falsum",
+  "verum"
+];
+var randomSubsetSymbols = (symbols) => {
+  const keys2 = SYMBOL_KEYS.filter((k) => symbols[k] > 0);
+  if (keys2.length <= 1) return symbols;
+  const count = bellRandom(1, keys2.length, Math.min(4, keys2.length));
+  const shuffled = keys2.sort(() => Math.random() - 0.5);
+  const selected = new Set(shuffled.slice(0, count));
+  const result = {
+    p: 0,
+    q: 0,
+    r: 0,
+    s: 0,
+    u: 0,
+    v: 0,
+    falsum: 0,
+    verum: 0
+  };
+  for (const k of selected) {
+    result[k] = symbols[k];
+  }
+  return result;
+};
+function* randomConfiguredStep(config, getTimeout = () => 5e3) {
+  const rules79 = RULES;
+  const maxDepth = config.targetNonStructural + 10;
+  const bypass = config.bypassPercent / 100;
+  let formulasTried = 0;
+  let tautologiesFound = 0;
+  let solved = 0;
+  const progress = () => ({
+    formulasTried,
+    tautologiesFound,
+    solved
+  });
+  while (true) {
+    const size = bellRandom(1, config.size);
+    const connectives2 = randomSubsetConnectives(config.connectives);
+    const symbols = randomSubsetSymbols(config.symbols);
+    const formula = randomWeighted(size, connectives2, symbols)();
+    formulasTried += 1;
+    yield progress();
+    const isBypassed = Math.random() < bypass;
+    if (isBypassed) {
+      return {
+        challenge: { rules: rules79, goal: conclusion(formula) },
+        nonStructuralCount: 0,
+        bypassed: true,
+        formulasTried,
+        tautologiesFound,
+        solved
+      };
+    }
+    if (!isTautology(formula)) continue;
+    tautologiesFound += 1;
+    const solver = bruteSearch({ goal: conclusion(formula), rules: rules79 });
+    let proof;
+    let depth = 0;
+    const solveStart = Date.now();
+    while (depth <= maxDepth) {
+      const step = solver.next();
+      if (step.done === true) {
+        proof = step.value[0];
+        break;
+      }
+      depth += 1;
+      if (Date.now() - solveStart > getTimeout()) break;
+      yield progress();
+    }
+    if (proof === void 0) continue;
+    solved += 1;
+    const nonStructuralCount = countNonStructural(proof);
+    if (isFinite(config.targetNonStructural) && nonStructuralCount !== config.targetNonStructural)
+      continue;
+    return {
+      challenge: { rules: rules79, goal: proof.result },
+      nonStructuralCount,
+      bypassed: false,
+      formulasTried,
+      tautologiesFound,
+      solved
+    };
+  }
+}
 
 // src/web/challenge-pool.ts
 var POOL_TARGET = 5;
 var FALLBACK_SIZE = 5;
 var FALLBACK_MIN_DIFFICULTY = 0;
+var RULES2 = [
+  "i",
+  "f",
+  "v",
+  "swl",
+  "swr",
+  "sRotLF",
+  "sRotRF",
+  "sRotLB",
+  "sRotRB",
+  "nl",
+  "nr",
+  "cl",
+  "cr",
+  "dl",
+  "dr",
+  "il",
+  "ir"
+];
+var generateBypass = (config) => {
+  const size = Math.floor(Math.random() * config.size) + 1;
+  const formula = randomWeighted(
+    size,
+    config.connectives,
+    config.symbols
+  )();
+  return {
+    challenge: { rules: [...RULES2], goal: conclusion(formula) },
+    nonStructuralCount: 0,
+    bypassed: true,
+    formulasTried: 1
+  };
+};
 var ChallengePool = class {
   pool = [];
   worker;
+  currentConfig;
   constructor() {
     this.worker = new Worker("lk.w.js");
     this.worker.onmessage = (e) => {
-      this.pool.push(e.data.challenge);
+      if (e.data.type !== "challenge") return;
+      const result = e.data.result;
+      if (this.currentConfig && result.nonStructuralCount !== this.currentConfig.targetNonStructural) {
+        return;
+      }
+      this.pool.push(result);
       if (this.pool.length >= POOL_TARGET) {
         this.send({ type: "pause" });
       }
@@ -8542,20 +9250,60 @@ var ChallengePool = class {
     this.worker.onerror = (e) => {
       console.error("Challenge worker error:", e.message);
     };
+    this.send({ type: "resume" });
   }
   send(msg) {
     this.worker.postMessage(msg);
   }
+  configure(config, seed) {
+    this.currentConfig = config;
+    this.pool = seed ?? [];
+    this.send({ type: "pause" });
+    this.send({
+      type: "configure",
+      config: serializeConfig({ ...config, bypassPercent: 0 })
+    });
+    if (this.pool.length < POOL_TARGET) {
+      this.send({ type: "resume" });
+    }
+  }
   take() {
-    const challenge2 = this.pool.shift();
-    if (challenge2 !== void 0) {
+    if (this.currentConfig && Math.random() < this.currentConfig.bypassPercent / 100) {
+      return generateBypass(this.currentConfig);
+    }
+    const result = this.pool.shift();
+    if (result !== void 0) {
       if (this.pool.length < POOL_TARGET) {
         this.send({ type: "resume" });
       }
-      return challenge2;
+      return result;
     }
-    const { goal: goal89, rules: rules79 } = random2(FALLBACK_SIZE, FALLBACK_MIN_DIFFICULTY)();
-    return { goal: goal89, rules: rules79 };
+    if (this.currentConfig) {
+      const looseConfig = {
+        ...this.currentConfig,
+        targetNonStructural: Infinity,
+        bypassPercent: 0
+      };
+      const gen2 = randomConfiguredStep(looseConfig, () => 1e3);
+      while (true) {
+        const { done, value } = gen2.next();
+        if (done === true) {
+          return {
+            challenge: value.challenge,
+            nonStructuralCount: value.nonStructuralCount,
+            bypassed: false,
+            formulasTried: value.formulasTried
+          };
+        }
+      }
+    }
+    const challenge2 = random2(FALLBACK_SIZE, FALLBACK_MIN_DIFFICULTY)();
+    return {
+      challenge: challenge2,
+      nonStructuralCount: 0,
+      bypassed: false,
+      formulasTried: 0
+    };
   }
   cleanup() {
     this.worker.terminate();
@@ -8567,7 +9315,7 @@ var pool = new ChallengePool();
 var session = new Session();
 var factory = {
   campaign: () => new Workspace(challenges),
-  random: () => new Workspace({ challenge: pool.take() })
+  random: () => new Workspace({ challenge: pool.take().challenge })
 };
 var gen = repl(session, factory);
 gen.next("");
@@ -8615,6 +9363,12 @@ var mount = (screen) => {
     case "system":
       current = mountSystem(body, navigate);
       break;
+    case "random-config":
+      current = mountRandomConfig(body, navigate, (config) => {
+        pool.configure(config);
+        navigate("random");
+      });
+      break;
   }
 };
 var syncScreen = () => {
@@ -8644,6 +9398,9 @@ var init3 = () => {
     enterMode(mode);
     currentScreen = mode;
     mount(mode);
+  } else if (mode === "random-config") {
+    currentScreen = "random-config";
+    mount("random-config");
   } else if (mode === "system") {
     currentScreen = "system";
     mount("system");
