@@ -6339,6 +6339,7 @@ var en = {
   resumeGame: "Resume game",
   resetChallenge: "Reset challenge",
   freshChallenge: "Fresh challenge",
+  changeSettings: "Change settings",
   exitToMainMenu: "Exit to main menu",
   left: "Left",
   right: "Right",
@@ -6385,6 +6386,7 @@ var fi = {
   resumeGame: "Jatka peli\xE4",
   resetChallenge: "Aloita alusta",
   freshChallenge: "Uusi haaste",
+  changeSettings: "Muuta asetuksia",
   exitToMainMenu: "P\xE4\xE4valikkoon",
   left: "Vasen",
   right: "Oikea",
@@ -7520,7 +7522,7 @@ var autoRule = (workspace, rules79) => {
   if (!first) return;
   if (isReverseId0(first)) workspace.applyEvent(reverse02(first));
 };
-var createPausePopup = (onResume, onExit, onReset, resetDisabled, onFresh) => {
+var createPausePopup = (onResume, onExit, onReset, resetDisabled, onFresh, onSettings) => {
   const shroud = document.createElement("div");
   shroud.setAttribute("class", "shroud pause-shroud");
   shroud.onclick = (ev) => {
@@ -7558,6 +7560,9 @@ var createPausePopup = (onResume, onExit, onReset, resetDisabled, onFresh) => {
     buttons.appendChild(
       createButton(t("freshChallenge"), false, onFresh, kbdHint("n"))
     );
+  }
+  if (onSettings) {
+    buttons.appendChild(createButton(t("changeSettings"), false, onSettings));
   }
   buttons.appendChild(
     createButton(t("exitToMainMenu"), false, onExit, getActionHint("exit"))
@@ -8050,6 +8055,7 @@ var mountCampaign = (container, navigate2, session2) => {
   }
   rerender();
   const handleKey = (ev) => {
+    if (ev.ctrlKey || ev.metaKey || ev.altKey) return;
     markKeyboardInput();
     console.log(ev.code);
     if (ev.code === "KeyP" && ws.isSolved()) {
@@ -8112,24 +8118,13 @@ var createControls2 = (getWorkspace, rerender, onMenu) => {
   );
   return panel;
 };
-var createCongrats2 = (getWorkspace, onNew, rerender) => {
-  const ws = getWorkspace();
+var createCongrats2 = (onNew, onSettings) => {
   const hurray = document.createElement("div");
   hurray.setAttribute("class", "hurray");
   hurray.innerHTML = t("congratulations");
   const buttons = document.createElement("div");
   buttons.setAttribute("class", "congrabuttons");
-  buttons.appendChild(
-    createButton(
-      t("playAgain"),
-      false,
-      () => {
-        ws.applyEvent(reset());
-        rerender();
-      },
-      getActionHint("reset")
-    )
-  );
+  buttons.appendChild(createButton(t("changeSettings"), false, onSettings));
   buttons.appendChild(
     createButton(t("newChallenge"), false, onNew, dualHint("n", "axiom"))
   );
@@ -8156,6 +8151,10 @@ var mountRandom = (container, navigate2, session2, onNewChallenge) => {
     pausePopupOpen = false;
     navigate2("menu");
   };
+  const openSettings = () => {
+    pausePopupOpen = false;
+    navigate2("random-config");
+  };
   const resetFromPopup = () => {
     const ws = getWorkspace();
     if (activePath(ws.currentConjecture()).length > 0) {
@@ -8173,7 +8172,7 @@ var mountRandom = (container, navigate2, session2, onNewChallenge) => {
     const ws = getWorkspace();
     container.innerHTML = "";
     const controlsEl = createControls2(getWorkspace, rerender, togglePausePopup);
-    const makeCongrats = () => createCongrats2(getWorkspace, onNew, rerender);
+    const makeCongrats = () => createCongrats2(onNew, openSettings);
     container.appendChild(createBench(ws, makeCongrats, controlsEl, rerender));
     if (pausePopupOpen) {
       const canReset = activePath(ws.currentConjecture()).length > 0;
@@ -8184,7 +8183,8 @@ var mountRandom = (container, navigate2, session2, onNewChallenge) => {
           exitToMenu,
           resetFromPopup,
           !resetEnabled,
-          freshFromPopup
+          freshFromPopup,
+          openSettings
         )
       );
     }
@@ -8229,6 +8229,7 @@ var mountRandom = (container, navigate2, session2, onNewChallenge) => {
   };
   rerender();
   const handleKey = (ev) => {
+    if (ev.ctrlKey || ev.metaKey || ev.altKey) return;
     markKeyboardInput();
     if (ev.code === "KeyN") {
       onNew();
@@ -8345,6 +8346,43 @@ var defaultRandomConfig = () => ({
 var serializeConfig = (config) => config;
 
 // src/web/random-config.ts
+var isRecord = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
+var pickNumber = (source, key, fallback) => {
+  const value = source[key];
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+};
+var pickWeights = (source, defaults) => {
+  if (!isRecord(source)) return defaults;
+  const result = { ...defaults };
+  for (const [key, fallback] of entries(defaults)) {
+    result[key] = pickNumber(source, key, fallback);
+  }
+  return result;
+};
+var parseConfigFromParams = (params) => {
+  const defaults = defaultRandomConfig();
+  const raw2 = params.get("config");
+  if (raw2 === null || raw2 === "") return defaults;
+  let parsed;
+  try {
+    parsed = JSON.parse(raw2);
+  } catch {
+    return defaults;
+  }
+  if (!isRecord(parsed)) return defaults;
+  return {
+    size: pickNumber(parsed, "size", defaults.size),
+    targetNonStructural: pickNumber(
+      parsed,
+      "targetNonStructural",
+      defaults.targetNonStructural
+    ),
+    bypassPercent: pickNumber(parsed, "bypassPercent", defaults.bypassPercent),
+    connectives: pickWeights(parsed["connectives"], defaults.connectives),
+    symbols: pickWeights(parsed["symbols"], defaults.symbols)
+  };
+};
+var serializeConfigForUrl = (config) => JSON.stringify(config);
 var TARGET_COUNT = 10;
 var entryDistance = (nonStructural, config) => {
   const diff = nonStructural - config.targetNonStructural;
@@ -8467,7 +8505,14 @@ var createSection = (title) => {
   return section;
 };
 var mountRandomConfig = (container, navigate2, onStart) => {
-  const config = defaultRandomConfig();
+  const config = parseConfigFromParams(
+    new URLSearchParams(window.location.search)
+  );
+  const syncUrl = () => {
+    const params = new URLSearchParams(window.location.search);
+    params.set("config", serializeConfigForUrl(config));
+    history.replaceState(history.state, "", `?${params.toString()}`);
+  };
   let entries2 = [];
   let totalFormulasTried = 0;
   let totalTautologiesFound = 0;
@@ -8537,6 +8582,7 @@ var mountRandomConfig = (container, navigate2, onStart) => {
     handleResult
   );
   const restartSearch = () => {
+    syncUrl();
     entries2 = [];
     totalFormulasTried = 0;
     totalTautologiesFound = 0;
@@ -9337,11 +9383,19 @@ var navigate = (screen) => {
     enterMode(screen);
   }
   currentScreen = screen;
-  history.pushState(
-    { screen },
-    "",
-    screen === "menu" ? window.location.pathname : `?mode=${screen}`
-  );
+  let url;
+  if (screen === "menu") {
+    url = window.location.pathname;
+  } else {
+    const nextParams = new URLSearchParams();
+    nextParams.set("mode", screen);
+    if (screen === "random" || screen === "random-config") {
+      const existing = new URLSearchParams(window.location.search).get("config");
+      if (existing !== null) nextParams.set("config", existing);
+    }
+    url = `?${nextParams.toString()}`;
+  }
+  history.pushState({ screen }, "", url);
   mount(screen);
 };
 var mount = (screen) => {
@@ -9366,7 +9420,14 @@ var mount = (screen) => {
     case "random-config":
       current = mountRandomConfig(body, navigate, (config) => {
         pool.configure(config);
-        navigate("random");
+        current.cleanup();
+        currentScreen = "random";
+        enterMode("random");
+        const params = new URLSearchParams();
+        params.set("mode", "random");
+        params.set("config", serializeConfigForUrl(config));
+        history.pushState({ screen: "random" }, "", `?${params.toString()}`);
+        mount("random");
       });
       break;
   }
@@ -9395,6 +9456,9 @@ var init3 = () => {
   const params = new URLSearchParams(window.location.search);
   const mode = params.get("mode");
   if (mode === "campaign" || mode === "random") {
+    if (mode === "random") {
+      pool.configure(parseConfigFromParams(params));
+    }
     enterMode(mode);
     currentScreen = mode;
     mount(mode);
@@ -9412,6 +9476,7 @@ var init3 = () => {
     currentScreen = "menu";
     mount("menu");
   }
+  document.documentElement.classList.remove("loading");
 };
 document.addEventListener("DOMContentLoaded", init3);
 window.addEventListener("popstate", (event) => {
