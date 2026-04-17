@@ -2406,7 +2406,7 @@
       if (isFinite(config.targetNonStructural) && nonStructuralCount !== config.targetNonStructural)
         continue;
       return {
-        challenge: { rules, goal: proof.result },
+        challenge: { rules, goal: proof.result, solution: proof },
         nonStructuralCount,
         bypassed: false,
         formulasTried,

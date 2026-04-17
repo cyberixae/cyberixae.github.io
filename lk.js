@@ -2152,6 +2152,42 @@ var _side = {
   ...left,
   ...right
 };
+var ruleCategory = {
+  a1: "axiom",
+  a2: "axiom",
+  a3: "axiom",
+  f: "axiom",
+  i: "axiom",
+  v: "axiom",
+  scl: "structural",
+  swl: "structural",
+  sRotLB: "structural",
+  sRotLF: "structural",
+  sxl: "structural",
+  scr: "structural",
+  swr: "structural",
+  sRotRB: "structural",
+  sRotRF: "structural",
+  sxr: "structural",
+  nl: "logical",
+  cl: "logical",
+  cl1: "logical",
+  cl2: "logical",
+  dl: "logical",
+  il: "logical",
+  nr: "logical",
+  dr: "logical",
+  dr1: "logical",
+  dr2: "logical",
+  cr: "logical",
+  ir: "logical",
+  cut: "meta",
+  fcut: "meta",
+  mp: "meta",
+  fcr: "meta",
+  fdl: "meta",
+  fil: "meta"
+};
 
 // src/utils/string.ts
 var split = (s, c) => ensureNonEmpty(s.split(c), s);
@@ -3362,6 +3398,7 @@ var Session = class {
 };
 
 // src/model/challenge.ts
+var isChallenge = (c) => "solution" in c;
 var challenge = (c) => c;
 var isTutorial = (c) => "pinned" in c && Array.isArray(c.pinned);
 var tutorial = (t2) => t2;
@@ -3406,6 +3443,10 @@ var Workspace = class {
   }
   availableRules() {
     return get(this.theorems, this.selected).rules;
+  }
+  currentSolution() {
+    const conf = get(this.theorems, this.selected);
+    return isChallenge(conf) ? conf.solution : void 0;
   }
   pinnedRules() {
     const conf = get(this.theorems, this.selected);
@@ -6332,15 +6373,15 @@ var en = {
   title: "LK",
   random: "Random",
   campaign: "Campaign",
-  menu: "menu",
-  undo: "undo",
-  level: "level",
+  menu: "Menu",
+  undo: "Undo",
+  level: "Level",
   paused: "Paused",
-  resumeGame: "Resume game",
-  resetChallenge: "Reset challenge",
-  freshChallenge: "Fresh challenge",
-  changeSettings: "Change settings",
-  exitToMainMenu: "Exit to main menu",
+  resumeGame: "Resume Game",
+  resetChallenge: "Reset Challenge",
+  freshChallenge: "Fresh Challenge",
+  changeSettings: "Change Settings",
+  exitToMainMenu: "Exit to Main Menu",
   left: "Left",
   right: "Right",
   drop: "Drop",
@@ -6369,19 +6410,21 @@ var en = {
   conjunctionWeight: "Conjunction",
   disjunctionWeight: "Disjunction",
   filter: "Parameters",
-  bypassPercent: "Unsolvability (%)",
+  bypassPercent: "Chaoticity (\u{1F480}%)",
   targetNonStructural: "Solution Size",
   start: "Start",
   back: "Back",
-  preview: "Preview"
+  preview: "Preview",
+  score: "Score",
+  par: "Par"
 };
 var fi = {
   title: "LK",
   random: "Satunnainen",
   campaign: "Kampanja",
-  menu: "valikko",
-  undo: "kumoa",
-  level: "taso",
+  menu: "Valikko",
+  undo: "Kumoa",
+  level: "Taso",
   paused: "Pys\xE4ytetty",
   resumeGame: "Jatka peli\xE4",
   resetChallenge: "Aloita alusta",
@@ -6416,11 +6459,13 @@ var fi = {
   conjunctionWeight: "Konjunktio",
   disjunctionWeight: "Disjunktio",
   filter: "Parametrit",
-  bypassPercent: "Ratkeamattomuus (%)",
+  bypassPercent: "Kaoottisuus (\u{1F480}%)",
   targetNonStructural: "Ratkaisun koko",
   start: "Aloita",
   back: "Takaisin",
-  preview: "Esikatselu"
+  preview: "Esikatselu",
+  score: "Pisteet",
+  par: "Par"
 };
 var messages = { en, fi };
 var detectLocale = () => {
@@ -7162,6 +7207,33 @@ var createPanel = (className, ruleRecord, ls, rules79, pinned82, hideRules, solv
   });
   return panel;
 };
+var countRuleUsage = (d) => {
+  const counts = {
+    axiom: 0,
+    structural: 0,
+    logical: 0,
+    meta: 0
+  };
+  const walk = (node) => {
+    if (node.kind === "premise") return;
+    counts[ruleCategory[node.rule]] += 1;
+    node.deps.forEach(walk);
+  };
+  walk(d);
+  return counts;
+};
+var formatHudCounts = (counts) => {
+  const order = ["axiom", "structural", "logical", "meta"];
+  let lastNonZero = -1;
+  order.forEach((cat, i90) => {
+    if (counts[cat] > 0) lastNonZero = i90;
+  });
+  const total = order.reduce((sum, cat) => sum + counts[cat], 0);
+  if (lastNonZero === -1) return "<b>0</b>";
+  const segments = order.slice(0, lastNonZero + 1).map((cat) => counts[cat]);
+  if (segments.length === 1) return `<b>${total}</b>`;
+  return `<b>${total}</b> <span class="breakdown">${segments.join("+")}</span>`;
+};
 var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
   const ls = workspace.applicableRules();
   const rules79 = workspace.availableRules();
@@ -7203,9 +7275,10 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
   const pinned82 = workspace.pinnedRules();
   const panel = document.createElement("div");
   const hasPinned = !solved && pinned82.length > 0;
+  const hasPinnedMany = !solved && pinned82.length > 2;
   panel.setAttribute(
     "class",
-    "bench" + (hideRules ? " rules-hidden" : "") + (hasPinned ? " has-pinned" : "")
+    "bench" + (hideRules ? " rules-hidden" : "") + (hasPinned ? " has-pinned" : "") + (hasPinnedMany ? " has-pinned-many" : "")
   );
   panel.appendChild(
     createPanel(
@@ -7251,6 +7324,18 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
       gazeHints
     )
   );
+  const hud = document.createElement("div");
+  hud.setAttribute("class", "hud" + (solved ? " solved" : ""));
+  const hudCounts = formatHudCounts(countRuleUsage(focus2.derivation));
+  hud.innerHTML = solved ? t("score") + " " + hudCounts : hudCounts;
+  if (solved) {
+    const solution89 = workspace.currentSolution();
+    const par = document.createElement("div");
+    par.setAttribute("class", "par");
+    par.innerHTML = solution89 ? t("par") + " " + formatHudCounts(countRuleUsage(solution89)) : t("par") + " \u{1F480}";
+    hud.appendChild(par);
+  }
+  panel.appendChild(hud);
   const rulesSheet = document.createElement("div");
   const sheetMode = isGazeModeActive() ? "gaze" : "hot";
   rulesSheet.setAttribute("class", "rules-sheet " + sheetMode);
@@ -9229,7 +9314,7 @@ function* randomConfiguredStep(config, getTimeout = () => 5e3) {
     if (isFinite(config.targetNonStructural) && nonStructuralCount !== config.targetNonStructural)
       continue;
     return {
-      challenge: { rules: rules79, goal: proof.result },
+      challenge: { rules: rules79, goal: proof.result, solution: proof },
       nonStructuralCount,
       bypassed: false,
       formulasTried,
