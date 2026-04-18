@@ -7135,7 +7135,7 @@ var markKeyboardInput = () => {
     document.documentElement.classList.add("keyboard-detected");
   }
 };
-if (typeof window !== "undefined" && !window.matchMedia("(max-width: 600px)").matches) {
+if (typeof window !== "undefined" && window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
   document.documentElement.classList.add("keyboard-detected");
 }
 var markGamepadInput = () => setGamepadActive(true);
@@ -7218,24 +7218,36 @@ var createButton = (label, disabled, onClick, hint, hintVariant = "base") => {
   if (!disabled && onClick) el.onclick = onClick;
   if (hint !== void 0) {
     el.appendChild(keyHintBadge(hint, hintVariant));
-    const labelSpan = document.createElement("span");
-    labelSpan.setAttribute("class", "button-label");
-    labelSpan.textContent = " " + label;
-    el.appendChild(labelSpan);
+  }
+  if (typeof label === "string") {
+    if (hint !== void 0) {
+      const labelSpan = document.createElement("span");
+      labelSpan.setAttribute("class", "button-label");
+      labelSpan.textContent = " " + label;
+      el.appendChild(labelSpan);
+    } else {
+      el.innerHTML = label;
+    }
   } else {
-    el.innerHTML = label;
+    const longSpan = document.createElement("span");
+    longSpan.setAttribute("class", "button-label long");
+    longSpan.textContent = (hint !== void 0 ? " " : "") + label.long;
+    el.appendChild(longSpan);
+    const shortSpan = document.createElement("span");
+    shortSpan.setAttribute("class", "button-label short");
+    shortSpan.textContent = (hint !== void 0 ? " " : "") + label.short;
+    el.appendChild(shortSpan);
   }
   return el;
 };
 var rulesVisible = false;
 var setDefaultRulesVisible = (visible) => {
   rulesVisible = visible;
-  treeZoom = BASE_ZOOM;
+  treeZoom = 1;
   autoZoomedDerivation = null;
 };
 var isCompact = () => window.matchMedia("(max-width: 600px)").matches;
-var BASE_ZOOM = isCompact() ? 0.6 : 1;
-var treeZoom = BASE_ZOOM;
+var treeZoom = 1;
 var ZOOM_MIN = 0.4;
 var ZOOM_MAX = 2;
 var ZOOM_STEP = 0.2;
@@ -7244,12 +7256,12 @@ var zoomTreeOut = () => {
   treeZoom = Math.max(ZOOM_MIN, treeZoom - ZOOM_STEP);
 };
 var zoomTreeReset = () => {
-  treeZoom = BASE_ZOOM;
+  treeZoom = 1;
 };
 var zoomTreeIn = () => {
   treeZoom = Math.min(ZOOM_MAX, treeZoom + ZOOM_STEP);
 };
-var AUTO_ZOOM_MAX = isCompact() ? 0.6 : 1.2;
+var AUTO_ZOOM_MAX = 1.2;
 var AUTO_ZOOM_PAD = 0.9;
 var CHECK_STEP_MS = 120;
 var CHECK_HOLD_MS = 260;
@@ -7422,24 +7434,30 @@ var gazeHintBadgeForKind = (key, hints) => {
   }
   return null;
 };
-var createRuleCard = (key, rule, disabled, pinned82, hideRules, onApply, gazeHints, panelClass) => {
+var createRuleCard = (key, rule, disabled, pinned82, hideRules, onApply, gazeHints, panelClass, interactive) => {
   const isPinned = pinned82.includes(key);
   const pre = document.createElement("pre");
   pre.setAttribute(
     "class",
-    "rule button" + (disabled ? " disabled" : "") + (isPinned ? " pinned" : "")
+    "rule " + (interactive ? "button" : "hint") + (disabled ? " disabled" : "") + (isPinned ? " pinned" : "")
   );
   pre.dataset["rule"] = key;
   const group = key in leftStructural || key in rightStructural ? "structural" : key in leftLogical || key in rightLogical ? "logical" : "center";
   pre.dataset["group"] = group;
-  if (!disabled) pre.onclick = () => onApply(key);
-  const compact = window.matchMedia("(max-width: 600px)").matches;
-  pre.innerHTML = fromDerivation(
+  if (interactive && !disabled) pre.onclick = () => onApply(key);
+  const withLabel = fromDerivation(
     rule.example,
     t("sideLeft"),
     t("sideRight"),
-    !compact
+    true
   );
+  const withoutLabel = fromDerivation(
+    rule.example,
+    t("sideLeft"),
+    t("sideRight"),
+    false
+  );
+  pre.innerHTML = '<span class="rule-label long">' + withLabel + '</span><span class="rule-label short">' + withoutLabel + "</span>";
   const action = ruleAction[key];
   const hint = action !== void 0 ? getActionHint(action) : void 0;
   const ruleHintVariant = panelClass === "main" ? "base" : "hot";
@@ -7463,6 +7481,7 @@ var createPanel = (className, ruleRecord, ls, rules79, pinned82, hideRules, solv
   entries(ruleRecord).forEach(([key, rule]) => {
     if (!rules79.includes(key)) return;
     const disabled = solved || !ls.includes(key);
+    const interactive = !(pinned82.includes(key) && hideRules);
     panel.appendChild(
       createRuleCard(
         key,
@@ -7472,7 +7491,8 @@ var createPanel = (className, ruleRecord, ls, rules79, pinned82, hideRules, solv
         hideRules,
         onApply,
         gazeHints,
-        className
+        className,
+        interactive
       )
     );
   });
@@ -7616,6 +7636,7 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
     entries(center).forEach(([key, rule]) => {
       if (!rules79.includes(key)) return;
       const disabled = solved || !ls.includes(key);
+      const interactive = !(pinned82.includes(key) && hideRules);
       const card = createRuleCard(
         key,
         rule,
@@ -7624,7 +7645,8 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
         hideRules,
         applyCenter,
         gazeHints,
-        "main"
+        "main",
+        interactive
       );
       sheetCenter.appendChild(card);
     });
@@ -7637,6 +7659,7 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
   entries(left).forEach(([key, rule]) => {
     if (!rules79.includes(key)) return;
     const disabled = inactive || !ls.includes(key);
+    const interactive = !(pinned82.includes(key) && hideRules);
     const card = createRuleCard(
       key,
       rule,
@@ -7645,7 +7668,8 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
       hideRules,
       apply2,
       gazeHints,
-      "left"
+      "left",
+      interactive
     );
     leftCol.appendChild(card);
   });
@@ -7654,6 +7678,7 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
   entries(right).forEach(([key, rule]) => {
     if (!rules79.includes(key)) return;
     const disabled = inactive || !ls.includes(key);
+    const interactive = !(pinned82.includes(key) && hideRules);
     const card = createRuleCard(
       key,
       rule,
@@ -7662,7 +7687,8 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
       hideRules,
       apply2,
       gazeHints,
-      "right"
+      "right",
+      interactive
     );
     rightCol.appendChild(card);
   });
@@ -7864,7 +7890,8 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
         false,
         onApplyPinned,
         gazeHints,
-        panelClass
+        panelClass,
+        !hideRules
       );
       pinnedStrip.appendChild(card);
     }
@@ -8254,12 +8281,11 @@ var createCongrats = (ws, selectLevel, rerender) => {
   const hurray = document.createElement("div");
   hurray.setAttribute("class", "hurray");
   hurray.innerHTML = t("congratulations");
-  const compact = window.matchMedia("(max-width: 600px)").matches;
   const buttons = document.createElement("div");
   buttons.setAttribute("class", "congrabuttons");
   buttons.appendChild(
     createButton(
-      t(compact ? "prevLevelShort" : "prevLevel"),
+      { long: t("prevLevel"), short: t("prevLevelShort") },
       false,
       () => selectLevel(ws.previousConjectureId()),
       dualHint("p", "undo")
@@ -8267,7 +8293,7 @@ var createCongrats = (ws, selectLevel, rerender) => {
   );
   buttons.appendChild(
     createButton(
-      t(compact ? "playAgainShort" : "playAgain"),
+      { long: t("playAgain"), short: t("playAgainShort") },
       false,
       () => {
         ws.applyEvent(reset());
@@ -8278,7 +8304,7 @@ var createCongrats = (ws, selectLevel, rerender) => {
   );
   buttons.appendChild(
     createButton(
-      t(compact ? "nextLevelShort" : "nextLevel"),
+      { long: t("nextLevel"), short: t("nextLevelShort") },
       false,
       () => selectLevel(ws.nextConjectureId()),
       dualHint("\u2423", "axiom")
