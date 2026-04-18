@@ -6416,7 +6416,8 @@ var en = {
   back: "Back",
   preview: "Preview",
   score: "Score",
-  par: "Par"
+  par: "Par",
+  statsTemplate: "Generated {formulas} formulas ({rate}/s), {tautologies} tautologies, {solved} solved. Updated {sinceUpdate}s ago."
 };
 var fi = {
   title: "LK",
@@ -6465,23 +6466,290 @@ var fi = {
   back: "Takaisin",
   preview: "Esikatselu",
   score: "Pisteet",
-  par: "Par"
+  par: "Par",
+  statsTemplate: "Tuotettu {formulas} kaavaa ({rate}/s), {tautologies} tautologiaa, {solved} ratkaisua. P\xE4ivitetty {sinceUpdate}s sitten."
 };
-var messages = { en, fi };
+var es = {
+  title: "LK",
+  random: "Aleatorio",
+  campaign: "Campa\xF1a",
+  menu: "Men\xFA",
+  undo: "Deshacer",
+  level: "Nivel",
+  paused: "Pausado",
+  resumeGame: "Reanudar juego",
+  resetChallenge: "Reiniciar desaf\xEDo",
+  freshChallenge: "Nuevo desaf\xEDo",
+  changeSettings: "Cambiar ajustes",
+  exitToMainMenu: "Salir al men\xFA principal",
+  left: "Izquierda",
+  right: "Derecha",
+  drop: "Soltar",
+  destruct: "Destruir",
+  rules: "Reglas",
+  axiom: "Axioma",
+  playAgain: "Jugar de nuevo",
+  playAgainShort: "De nuevo",
+  newChallenge: "Nuevo desaf\xEDo",
+  prevLevel: "Nivel anterior",
+  prevLevelShort: "Anterior",
+  nextLevel: "Siguiente nivel",
+  nextLevelShort: "Siguiente",
+  congratulations: "\u{1F389} \xA1Felicidades! \u{1F389}",
+  systems: "Sistemas",
+  backToSystems: "\u2190 Sistemas",
+  sideLeft: "I",
+  sideRight: "D",
+  randomConfig: "Aleatorio",
+  formulaShape: "Ajustes",
+  size: "Longitud de f\xF3rmula",
+  connectives: "Conectivos",
+  symbols: "S\xEDmbolos",
+  negationWeight: "Negaci\xF3n",
+  implicationWeight: "Implicaci\xF3n",
+  conjunctionWeight: "Conjunci\xF3n",
+  disjunctionWeight: "Disyunci\xF3n",
+  filter: "Par\xE1metros",
+  bypassPercent: "Caoticidad (\u{1F480}%)",
+  targetNonStructural: "Tama\xF1o de soluci\xF3n",
+  start: "Comenzar",
+  back: "Atr\xE1s",
+  preview: "Vista previa",
+  score: "Puntuaci\xF3n",
+  par: "Par",
+  statsTemplate: "Generadas {formulas} f\xF3rmulas ({rate}/s), {tautologies} tautolog\xEDas, {solved} resueltas. Actualizado hace {sinceUpdate}s."
+};
+var cs = {
+  title: "LK",
+  random: "N\xE1hodn\xE9",
+  campaign: "Kampa\u0148",
+  menu: "Menu",
+  undo: "Zp\u011Bt",
+  level: "\xDArove\u0148",
+  paused: "Pozastaveno",
+  resumeGame: "Pokra\u010Dovat",
+  resetChallenge: "Restartovat v\xFDzvu",
+  freshChallenge: "Nov\xE1 v\xFDzva",
+  changeSettings: "Zm\u011Bnit nastaven\xED",
+  exitToMainMenu: "Zp\u011Bt do hlavn\xEDho menu",
+  left: "Vlevo",
+  right: "Vpravo",
+  drop: "Pustit",
+  destruct: "Zni\u010Dit",
+  rules: "Pravidla",
+  axiom: "Axiom",
+  playAgain: "Hr\xE1t znovu",
+  playAgainShort: "Znovu",
+  newChallenge: "Nov\xE1 v\xFDzva",
+  prevLevel: "P\u0159edchoz\xED \xFArove\u0148",
+  prevLevelShort: "P\u0159edchoz\xED",
+  nextLevel: "Dal\u0161\xED \xFArove\u0148",
+  nextLevelShort: "Dal\u0161\xED",
+  congratulations: "\u{1F389} Gratulujeme! \u{1F389}",
+  systems: "Syst\xE9my",
+  backToSystems: "\u2190 Syst\xE9my",
+  sideLeft: "L",
+  sideRight: "P",
+  randomConfig: "N\xE1hodn\xE9",
+  formulaShape: "Nastaven\xED",
+  size: "D\xE9lka formule",
+  connectives: "Spojky",
+  symbols: "Symboly",
+  negationWeight: "Negace",
+  implicationWeight: "Implikace",
+  conjunctionWeight: "Konjunkce",
+  disjunctionWeight: "Disjunkce",
+  filter: "Parametry",
+  bypassPercent: "Chaos (\u{1F480}%)",
+  targetNonStructural: "Velikost \u0159e\u0161en\xED",
+  start: "Start",
+  back: "Zp\u011Bt",
+  preview: "N\xE1hled",
+  score: "Sk\xF3re",
+  par: "Par",
+  statsTemplate: "Vygenerov\xE1no {formulas} formul\xED ({rate}/s), {tautologies} tautologi\xED, {solved} vy\u0159e\u0161eno. Aktualizov\xE1no p\u0159ed {sinceUpdate}s."
+};
+var pl = {
+  title: "LK",
+  random: "Losowe",
+  campaign: "Kampania",
+  menu: "Menu",
+  undo: "Cofnij",
+  level: "Poziom",
+  paused: "Pauza",
+  resumeGame: "Wzn\xF3w gr\u0119",
+  resetChallenge: "Zresetuj wyzwanie",
+  freshChallenge: "Nowe wyzwanie",
+  changeSettings: "Zmie\u0144 ustawienia",
+  exitToMainMenu: "Wyjd\u017A do menu g\u0142\xF3wnego",
+  left: "Lewo",
+  right: "Prawo",
+  drop: "Upu\u015B\u0107",
+  destruct: "Zniszcz",
+  rules: "Zasady",
+  axiom: "Aksjomat",
+  playAgain: "Zagraj ponownie",
+  playAgainShort: "Ponownie",
+  newChallenge: "Nowe wyzwanie",
+  prevLevel: "Poprzedni poziom",
+  prevLevelShort: "Poprz.",
+  nextLevel: "Nast\u0119pny poziom",
+  nextLevelShort: "Nast.",
+  congratulations: "\u{1F389} Gratulacje! \u{1F389}",
+  systems: "Systemy",
+  backToSystems: "\u2190 Systemy",
+  sideLeft: "L",
+  sideRight: "P",
+  randomConfig: "Losowe",
+  formulaShape: "Ustawienia",
+  size: "D\u0142ugo\u015B\u0107 formu\u0142y",
+  connectives: "Sp\xF3jniki",
+  symbols: "Symbole",
+  negationWeight: "Negacja",
+  implicationWeight: "Implikacja",
+  conjunctionWeight: "Koniunkcja",
+  disjunctionWeight: "Alternatywa",
+  filter: "Parametry",
+  bypassPercent: "Chaos (\u{1F480}%)",
+  targetNonStructural: "Rozmiar rozwi\u0105zania",
+  start: "Start",
+  back: "Powr\xF3t",
+  preview: "Podgl\u0105d",
+  score: "Wynik",
+  par: "Par",
+  statsTemplate: "Wygenerowano {formulas} formu\u0142 ({rate}/s), {tautologies} tautologii, {solved} rozwi\u0105zanych. Zaktualizowano {sinceUpdate}s temu."
+};
+var messages = {
+  cs,
+  en,
+  es,
+  fi,
+  pl
+};
 var detectLocale = () => {
   const lang = navigator.language.split("-")[0] ?? "en";
   return lang in messages ? lang : "en";
 };
-var locale = detectLocale();
-var t = (key) => (messages[locale] ?? en)[key] ?? en[key];
-var statsFormatters = {
-  en: (p) => `Generated ${p.formulas} formulas (${p.rate}/s), ${p.tautologies} tautologies, ${p.solved} solved. Updated ${p.sinceUpdate}s ago.`,
-  fi: (p) => `Tuotettu ${p.formulas} kaavaa (${p.rate}/s), ${p.tautologies} tautologiaa, ${p.solved} ratkaisua. P\xE4ivitetty ${p.sinceUpdate}s sitten.`
+var systemLocale = detectLocale();
+var locale = systemLocale;
+var setLocale = (raw2) => {
+  if (raw2 === null || raw2 === "") return;
+  const normalized = raw2.replace(/_/g, "-").split("-")[0]?.toLowerCase();
+  if (normalized !== void 0 && normalized in messages) locale = normalized;
 };
+var getLocale = () => locale;
+var getSystemLocale = () => systemLocale;
+var availableLocales = Object.keys(messages);
+var endonyms = {
+  cs: "\u010Ce\u0161tina",
+  en: "English",
+  es: "Espa\xF1ol",
+  fi: "Suomi",
+  pl: "Polski"
+};
+var endonymOf = (code) => endonyms[code] ?? code;
+var rerenderHook = () => {
+};
+var onLocaleChange = (hook) => {
+  rerenderHook = hook;
+};
+var changeLanguage = (raw2) => {
+  setLocale(raw2);
+  const params = new URLSearchParams(window.location.search);
+  params.set("lang", locale);
+  history.replaceState(history.state, "", `?${params.toString()}`);
+  rerenderHook();
+};
+var clearLangOverride = () => {
+  locale = systemLocale;
+  const params = new URLSearchParams(window.location.search);
+  params.delete("lang");
+  const qs = params.toString();
+  history.replaceState(
+    history.state,
+    "",
+    qs ? `?${qs}` : window.location.pathname
+  );
+  rerenderHook();
+};
+var t = (key) => (messages[locale] ?? en)[key] ?? en[key];
 var formatStats = (p) => {
-  const fmt = statsFormatters[locale] ?? statsFormatters["en"];
-  if (!fmt) return "";
-  return fmt(p);
+  const values = {
+    formulas: p.formulas,
+    rate: p.rate,
+    tautologies: p.tautologies,
+    solved: p.solved,
+    sinceUpdate: p.sinceUpdate
+  };
+  return t("statsTemplate").replace(
+    /\{(\w+)\}/g,
+    (_, key) => String(values[key] ?? `{${key}}`)
+  );
+};
+
+// src/web/lang-switcher.ts
+var createLangSwitcher = () => {
+  const wrap = document.createElement("div");
+  wrap.className = "lang-switcher";
+  const current2 = getLocale();
+  const button = document.createElement("div");
+  button.className = "lang-switcher-button";
+  const label = document.createElement("span");
+  label.textContent = `\u{1F310} ${endonymOf(current2)}`;
+  const chevron = document.createElement("span");
+  chevron.textContent = "\u25BE";
+  button.appendChild(label);
+  button.appendChild(chevron);
+  const menu = document.createElement("div");
+  menu.className = "lang-switcher-menu";
+  menu.hidden = true;
+  const systemCode = getSystemLocale();
+  const urlHasLang = new URLSearchParams(window.location.search).has("lang");
+  const systemItem = document.createElement("div");
+  systemItem.className = "lang-switcher-item";
+  if (!urlHasLang) systemItem.classList.add("active");
+  systemItem.textContent = endonymOf(systemCode);
+  systemItem.onclick = (ev) => {
+    ev.stopPropagation();
+    clearLangOverride();
+  };
+  menu.appendChild(systemItem);
+  const separator = document.createElement("hr");
+  menu.appendChild(separator);
+  const sortedLocales = [...availableLocales].sort(
+    (a91, b) => endonymOf(a91).localeCompare(endonymOf(b))
+  );
+  for (const code of sortedLocales) {
+    const item = document.createElement("div");
+    item.className = "lang-switcher-item";
+    if (urlHasLang && code === current2) item.classList.add("active");
+    item.textContent = endonymOf(code);
+    item.onclick = (ev) => {
+      ev.stopPropagation();
+      changeLanguage(code);
+    };
+    menu.appendChild(item);
+  }
+  button.onclick = (ev) => {
+    ev.stopPropagation();
+    if (menu.hidden) {
+      menu.hidden = false;
+      setTimeout(() => {
+        document.addEventListener(
+          "click",
+          () => {
+            menu.hidden = true;
+          },
+          { once: true }
+        );
+      }, 0);
+    } else {
+      menu.hidden = true;
+    }
+  };
+  wrap.appendChild(button);
+  wrap.appendChild(menu);
+  return wrap;
 };
 
 // src/web/menu.ts
@@ -6490,27 +6758,30 @@ var modeLabel = {
   campaign: () => t("campaign")
 };
 var mountMenu = (container, navigate2) => {
-  const panel = document.createElement("div");
-  panel.setAttribute("class", "menu");
-  const title = document.createElement("div");
-  title.setAttribute("class", "menu-title");
-  title.innerHTML = t("title");
-  panel.appendChild(title);
-  const modes = document.createElement("div");
-  modes.setAttribute("class", "menu-modes");
-  for (const mode of gameModes) {
-    const btn = document.createElement("div");
-    btn.setAttribute("class", "button menu-mode");
-    btn.innerHTML = modeLabel[mode]();
-    btn.onclick = () => navigate2(mode === "random" ? "random-config" : mode);
-    modes.appendChild(btn);
-  }
-  panel.appendChild(modes);
-  container.innerHTML = "";
-  container.appendChild(panel);
+  const render = () => {
+    container.innerHTML = "";
+    const panel = document.createElement("div");
+    panel.setAttribute("class", "menu");
+    panel.appendChild(createLangSwitcher());
+    const title = document.createElement("div");
+    title.setAttribute("class", "menu-title");
+    title.innerHTML = t("title");
+    panel.appendChild(title);
+    const modes = document.createElement("div");
+    modes.setAttribute("class", "menu-modes");
+    for (const mode of gameModes) {
+      const btn = document.createElement("div");
+      btn.setAttribute("class", "button menu-mode");
+      btn.innerHTML = modeLabel[mode]();
+      btn.onclick = () => navigate2(mode === "random" ? "random-config" : mode);
+      modes.appendChild(btn);
+    }
+    panel.appendChild(modes);
+    container.appendChild(panel);
+  };
+  render();
   return { cleanup: () => {
-  }, rerender: () => {
-  } };
+  }, rerender: render };
 };
 
 // src/web/tree.ts
@@ -7654,6 +7925,7 @@ var createPausePopup = (onResume, onExit, onReset, resetDisabled, onFresh, onSet
   );
   panel.appendChild(buttons);
   shroud.appendChild(panel);
+  shroud.appendChild(createLangSwitcher());
   return shroud;
 };
 var RULE_APPLY_ACTIONS = /* @__PURE__ */ new Set([
@@ -8687,6 +8959,7 @@ var mountRandomConfig = (container, navigate2, onStart) => {
     container.innerHTML = "";
     const layout = document.createElement("div");
     layout.className = "random-config";
+    layout.appendChild(createLangSwitcher());
     const title = document.createElement("div");
     title.className = "config-title";
     title.textContent = t("randomConfig");
@@ -9468,14 +9741,18 @@ var navigate = (screen) => {
     enterMode(screen);
   }
   currentScreen = screen;
+  const currentParams = new URLSearchParams(window.location.search);
+  const lang = currentParams.get("lang");
+  const nextParams = new URLSearchParams();
+  if (lang !== null) nextParams.set("lang", lang);
   let url;
   if (screen === "menu") {
-    url = window.location.pathname;
+    const qs = nextParams.toString();
+    url = qs ? `?${qs}` : window.location.pathname;
   } else {
-    const nextParams = new URLSearchParams();
     nextParams.set("mode", screen);
     if (screen === "random" || screen === "random-config") {
-      const existing = new URLSearchParams(window.location.search).get("config");
+      const existing = currentParams.get("config");
       if (existing !== null) nextParams.set("config", existing);
     }
     url = `?${nextParams.toString()}`;
@@ -9509,6 +9786,8 @@ var mount = (screen) => {
         currentScreen = "random";
         enterMode("random");
         const params = new URLSearchParams();
+        const lang = new URLSearchParams(window.location.search).get("lang");
+        if (lang !== null) params.set("lang", lang);
         params.set("mode", "random");
         params.set("config", serializeConfigForUrl(config));
         history.pushState({ screen: "random" }, "", `?${params.toString()}`);
@@ -9523,10 +9802,13 @@ var syncScreen = () => {
   current.cleanup();
   if (expected === "menu") setGazeModeActive(false);
   currentScreen = expected;
+  const lang = new URLSearchParams(window.location.search).get("lang");
+  const langSuffix = lang !== null ? `&lang=${encodeURIComponent(lang)}` : "";
+  const menuUrl = lang !== null ? `${window.location.pathname}?lang=${encodeURIComponent(lang)}` : window.location.pathname;
   history.pushState(
     { screen: expected },
     "",
-    expected === "menu" ? window.location.pathname : `?mode=${expected}`
+    expected === "menu" ? menuUrl : `?mode=${expected}${langSuffix}`
   );
   mount(expected);
 };
@@ -9539,6 +9821,8 @@ var cmd = (input) => {
 Object.assign(window, { cmd });
 var init3 = () => {
   const params = new URLSearchParams(window.location.search);
+  setLocale(params.get("lang"));
+  onLocaleChange(() => current.rerender());
   const mode = params.get("mode");
   if (mode === "campaign" || mode === "random") {
     if (mode === "random") {
