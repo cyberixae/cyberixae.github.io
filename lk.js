@@ -7825,10 +7825,9 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
     g.setAttribute("class", ["controls-group", ...cls].join(" "));
     return g;
   };
-  const allPinned = rules79.every((r) => pinned82.includes(r));
   const rulesBtn = createButton(
     t("rules"),
-    allPinned,
+    false,
     () => {
       rulesVisible = !rulesVisible;
       rerender();
@@ -8043,9 +8042,6 @@ var createDispatch = (getWorkspace, rerender, navigate2, onSolved, onLevel, onMe
     return;
   }
   if (action === "toggleRules") {
-    const ws = getWorkspace();
-    const allPinned = ws.availableRules().every((r) => ws.pinnedRules().includes(r));
-    if (allPinned) return;
     rulesVisible = !rulesVisible;
     rerender();
     return;
