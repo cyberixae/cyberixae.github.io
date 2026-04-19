@@ -2380,6 +2380,9 @@ function connective(text, active2) {
 function paren(text) {
   return { text, active: false, connective: false, parenthesis: true };
 }
+function turnstile(text) {
+  return { text, active: false, connective: false, turnstile: true };
+}
 function raw(html2) {
   return { text: html2, active: false, connective: false, raw: true };
 }
@@ -2400,6 +2403,9 @@ function html(segments) {
     }
     if (s.parenthesis === true) {
       return `<span class="parenthesis">${escape(s.text)}</span>`;
+    }
+    if (s.turnstile === true) {
+      return `<span class="turnstile">${escape(s.text)}</span>`;
     }
     return escape(s.text);
   }).join("");
@@ -2485,7 +2491,7 @@ function printBinary(key, activeConn = false, markConnective = false) {
     return [
       of2(s0),
       ...a91(theme),
-      markConnective ? connective(s1, activeConn) : activeConn ? active(s1) : of2(s1),
+      markConnective ? connective(s1, activeConn) : activeConn ? active(s1) : key === "sequent" ? turnstile(s1) : of2(s1),
       ...b(theme),
       of2(s2)
     ];
@@ -6694,11 +6700,15 @@ var createLangSwitcher = () => {
   const current2 = getLocale();
   const button = document.createElement("div");
   button.className = "lang-switcher-button";
-  const label = document.createElement("span");
-  label.textContent = `\u{1F310} ${endonymOf(current2)}`;
+  const globe = document.createElement("span");
+  globe.textContent = "\u{1F310}";
+  const name4 = document.createElement("span");
+  name4.className = "lang-switcher-name";
+  name4.textContent = endonymOf(current2);
   const chevron = document.createElement("span");
   chevron.textContent = "\u25BE";
-  button.appendChild(label);
+  button.appendChild(globe);
+  button.appendChild(name4);
   button.appendChild(chevron);
   const menu = document.createElement("div");
   menu.className = "lang-switcher-menu";
@@ -7246,7 +7256,6 @@ var setDefaultRulesVisible = (visible) => {
   treeZoom = 1;
   autoZoomedDerivation = null;
 };
-var isCompact = () => window.matchMedia("(max-width: 600px)").matches;
 var treeZoom = 1;
 var ZOOM_MIN = 0.4;
 var ZOOM_MAX = 2;
@@ -7263,13 +7272,17 @@ var zoomTreeIn = () => {
 };
 var AUTO_ZOOM_MAX = 1.2;
 var AUTO_ZOOM_PAD = 0.9;
-var CHECK_STEP_MS = 120;
-var CHECK_HOLD_MS = 260;
+var CHECK_TOTAL_MS = 3e3;
+var CHECK_STEP_MIN_MS = 80;
+var CHECK_STEP_MAX_MS = 600;
 var runProofCheckSweep = (tree2) => {
   if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     return;
   }
-  const nodes = Array.from(tree2.querySelectorAll(".tree-node"));
+  const nodes = [
+    tree2,
+    ...Array.from(tree2.querySelectorAll(".tree-node"))
+  ];
   if (nodes.length === 0) return;
   const byDepth = /* @__PURE__ */ new Map();
   let maxDepth = 0;
@@ -7280,15 +7293,36 @@ var runProofCheckSweep = (tree2) => {
     if (list) list.push(n);
     else byDepth.set(d, [n]);
   }
+  const stepMs = Math.min(
+    CHECK_STEP_MAX_MS,
+    Math.max(
+      CHECK_STEP_MIN_MS,
+      maxDepth > 0 ? CHECK_TOTAL_MS / maxDepth : CHECK_TOTAL_MS
+    )
+  );
+  const holdMs = stepMs * 0.67;
   for (let d = 0; d <= maxDepth; d += 1) {
     const level = byDepth.get(d);
     if (!level) continue;
+    const isRoot = d === maxDepth;
+    const prevLevel = d > 0 ? byDepth.get(d - 1) : null;
     setTimeout(() => {
       for (const n of level) n.classList.add("tree-checking");
       setTimeout(() => {
         for (const n of level) n.classList.remove("tree-checking");
-      }, CHECK_HOLD_MS);
-    }, d * CHECK_STEP_MS);
+        if (isRoot) {
+          tree2.classList.add("tree-proven");
+        } else {
+          for (const n of level) n.classList.add("tree-verified");
+        }
+        if (prevLevel) {
+          for (const n of prevLevel) {
+            n.classList.remove("tree-verified");
+            n.classList.add("tree-faded");
+          }
+        }
+      }, holdMs);
+    }, d * stepMs);
   }
 };
 var lastScrollTop = 0;
@@ -7345,7 +7379,7 @@ var createPlayArea = (workspace) => {
         }
       });
     }
-    if (!isCompact() && isFresh && !solved && autoZoomedDerivation !== focus2.derivation) {
+    if (isFresh && !solved && autoZoomedDerivation !== focus2.derivation) {
       autoZoomedDerivation = focus2.derivation;
       const rootSequent = tree2.querySelector(
         ":scope > .tree-sequent"
@@ -7374,7 +7408,7 @@ var createPlayArea = (workspace) => {
       }
     }
     tree2.style.visibility = "";
-    if (solved && !isCompact()) {
+    if (solved) {
       const treeRect = tree2.getBoundingClientRect();
       const areaRect = panel.getBoundingClientRect();
       const panelStyle = getComputedStyle(panel);
@@ -7389,12 +7423,17 @@ var createPlayArea = (workspace) => {
       );
       tree2.style.transformOrigin = "center bottom";
       tree2.style.transition = "transform 1.2s ease-in-out";
-      const onZoomEnd = (e) => {
-        if (e.propertyName !== "transform") return;
-        tree2.removeEventListener("transitionend", onZoomEnd);
-        runProofCheckSweep(tree2);
-      };
-      tree2.addEventListener("transitionend", onZoomEnd);
+      const currentScale = tree2.style.transform ? parseFloat(tree2.style.transform.replace("scale(", "")) : 1;
+      if (Math.abs(scale - currentScale) > 1e-3) {
+        const onZoomEnd = (e) => {
+          if (e.propertyName !== "transform") return;
+          tree2.removeEventListener("transitionend", onZoomEnd);
+          runProofCheckSweep(tree2);
+        };
+        tree2.addEventListener("transitionend", onZoomEnd);
+      } else {
+        setTimeout(() => runProofCheckSweep(tree2), 0);
+      }
       requestAnimationFrame(() => {
         tree2.style.transform = `scale(${scale})`;
         tree2.scrollIntoView({
@@ -8729,43 +8768,72 @@ var defaultRandomConfig = () => ({
 var serializeConfig = (config) => config;
 
 // src/web/random-config.ts
-var isRecord = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
-var pickNumber = (source, key, fallback) => {
-  const value = source[key];
-  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+var pickNumber = (params, key, fallback) => {
+  const raw2 = params.get(key);
+  if (raw2 === null || raw2 === "") return fallback;
+  const value = parseFloat(raw2);
+  return Number.isFinite(value) ? value : fallback;
 };
-var pickWeights = (source, defaults) => {
-  if (!isRecord(source)) return defaults;
-  const result = { ...defaults };
-  for (const [key, fallback] of entries(defaults)) {
-    result[key] = pickNumber(source, key, fallback);
-  }
-  return result;
-};
+var atomKeys = [
+  "p",
+  "q",
+  "r",
+  "s",
+  "u",
+  "v"
+];
 var parseConfigFromParams = (params) => {
   const defaults = defaultRandomConfig();
-  const raw2 = params.get("config");
-  if (raw2 === null || raw2 === "") return defaults;
-  let parsed;
-  try {
-    parsed = JSON.parse(raw2);
-  } catch {
-    return defaults;
+  const symbolsParam = params.get("symbols");
+  const connectivesParam = params.get("connectives");
+  const symbols = { ...defaults.symbols };
+  if (symbolsParam !== null) {
+    for (const key of atomKeys) {
+      symbols[key] = symbolsParam.includes(key) ? defaults.symbols[key] : 0;
+    }
   }
-  if (!isRecord(parsed)) return defaults;
+  if (connectivesParam !== null) {
+    symbols.falsum = connectivesParam.includes("f") ? defaults.symbols.falsum : 0;
+    symbols.verum = connectivesParam.includes("v") ? defaults.symbols.verum : 0;
+  }
+  const connectives2 = { ...defaults.connectives };
+  if (connectivesParam !== null) {
+    connectives2.implication = connectivesParam.includes("i") ? defaults.connectives.implication : 0;
+    connectives2.conjunction = connectivesParam.includes("c") ? defaults.connectives.conjunction : 0;
+    connectives2.disjunction = connectivesParam.includes("d") ? defaults.connectives.disjunction : 0;
+    connectives2.negation = connectivesParam.includes("n") ? defaults.connectives.negation : 0;
+  }
   return {
-    size: pickNumber(parsed, "size", defaults.size),
+    size: pickNumber(params, "formula_size", defaults.size),
     targetNonStructural: pickNumber(
-      parsed,
-      "targetNonStructural",
+      params,
+      "proof_size",
       defaults.targetNonStructural
     ),
-    bypassPercent: pickNumber(parsed, "bypassPercent", defaults.bypassPercent),
-    connectives: pickWeights(parsed["connectives"], defaults.connectives),
-    symbols: pickWeights(parsed["symbols"], defaults.symbols)
+    bypassPercent: pickNumber(params, "chaoticity", defaults.bypassPercent),
+    connectives: connectives2,
+    symbols
   };
 };
-var serializeConfigForUrl = (config) => JSON.stringify(config);
+var setConfigParams = (config, params) => {
+  const symbols = atomKeys.filter((k) => config.symbols[k] > 0).join("");
+  const connectives2 = [
+    config.connectives.implication > 0 ? "i" : "",
+    config.connectives.conjunction > 0 ? "c" : "",
+    config.connectives.disjunction > 0 ? "d" : "",
+    config.connectives.negation > 0 ? "n" : "",
+    config.symbols.falsum > 0 ? "f" : "",
+    config.symbols.verum > 0 ? "v" : ""
+  ].join("");
+  params.set("symbols", symbols);
+  params.set("connectives", connectives2);
+  params.set("formula_size", String(config.size));
+  params.set(
+    "proof_size",
+    config.targetNonStructural === Infinity ? "" : String(config.targetNonStructural)
+  );
+  params.set("chaoticity", String(config.bypassPercent));
+};
 var TARGET_COUNT = 10;
 var entryDistance = (nonStructural, config) => {
   const diff = nonStructural - config.targetNonStructural;
@@ -8893,7 +8961,7 @@ var mountRandomConfig = (container, navigate2, onStart) => {
   );
   const syncUrl = () => {
     const params = new URLSearchParams(window.location.search);
-    params.set("config", serializeConfigForUrl(config));
+    setConfigParams(config, params);
     history.replaceState(history.state, "", `?${params.toString()}`);
   };
   let entries2 = [];
@@ -9778,8 +9846,16 @@ var navigate = (screen) => {
   } else {
     nextParams.set("mode", screen);
     if (screen === "random" || screen === "random-config") {
-      const existing = currentParams.get("config");
-      if (existing !== null) nextParams.set("config", existing);
+      for (const key of [
+        "symbols",
+        "connectives",
+        "formula_size",
+        "proof_size",
+        "chaoticity"
+      ]) {
+        const val = currentParams.get(key);
+        if (val !== null) nextParams.set(key, val);
+      }
     }
     url = `?${nextParams.toString()}`;
   }
@@ -9815,7 +9891,7 @@ var mount = (screen) => {
         const lang = new URLSearchParams(window.location.search).get("lang");
         if (lang !== null) params.set("lang", lang);
         params.set("mode", "random");
-        params.set("config", serializeConfigForUrl(config));
+        setConfigParams(config, params);
         history.pushState({ screen: "random" }, "", `?${params.toString()}`);
         mount("random");
       });
