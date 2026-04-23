@@ -1,5 +1,5 @@
 // src/model/mode.ts
-var gameModes = ["random", "campaign"];
+var gameModes = ["random", "campaign", "match"];
 
 // src/utils/record.ts
 var keys = (s) => Object.keys(s);
@@ -6379,6 +6379,7 @@ var en = {
   title: "LK",
   random: "Random",
   campaign: "Campaign",
+  quiz: "Match",
   menu: "Menu",
   undo: "Undo",
   level: "Level",
@@ -6423,12 +6424,26 @@ var en = {
   preview: "Preview",
   score: "Score",
   par: "Par",
-  statsTemplate: "Generated {formulas} formulas ({rate}/s), {tautologies} tautologies, {solved} solved. Updated {sinceUpdate}s ago."
+  variables: "Variables",
+  sequences: "Sequences",
+  premises: "Premises",
+  contextSize: "Context Size",
+  ruleSettings: "Rule Settings",
+  instantiationSettings: "Instantiation",
+  sequenceSize: "Sequence Length",
+  presets: "Presets",
+  statsTemplate: "Generated {formulas} formulas ({rate}/s), {tautologies} tautologies, {solved} solved. Updated {sinceUpdate}s ago.",
+  custom: "Custom",
+  customChallenge: "Custom Challenge",
+  matchDone: "Match Complete",
+  matchScore: "Score: {score} / {max}",
+  matchFinalPreset: "Final preset: {preset}"
 };
 var fi = {
   title: "LK",
   random: "Satunnainen",
   campaign: "Kampanja",
+  quiz: "Tunnistus",
   menu: "Valikko",
   undo: "Kumoa",
   level: "Taso",
@@ -6473,12 +6488,26 @@ var fi = {
   preview: "Esikatselu",
   score: "Pisteet",
   par: "Par",
-  statsTemplate: "Tuotettu {formulas} kaavaa ({rate}/s), {tautologies} tautologiaa, {solved} ratkaisua. P\xE4ivitetty {sinceUpdate}s sitten."
+  variables: "Muuttujat",
+  sequences: "Jonot",
+  premises: "Premissit",
+  contextSize: "Kontekstin koko",
+  ruleSettings: "S\xE4\xE4nn\xF6t",
+  instantiationSettings: "Instantiointi",
+  sequenceSize: "Jonon pituus",
+  presets: "Esiasetukset",
+  statsTemplate: "Tuotettu {formulas} kaavaa ({rate}/s), {tautologies} tautologiaa, {solved} ratkaisua. P\xE4ivitetty {sinceUpdate}s sitten.",
+  custom: "Muokattu",
+  customChallenge: "Muokattu haaste",
+  matchDone: "Tunnistus valmis",
+  matchScore: "Pisteet: {score} / {max}",
+  matchFinalPreset: "Viimeinen esiasetus: {preset}"
 };
 var es = {
   title: "LK",
   random: "Aleatorio",
   campaign: "Campa\xF1a",
+  quiz: "Prueba",
   menu: "Men\xFA",
   undo: "Deshacer",
   level: "Nivel",
@@ -6523,12 +6552,26 @@ var es = {
   preview: "Vista previa",
   score: "Puntuaci\xF3n",
   par: "Par",
-  statsTemplate: "Generadas {formulas} f\xF3rmulas ({rate}/s), {tautologies} tautolog\xEDas, {solved} resueltas. Actualizado hace {sinceUpdate}s."
+  variables: "Variables",
+  sequences: "Secuencias",
+  premises: "Premisas",
+  contextSize: "Tama\xF1o de contexto",
+  ruleSettings: "Reglas",
+  instantiationSettings: "Instanciaci\xF3n",
+  sequenceSize: "Longitud de secuencia",
+  presets: "Preajustes",
+  statsTemplate: "Generadas {formulas} f\xF3rmulas ({rate}/s), {tautologies} tautolog\xEDas, {solved} resueltas. Actualizado hace {sinceUpdate}s.",
+  custom: "Personalizado",
+  customChallenge: "Desaf\xEDo personalizado",
+  matchDone: "Prueba completa",
+  matchScore: "Puntuaci\xF3n: {score} / {max}",
+  matchFinalPreset: "Preajuste final: {preset}"
 };
 var cs = {
   title: "LK",
   random: "N\xE1hodn\xE9",
   campaign: "Kampa\u0148",
+  quiz: "Kv\xEDz",
   menu: "Menu",
   undo: "Zp\u011Bt",
   level: "\xDArove\u0148",
@@ -6573,12 +6616,26 @@ var cs = {
   preview: "N\xE1hled",
   score: "Sk\xF3re",
   par: "Par",
-  statsTemplate: "Vygenerov\xE1no {formulas} formul\xED ({rate}/s), {tautologies} tautologi\xED, {solved} vy\u0159e\u0161eno. Aktualizov\xE1no p\u0159ed {sinceUpdate}s."
+  variables: "Prom\u011Bnn\xE9",
+  sequences: "Sekvence",
+  premises: "Premisy",
+  contextSize: "Velikost kontextu",
+  ruleSettings: "Pravidla",
+  instantiationSettings: "Instanciace",
+  sequenceSize: "D\xE9lka sekvence",
+  presets: "P\u0159edvolby",
+  statsTemplate: "Vygenerov\xE1no {formulas} formul\xED ({rate}/s), {tautologies} tautologi\xED, {solved} vy\u0159e\u0161eno. Aktualizov\xE1no p\u0159ed {sinceUpdate}s.",
+  custom: "Vlastn\xED",
+  customChallenge: "Vlastn\xED v\xFDzva",
+  matchDone: "Kv\xEDz dokon\u010Den",
+  matchScore: "Sk\xF3re: {score} / {max}",
+  matchFinalPreset: "Posledn\xED p\u0159edvolba: {preset}"
 };
 var pl = {
   title: "LK",
   random: "Losowe",
   campaign: "Kampania",
+  quiz: "Quiz",
   menu: "Menu",
   undo: "Cofnij",
   level: "Poziom",
@@ -6623,7 +6680,20 @@ var pl = {
   preview: "Podgl\u0105d",
   score: "Wynik",
   par: "Par",
-  statsTemplate: "Wygenerowano {formulas} formu\u0142 ({rate}/s), {tautologies} tautologii, {solved} rozwi\u0105zanych. Zaktualizowano {sinceUpdate}s temu."
+  variables: "Zmienne",
+  sequences: "Sekwencje",
+  premises: "Przes\u0142anki",
+  contextSize: "Rozmiar kontekstu",
+  ruleSettings: "Regu\u0142y",
+  instantiationSettings: "Instancjacja",
+  sequenceSize: "D\u0142ugo\u015B\u0107 sekwencji",
+  presets: "Ustawienia wst\u0119pne",
+  statsTemplate: "Wygenerowano {formulas} formu\u0142 ({rate}/s), {tautologies} tautologii, {solved} rozwi\u0105zanych. Zaktualizowano {sinceUpdate}s temu.",
+  custom: "Niestandardowy",
+  customChallenge: "Niestandardowe wyzwanie",
+  matchDone: "Quiz uko\u0144czony",
+  matchScore: "Wynik: {score} / {max}",
+  matchFinalPreset: "Ostatnie ustawienie wst\u0119pne: {preset}"
 };
 var messages = {
   cs,
@@ -6765,7 +6835,8 @@ var createLangSwitcher = () => {
 // src/web/menu.ts
 var modeLabel = {
   random: () => t("random"),
-  campaign: () => t("campaign")
+  campaign: () => t("campaign"),
+  match: () => t("quiz")
 };
 var mountMenu = (container, navigate2) => {
   const render = () => {
@@ -6783,7 +6854,9 @@ var mountMenu = (container, navigate2) => {
       const btn = document.createElement("div");
       btn.setAttribute("class", "button menu-mode");
       btn.innerHTML = modeLabel[mode]();
-      btn.onclick = () => navigate2(mode === "random" ? "random-config" : mode);
+      btn.onclick = () => navigate2(
+        mode === "random" ? "random-config" : mode === "match" ? "match-curated" : mode
+      );
       modes.appendChild(btn);
     }
     panel.appendChild(modes);
@@ -7943,7 +8016,7 @@ var autoRule = (workspace, rules79) => {
   if (!first) return;
   if (isReverseId0(first)) workspace.applyEvent(reverse02(first));
 };
-var createPausePopup = (onResume, onExit, onReset, resetDisabled, onFresh, onSettings) => {
+var createPausePopup = (onResume, onExit, onReset, resetDisabled, onFresh, onSettings, onCustom) => {
   const shroud = document.createElement("div");
   shroud.setAttribute("class", "shroud pause-shroud");
   shroud.onclick = (ev) => {
@@ -7977,6 +8050,9 @@ var createPausePopup = (onResume, onExit, onReset, resetDisabled, onFresh, onSet
       getActionHint("reset")
     )
   );
+  if (onCustom) {
+    buttons.appendChild(createButton(t("customChallenge"), false, onCustom));
+  }
   if (onFresh) {
     buttons.appendChild(
       createButton(t("freshChallenge"), false, onFresh, kbdHint("n"))
@@ -8682,560 +8758,6 @@ var mountRandom = (container, navigate2, session2, onNewChallenge) => {
   return { cleanup, rerender };
 };
 
-// src/web/system.ts
-var mountSystem = (container, _navigate) => {
-  const render = () => {
-    const params = new URLSearchParams(window.location.search);
-    const id = params.get("id");
-    container.innerHTML = "";
-    const panel = document.createElement("div");
-    panel.setAttribute("class", "system");
-    if (id != null && isHelpSystemId(id)) {
-      const back = document.createElement("a");
-      back.setAttribute("class", "button system-back");
-      back.setAttribute("href", "?mode=system");
-      back.innerHTML = t("backToSystems");
-      back.onclick = (e) => {
-        e.preventDefault();
-        history.pushState({ screen: "system" }, "", "?mode=system");
-        render();
-      };
-      panel.appendChild(back);
-      const pre = document.createElement("pre");
-      pre.setAttribute("class", "system-doc");
-      pre.textContent = renderSystemHelp(id);
-      panel.appendChild(pre);
-    } else {
-      const title = document.createElement("div");
-      title.setAttribute("class", "system-title");
-      title.innerHTML = t("systems");
-      panel.appendChild(title);
-      const list = document.createElement("div");
-      list.setAttribute("class", "system-list");
-      for (const sys of Object.values(helpSystems)) {
-        const link = document.createElement("a");
-        link.setAttribute("class", "button system-item");
-        link.setAttribute("href", `?mode=system&id=${sys.id}`);
-        link.innerHTML = sys.name;
-        link.onclick = (e) => {
-          e.preventDefault();
-          history.pushState(
-            { screen: "system" },
-            "",
-            `?mode=system&id=${sys.id}`
-          );
-          render();
-        };
-        list.appendChild(link);
-      }
-      panel.appendChild(list);
-    }
-    container.appendChild(panel);
-  };
-  render();
-  return { cleanup: () => {
-  }, rerender: render };
-};
-
-// src/random/config.ts
-var defaultRandomConfig = () => ({
-  size: 10,
-  connectives: {
-    negation: 1,
-    implication: 3,
-    conjunction: 3,
-    disjunction: 3
-  },
-  symbols: {
-    p: 6,
-    q: 5,
-    r: 5,
-    s: 2,
-    u: 1,
-    v: 1,
-    falsum: 1,
-    verum: 1
-  },
-  targetNonStructural: 10,
-  bypassPercent: 0
-});
-
-// src/web/challenge-protocol.ts
-var serializeConfig = (config) => config;
-
-// src/web/random-config.ts
-var pickNumber = (params, key, fallback) => {
-  const raw2 = params.get(key);
-  if (raw2 === null || raw2 === "") return fallback;
-  const value = parseFloat(raw2);
-  return Number.isFinite(value) ? value : fallback;
-};
-var atomKeys = [
-  "p",
-  "q",
-  "r",
-  "s",
-  "u",
-  "v"
-];
-var parseConfigFromParams = (params) => {
-  const defaults = defaultRandomConfig();
-  const symbolsParam = params.get("symbols");
-  const connectivesParam = params.get("connectives");
-  const symbols = { ...defaults.symbols };
-  if (symbolsParam !== null) {
-    for (const key of atomKeys) {
-      symbols[key] = symbolsParam.includes(key) ? defaults.symbols[key] : 0;
-    }
-  }
-  if (connectivesParam !== null) {
-    symbols.falsum = connectivesParam.includes("f") ? defaults.symbols.falsum : 0;
-    symbols.verum = connectivesParam.includes("v") ? defaults.symbols.verum : 0;
-  }
-  const connectives2 = { ...defaults.connectives };
-  if (connectivesParam !== null) {
-    connectives2.implication = connectivesParam.includes("i") ? defaults.connectives.implication : 0;
-    connectives2.conjunction = connectivesParam.includes("c") ? defaults.connectives.conjunction : 0;
-    connectives2.disjunction = connectivesParam.includes("d") ? defaults.connectives.disjunction : 0;
-    connectives2.negation = connectivesParam.includes("n") ? defaults.connectives.negation : 0;
-  }
-  return {
-    size: pickNumber(params, "formula_size", defaults.size),
-    targetNonStructural: pickNumber(
-      params,
-      "proof_size",
-      defaults.targetNonStructural
-    ),
-    bypassPercent: pickNumber(params, "chaoticity", defaults.bypassPercent),
-    connectives: connectives2,
-    symbols
-  };
-};
-var setConfigParams = (config, params) => {
-  const symbols = atomKeys.filter((k) => config.symbols[k] > 0).join("");
-  const connectives2 = [
-    config.connectives.implication > 0 ? "i" : "",
-    config.connectives.conjunction > 0 ? "c" : "",
-    config.connectives.disjunction > 0 ? "d" : "",
-    config.connectives.negation > 0 ? "n" : "",
-    config.symbols.falsum > 0 ? "f" : "",
-    config.symbols.verum > 0 ? "v" : ""
-  ].join("");
-  params.set("symbols", symbols);
-  params.set("connectives", connectives2);
-  params.set("formula_size", String(config.size));
-  params.set(
-    "proof_size",
-    config.targetNonStructural === Infinity ? "" : String(config.targetNonStructural)
-  );
-  params.set("chaoticity", String(config.bypassPercent));
-};
-var TARGET_COUNT = 10;
-var entryDistance = (nonStructural, config) => {
-  const diff = nonStructural - config.targetNonStructural;
-  if (diff === 0) return 0;
-  return diff > 0 ? diff * 2 - 1 : -diff * 2;
-};
-var insertSorted = (entries2, entry) => {
-  const result = [...entries2];
-  const idx = result.findIndex((e) => e.distance > entry.distance);
-  if (idx === -1) {
-    result.push(entry);
-  } else {
-    result.splice(idx, 0, entry);
-  }
-  return result.slice(0, TARGET_COUNT);
-};
-var isDone = (entries2) => entries2.length >= TARGET_COUNT && entries2.every((e) => e.distance === 0);
-var renderAtom = (name4) => html(fromAtom(atom(name4))(basic));
-var renderFormula = (p) => {
-  const segments = fromProp(p)(basic);
-  return html(segments);
-};
-var timeoutForBuffer = (bufferSize) => {
-  if (bufferSize === 0) return 3e4;
-  if (bufferSize < 5) return 1e4;
-  return 2e3;
-};
-var createPreviewWorker = (config, onResult) => {
-  const worker = new Worker("lk.w.js");
-  worker.onmessage = (e) => {
-    onResult(e.data);
-  };
-  const send = (msg) => {
-    worker.postMessage(msg);
-  };
-  const workerConfig = () => ({
-    ...config,
-    bypassPercent: 0,
-    targetNonStructural: Infinity
-  });
-  send({ type: "configure", config: serializeConfig(workerConfig()) });
-  send({ type: "timeout", ms: timeoutForBuffer(0) });
-  send({ type: "resume" });
-  return {
-    configure: (newConfig) => {
-      config = newConfig;
-      send({ type: "pause" });
-      send({
-        type: "configure",
-        config: serializeConfig(workerConfig())
-      });
-      send({ type: "timeout", ms: timeoutForBuffer(0) });
-      send({ type: "resume" });
-    },
-    updateTimeout: (bufferSize) => {
-      send({ type: "timeout", ms: timeoutForBuffer(bufferSize) });
-    },
-    terminate: () => {
-      worker.terminate();
-    }
-  };
-};
-var renderPreviewList = (entries2) => {
-  const list = document.querySelector(".config-preview-list");
-  if (!list) return;
-  list.innerHTML = "";
-  for (const entry of entries2) {
-    const item = document.createElement("div");
-    item.className = "config-preview-item" + (entry.distance > 0 ? " approximate" : "");
-    const count = document.createElement("span");
-    count.className = "config-preview-count";
-    count.textContent = String(entry.nonStructural);
-    item.appendChild(count);
-    const formula = document.createElement("span");
-    formula.innerHTML = renderFormula(entry.formula);
-    item.appendChild(formula);
-    list.appendChild(item);
-  }
-};
-var createNumberInput = (value, onChange, min = 0, max, step = 1, placeholder) => {
-  const input = document.createElement("input");
-  input.type = "number";
-  input.className = "config-input";
-  input.min = String(min);
-  if (max !== void 0) input.max = String(max);
-  input.step = String(step);
-  if (value === Infinity) {
-    input.value = "";
-    input.placeholder = placeholder ?? "";
-  } else {
-    input.value = String(value);
-  }
-  input.onchange = () => {
-    const parsed = parseFloat(input.value);
-    if (input.value === "") {
-      onChange(Infinity);
-    } else if (!isNaN(parsed)) {
-      onChange(parsed);
-    }
-  };
-  return input;
-};
-var createRow = (label, input) => {
-  const row = document.createElement("div");
-  row.className = "config-row";
-  const labelEl = document.createElement("label");
-  labelEl.className = "config-label";
-  labelEl.textContent = label;
-  row.appendChild(labelEl);
-  row.appendChild(input);
-  return row;
-};
-var createSection = (title) => {
-  const section = document.createElement("div");
-  section.className = "config-section";
-  const heading = document.createElement("div");
-  heading.className = "config-section-title";
-  heading.textContent = title;
-  section.appendChild(heading);
-  return section;
-};
-var mountRandomConfig = (container, navigate2, onStart) => {
-  const config = parseConfigFromParams(
-    new URLSearchParams(window.location.search)
-  );
-  const syncUrl = () => {
-    const params = new URLSearchParams(window.location.search);
-    setConfigParams(config, params);
-    history.replaceState(history.state, "", `?${params.toString()}`);
-  };
-  let entries2 = [];
-  let totalFormulasTried = 0;
-  let totalTautologiesFound = 0;
-  let totalSolved = 0;
-  let searchStartTime = Date.now();
-  let lastWorkerUpdate = Date.now();
-  let clockInterval;
-  const updateStats = () => {
-    const el = document.querySelector(".config-stats");
-    if (!el) return;
-    const now = Date.now();
-    const elapsed = (now - searchStartTime) / 1e3;
-    const rate = elapsed > 0 ? totalFormulasTried / elapsed : 0;
-    const sinceUpdate = ((now - lastWorkerUpdate) / 1e3).toFixed(1);
-    el.textContent = formatStats({
-      formulas: totalFormulasTried,
-      rate: rate.toFixed(1),
-      tautologies: totalTautologiesFound,
-      solved: totalSolved,
-      sinceUpdate
-    });
-  };
-  const startClock = () => {
-    stopClock();
-    clockInterval = setInterval(updateStats, 200);
-  };
-  const stopClock = () => {
-    if (clockInterval !== void 0) {
-      clearInterval(clockInterval);
-      clockInterval = void 0;
-    }
-  };
-  const handleResult = (msg) => {
-    lastWorkerUpdate = Date.now();
-    if (msg.type === "stats") {
-      totalFormulasTried += msg.formulasTried;
-      totalTautologiesFound += msg.tautologiesFound;
-      totalSolved += msg.solved;
-      updateStats();
-      return;
-    }
-    if (msg.type === "challenge") {
-      totalFormulasTried += msg.result.formulasTried;
-      updateStats();
-      if (isDone(entries2)) return;
-      const { challenge: challenge2, nonStructuralCount } = msg.result;
-      const formula = challenge2.goal.succedent[0];
-      if (formula === void 0) return;
-      const distance = entryDistance(nonStructuralCount, config);
-      const entry = {
-        formula,
-        nonStructural: nonStructuralCount,
-        distance
-      };
-      entries2 = insertSorted(entries2, entry);
-      renderPreviewList(entries2);
-      previewWorker?.updateTimeout(entries2.length);
-      if (isDone(entries2) && previewWorker) {
-        previewWorker.terminate();
-        previewWorker = void 0;
-        stopClock();
-      }
-    }
-  };
-  let previewWorker = createPreviewWorker(
-    config,
-    handleResult
-  );
-  const restartSearch = () => {
-    syncUrl();
-    entries2 = [];
-    totalFormulasTried = 0;
-    totalTautologiesFound = 0;
-    totalSolved = 0;
-    searchStartTime = Date.now();
-    lastWorkerUpdate = Date.now();
-    if (previewWorker) previewWorker.terminate();
-    previewWorker = createPreviewWorker(config, handleResult);
-    renderPreviewList(entries2);
-    startClock();
-  };
-  const onInputChange = (setter) => (v2) => {
-    setter(v2);
-    restartSearch();
-  };
-  const rerender = () => {
-    container.innerHTML = "";
-    const layout = document.createElement("div");
-    layout.className = "random-config";
-    layout.appendChild(createLangSwitcher());
-    const title = document.createElement("div");
-    title.className = "config-title";
-    title.textContent = t("randomConfig");
-    layout.appendChild(title);
-    const columns = document.createElement("div");
-    columns.className = "config-columns";
-    const settings = document.createElement("div");
-    settings.className = "config-settings";
-    const shapeSection = createSection(t("formulaShape"));
-    const connectiveHeading = document.createElement("div");
-    connectiveHeading.className = "config-subsection-title";
-    connectiveHeading.textContent = t("connectives");
-    shapeSection.appendChild(connectiveHeading);
-    const defaultConnectives = defaultRandomConfig().connectives;
-    const connectiveKeys = [
-      { key: "implication", label: t("implicationWeight"), symbol: "\u2192" },
-      { key: "conjunction", label: t("conjunctionWeight"), symbol: "\u2227" },
-      { key: "disjunction", label: t("disjunctionWeight"), symbol: "\u2228" },
-      { key: "negation", label: t("negationWeight"), symbol: "\xAC" }
-    ];
-    const createToggle = (content, useHtml, title2, isActive, onToggle) => {
-      const btn = document.createElement("pre");
-      btn.className = "button toggle";
-      if (useHtml) {
-        btn.innerHTML = content;
-      } else {
-        btn.textContent = content;
-      }
-      btn.title = title2;
-      const led = document.createElement("span");
-      led.className = "led" + (isActive() ? " on" : "");
-      btn.appendChild(led);
-      btn.onclick = () => {
-        onToggle();
-        led.className = "led" + (isActive() ? " on" : "");
-        restartSearch();
-      };
-      return btn;
-    };
-    const connectiveToggles = document.createElement("div");
-    connectiveToggles.className = "config-toggles";
-    for (const { key, label, symbol } of connectiveKeys) {
-      connectiveToggles.appendChild(
-        createToggle(
-          symbol,
-          false,
-          label,
-          () => config.connectives[key] > 0,
-          () => {
-            config.connectives[key] = config.connectives[key] > 0 ? 0 : defaultConnectives[key];
-          }
-        )
-      );
-    }
-    const defaultSymbols = defaultRandomConfig().symbols;
-    const constantKeys = [
-      { key: "falsum", symbol: "\u22A5" },
-      { key: "verum", symbol: "\u22A4" }
-    ];
-    for (const { key, symbol } of constantKeys) {
-      connectiveToggles.appendChild(
-        createToggle(
-          symbol,
-          false,
-          symbol,
-          () => config.symbols[key] > 0,
-          () => {
-            config.symbols[key] = config.symbols[key] > 0 ? 0 : defaultSymbols[key];
-          }
-        )
-      );
-    }
-    shapeSection.appendChild(connectiveToggles);
-    const symbolHeading = document.createElement("div");
-    symbolHeading.className = "config-subsection-title";
-    symbolHeading.textContent = t("symbols");
-    shapeSection.appendChild(symbolHeading);
-    const symbolKeys = [
-      "p",
-      "q",
-      "r",
-      "s",
-      "u",
-      "v"
-    ];
-    const symbolToggles = document.createElement("div");
-    symbolToggles.className = "config-toggles";
-    for (const key of symbolKeys) {
-      symbolToggles.appendChild(
-        createToggle(
-          renderAtom(key),
-          true,
-          key,
-          () => config.symbols[key] > 0,
-          () => {
-            config.symbols[key] = config.symbols[key] > 0 ? 0 : defaultSymbols[key];
-          }
-        )
-      );
-    }
-    shapeSection.appendChild(symbolToggles);
-    settings.appendChild(shapeSection);
-    const filterHeading = document.createElement("div");
-    filterHeading.className = "config-subsection-title";
-    filterHeading.textContent = t("filter");
-    shapeSection.appendChild(filterHeading);
-    shapeSection.appendChild(
-      createRow(
-        t("size"),
-        createNumberInput(
-          config.size,
-          onInputChange((v2) => {
-            config.size = v2;
-          }),
-          1,
-          30
-        )
-      )
-    );
-    shapeSection.appendChild(
-      createRow(
-        t("targetNonStructural"),
-        createNumberInput(
-          config.targetNonStructural,
-          onInputChange((v2) => {
-            config.targetNonStructural = v2;
-          }),
-          1
-        )
-      )
-    );
-    shapeSection.appendChild(
-      createRow(
-        t("bypassPercent"),
-        createNumberInput(
-          config.bypassPercent,
-          onInputChange((v2) => {
-            config.bypassPercent = v2;
-          }),
-          0,
-          100
-        )
-      )
-    );
-    const buttons = document.createElement("div");
-    buttons.className = "config-buttons";
-    const backBtn = document.createElement("div");
-    backBtn.className = "button";
-    backBtn.textContent = t("back");
-    backBtn.onclick = () => navigate2("menu");
-    buttons.appendChild(backBtn);
-    const startBtn = document.createElement("div");
-    startBtn.className = "button";
-    startBtn.textContent = t("start");
-    startBtn.onclick = () => onStart(config);
-    buttons.appendChild(startBtn);
-    settings.appendChild(buttons);
-    columns.appendChild(settings);
-    const preview = document.createElement("div");
-    preview.className = "config-preview";
-    const previewTitle = document.createElement("div");
-    previewTitle.className = "config-section-title";
-    previewTitle.textContent = t("preview");
-    preview.appendChild(previewTitle);
-    const stats = document.createElement("div");
-    stats.className = "config-stats";
-    preview.appendChild(stats);
-    const list = document.createElement("div");
-    list.className = "config-preview-list";
-    preview.appendChild(list);
-    columns.appendChild(preview);
-    layout.appendChild(columns);
-    container.appendChild(layout);
-    restartSearch();
-  };
-  rerender();
-  const cleanup = () => {
-    stopClock();
-    if (previewWorker) {
-      previewWorker.terminate();
-      previewWorker = void 0;
-    }
-  };
-  return { cleanup, rerender };
-};
-
 // src/solver/bruteStructure0.ts
 var seqKey = (s) => JSON.stringify([s.antecedent, s.succedent]);
 var buildStructurePath = (d, rules79, p) => {
@@ -9687,6 +9209,2700 @@ function* randomConfiguredStep(config, getTimeout = () => 5e3) {
   }
 }
 
+// src/quiz/generate.ts
+var buildBlocks = (config) => {
+  const atoms2 = config.symbols.map((v2) => ({
+    kind: "atom",
+    value: v2
+  }));
+  const vars = config.variables.map((name4) => ({
+    kind: "var",
+    name: name4
+  }));
+  const constants = [
+    ...config.connectives.includes("falsum") ? [{ kind: "falsum" }] : [],
+    ...config.connectives.includes("verum") ? [{ kind: "verum" }] : []
+  ];
+  const allLeaves = [...atoms2, ...vars, ...constants];
+  if (!isNonEmptyArray(allLeaves)) return null;
+  return {
+    leaves: allLeaves,
+    binaryOps: config.connectives.filter(
+      (c) => c === "implication" || c === "conjunction" || c === "disjunction"
+    ),
+    hasNegation: config.connectives.includes("negation"),
+    seqVars: config.sequences.map((name4) => ({ kind: "seq", name: name4 }))
+  };
+};
+var pick = (arr) => arr[Math.floor(Math.random() * arr.length)] ?? arr[0];
+var randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+var randomLeaf = (blocks) => pick(blocks.leaves);
+var randomSchemaFormula = (blocks, maxDepth, depth = 0) => {
+  const hasOps = blocks.binaryOps.length > 0 || blocks.hasNegation;
+  if (depth >= maxDepth || !hasOps || Math.random() < 0.5) {
+    return randomLeaf(blocks);
+  }
+  const ops = [...blocks.binaryOps, ...blocks.hasNegation ? ["negation"] : []];
+  if (!isNonEmptyArray(ops)) return randomLeaf(blocks);
+  const op = pick(ops);
+  const next2 = depth + 1;
+  switch (op) {
+    case "negation":
+      return {
+        kind: "negation",
+        negand: randomSchemaFormula(blocks, maxDepth, next2)
+      };
+    case "implication":
+      return {
+        kind: "implication",
+        antecedent: randomSchemaFormula(blocks, maxDepth, next2),
+        consequent: randomSchemaFormula(blocks, maxDepth, next2)
+      };
+    case "conjunction":
+      return {
+        kind: "conjunction",
+        leftConjunct: randomSchemaFormula(blocks, maxDepth, next2),
+        rightConjunct: randomSchemaFormula(blocks, maxDepth, next2)
+      };
+    default:
+      return {
+        kind: "disjunction",
+        leftDisjunct: randomSchemaFormula(blocks, maxDepth, next2),
+        rightDisjunct: randomSchemaFormula(blocks, maxDepth, next2)
+      };
+  }
+};
+var randomPremiseContext = (blocks, seqVar, contextSize, formulaSize) => {
+  const count = contextSize > 0 ? bellRandom(1, contextSize) : 0;
+  const items = Array.from(
+    { length: count },
+    () => randomSchemaFormula(blocks, formulaSize)
+  );
+  if (seqVar === null) return items;
+  const pos = randomInt(0, items.length);
+  const result = [...items];
+  result.splice(pos, 0, seqVar);
+  return result;
+};
+var randomConclusionContext = (blocks, knownSeqVars, contextSize, formulaSize) => {
+  const items = [];
+  const count = contextSize > 0 ? bellRandom(1, contextSize) : 0;
+  for (let i90 = 0; i90 < count; i90 += 1) {
+    if (isNonEmptyArray(knownSeqVars) && Math.random() < 0.5) {
+      items.push(pick(knownSeqVars));
+    } else {
+      items.push(randomSchemaFormula(blocks, formulaSize));
+    }
+  }
+  return items;
+};
+var pickUnusedSeqVar = (pool2, used) => {
+  const available = pool2.filter((v3) => !used.has(v3.name));
+  if (!isNonEmptyArray(available)) return null;
+  const v2 = pick(available);
+  used.add(v2.name);
+  return v2;
+};
+var randomPremise = (blocks, usedSeqVars, contextSize, formulaSize) => {
+  const seqAnt = blocks.seqVars.length > 0 && Math.random() < 0.6 ? pickUnusedSeqVar(blocks.seqVars, usedSeqVars) : null;
+  const seqSuc = blocks.seqVars.length > 0 && Math.random() < 0.6 ? pickUnusedSeqVar(blocks.seqVars, usedSeqVars) : null;
+  return {
+    antecedent: randomPremiseContext(blocks, seqAnt, contextSize, formulaSize),
+    succedent: randomPremiseContext(blocks, seqSuc, contextSize, formulaSize)
+  };
+};
+var randomConclusion = (blocks, usedSeqVars, contextSize, formulaSize) => {
+  const known = blocks.seqVars.filter((v2) => usedSeqVars.has(v2.name));
+  return {
+    antecedent: randomConclusionContext(
+      blocks,
+      known,
+      contextSize,
+      formulaSize
+    ),
+    succedent: randomConclusionContext(blocks, known, contextSize, formulaSize)
+  };
+};
+var generateBaseSchema = (blocks, premiseCounts, contextSize, formulaSize) => {
+  const allowed = premiseCounts.length > 0 ? premiseCounts : [0, 1, 2];
+  const premiseCount = allowed[Math.floor(Math.random() * allowed.length)] ?? 0;
+  const usedSeqVars = /* @__PURE__ */ new Set();
+  const premises = [];
+  for (let i90 = 0; i90 < premiseCount; i90 += 1) {
+    premises.push(randomPremise(blocks, usedSeqVars, contextSize, formulaSize));
+  }
+  return {
+    name: "",
+    premises,
+    conclusion: randomConclusion(blocks, usedSeqVars, contextSize, formulaSize)
+  };
+};
+var mapFormula = (f2, fn) => {
+  const cur = fn(f2);
+  switch (cur.kind) {
+    case "var":
+    case "atom":
+    case "falsum":
+    case "verum":
+      return cur;
+    case "negation":
+      return { kind: "negation", negand: mapFormula(cur.negand, fn) };
+    case "implication":
+      return {
+        kind: "implication",
+        antecedent: mapFormula(cur.antecedent, fn),
+        consequent: mapFormula(cur.consequent, fn)
+      };
+    case "conjunction":
+      return {
+        kind: "conjunction",
+        leftConjunct: mapFormula(cur.leftConjunct, fn),
+        rightConjunct: mapFormula(cur.rightConjunct, fn)
+      };
+    case "disjunction":
+      return {
+        kind: "disjunction",
+        leftDisjunct: mapFormula(cur.leftDisjunct, fn),
+        rightDisjunct: mapFormula(cur.rightDisjunct, fn)
+      };
+  }
+};
+var mapRuleFormulas = (rule, fn) => {
+  const mapCtx = (ctx) => ctx.map((item) => item.kind === "seq" ? item : mapFormula(item, fn));
+  const mapSeq = (seq) => ({
+    antecedent: mapCtx(seq.antecedent),
+    succedent: mapCtx(seq.succedent)
+  });
+  return {
+    ...rule,
+    premises: rule.premises.map(mapSeq),
+    conclusion: mapSeq(rule.conclusion)
+  };
+};
+var mapRuleSeqVars = (rule, fn) => {
+  const mapCtx = (ctx) => ctx.map((item) => item.kind === "seq" ? fn(item) : item);
+  const mapSeq = (seq) => ({
+    antecedent: mapCtx(seq.antecedent),
+    succedent: mapCtx(seq.succedent)
+  });
+  return {
+    ...rule,
+    premises: rule.premises.map(mapSeq),
+    conclusion: mapSeq(rule.conclusion)
+  };
+};
+var collectAtoms = (rule) => {
+  const found = /* @__PURE__ */ new Set();
+  const visit = (f2) => {
+    if (f2.kind === "atom") found.add(f2.value);
+    else if (f2.kind === "negation") visit(f2.negand);
+    else if (f2.kind === "implication") {
+      visit(f2.antecedent);
+      visit(f2.consequent);
+    } else if (f2.kind === "conjunction") {
+      visit(f2.leftConjunct);
+      visit(f2.rightConjunct);
+    } else if (f2.kind === "disjunction") {
+      visit(f2.leftDisjunct);
+      visit(f2.rightDisjunct);
+    }
+  };
+  const visitCtx = (ctx) => {
+    for (const item of ctx) {
+      if (item.kind !== "seq") visit(item);
+    }
+  };
+  const visitSeq = (seq) => {
+    visitCtx(seq.antecedent);
+    visitCtx(seq.succedent);
+  };
+  for (const p of rule.premises) visitSeq(p);
+  visitSeq(rule.conclusion);
+  return [...found];
+};
+var collectFormulaVars = (rule) => {
+  const found = /* @__PURE__ */ new Set();
+  const visit = (f2) => {
+    if (f2.kind === "var") found.add(f2.name);
+    else if (f2.kind === "negation") visit(f2.negand);
+    else if (f2.kind === "implication") {
+      visit(f2.antecedent);
+      visit(f2.consequent);
+    } else if (f2.kind === "conjunction") {
+      visit(f2.leftConjunct);
+      visit(f2.rightConjunct);
+    } else if (f2.kind === "disjunction") {
+      visit(f2.leftDisjunct);
+      visit(f2.rightDisjunct);
+    }
+  };
+  const visitCtx = (ctx) => {
+    for (const item of ctx) {
+      if (item.kind !== "seq") visit(item);
+    }
+  };
+  const visitSeq = (seq) => {
+    visitCtx(seq.antecedent);
+    visitCtx(seq.succedent);
+  };
+  for (const p of rule.premises) visitSeq(p);
+  visitSeq(rule.conclusion);
+  return [...found];
+};
+var collectSeqVars = (rule) => {
+  const found = /* @__PURE__ */ new Set();
+  const visitCtx = (ctx) => {
+    for (const item of ctx) {
+      if (item.kind === "seq") found.add(item.name);
+    }
+  };
+  const visitSeq = (seq) => {
+    visitCtx(seq.antecedent);
+    visitCtx(seq.succedent);
+  };
+  for (const p of rule.premises) visitSeq(p);
+  visitSeq(rule.conclusion);
+  return [...found];
+};
+var collectBinaryConnectives = (rule) => {
+  const found = /* @__PURE__ */ new Set();
+  const visit = (f2) => {
+    if (f2.kind === "implication" || f2.kind === "conjunction" || f2.kind === "disjunction") {
+      found.add(f2.kind);
+    }
+    if (f2.kind === "negation") visit(f2.negand);
+    else if (f2.kind === "implication") {
+      visit(f2.antecedent);
+      visit(f2.consequent);
+    } else if (f2.kind === "conjunction") {
+      visit(f2.leftConjunct);
+      visit(f2.rightConjunct);
+    } else if (f2.kind === "disjunction") {
+      visit(f2.leftDisjunct);
+      visit(f2.rightDisjunct);
+    }
+  };
+  const visitCtx = (ctx) => {
+    for (const item of ctx) {
+      if (item.kind !== "seq") visit(item);
+    }
+  };
+  const visitSeq = (seq) => {
+    visitCtx(seq.antecedent);
+    visitCtx(seq.succedent);
+  };
+  for (const p of rule.premises) visitSeq(p);
+  visitSeq(rule.conclusion);
+  return [...found];
+};
+var ALL_BINARY = ["implication", "conjunction", "disjunction"];
+var trySubstituteAtom = (rule, config) => {
+  const present = collectAtoms(rule);
+  if (!isNonEmptyArray(present)) return null;
+  const from = pick(present);
+  const candidates = config.symbols.filter((s) => s !== from);
+  if (!isNonEmptyArray(candidates)) return null;
+  const to = pick(candidates);
+  return mapRuleFormulas(
+    rule,
+    (f2) => f2.kind === "atom" && f2.value === from ? { kind: "atom", value: to } : f2
+  );
+};
+var trySubstituteFormulaVar = (rule) => {
+  const present = collectFormulaVars(rule);
+  if (!isNonEmptyArray(present)) return null;
+  const from = pick(present);
+  const candidates = present.filter((v2) => v2 !== from);
+  if (!isNonEmptyArray(candidates)) return null;
+  const to = pick(candidates);
+  return mapRuleFormulas(
+    rule,
+    (f2) => f2.kind === "var" && f2.name === from ? { kind: "var", name: to } : f2
+  );
+};
+var trySubstituteSeqVar = (rule) => {
+  const present = collectSeqVars(rule);
+  if (!isNonEmptyArray(present)) return null;
+  const from = pick(present);
+  const candidates = present.filter((s) => s !== from);
+  if (!isNonEmptyArray(candidates)) return null;
+  const to = pick(candidates);
+  return mapRuleSeqVars(
+    rule,
+    (item) => item.name === from ? { kind: "seq", name: to } : item
+  );
+};
+var trySubstituteConnective = (rule, config) => {
+  const present = collectBinaryConnectives(rule);
+  if (!isNonEmptyArray(present)) return null;
+  const from = pick(present);
+  const available = config.connectives.filter(
+    (c) => ALL_BINARY.includes(c) && c !== from
+  );
+  if (!isNonEmptyArray(available)) return null;
+  const to = pick(available);
+  return mapRuleFormulas(rule, (f2) => {
+    let a91;
+    let b;
+    if (f2.kind === "implication" && from === "implication") {
+      a91 = f2.antecedent;
+      b = f2.consequent;
+    } else if (f2.kind === "conjunction" && from === "conjunction") {
+      a91 = f2.leftConjunct;
+      b = f2.rightConjunct;
+    } else if (f2.kind === "disjunction" && from === "disjunction") {
+      a91 = f2.leftDisjunct;
+      b = f2.rightDisjunct;
+    }
+    if (a91 === void 0 || b === void 0) return f2;
+    if (to === "implication")
+      return { kind: "implication", antecedent: a91, consequent: b };
+    if (to === "conjunction")
+      return { kind: "conjunction", leftConjunct: a91, rightConjunct: b };
+    return { kind: "disjunction", leftDisjunct: a91, rightDisjunct: b };
+  });
+};
+var tryAddRemovePremise = (rule, blocks, premiseCounts, contextSize, formulaSize) => {
+  const allowed = premiseCounts.length > 0 ? premiseCounts : [0, 1, 2];
+  const canAdd = allowed.includes(rule.premises.length + 1);
+  const canRemove = allowed.includes(rule.premises.length - 1);
+  if (!canAdd && !canRemove) return null;
+  const doAdd = canAdd && (!canRemove || rule.premises.length < 2 && Math.random() >= 0.5);
+  if (doAdd) {
+    const usedSeqVars = new Set(collectSeqVars(rule));
+    return {
+      ...rule,
+      premises: [
+        ...rule.premises,
+        randomPremise(blocks, usedSeqVars, contextSize, formulaSize)
+      ]
+    };
+  }
+  return { ...rule, premises: rule.premises.slice(0, -1) };
+};
+var schemaKey = (rule) => JSON.stringify({
+  premises: rule.premises,
+  conclusion: rule.conclusion
+});
+var shuffle = (arr) => {
+  const result = [...arr];
+  for (let i90 = result.length - 1; i90 > 0; i90 -= 1) {
+    const j = Math.floor(Math.random() * (i90 + 1));
+    const a91 = result[i90];
+    const b = result[j];
+    if (a91 !== void 0 && b !== void 0) {
+      result[i90] = b;
+      result[j] = a91;
+    }
+  }
+  return result;
+};
+var generateDistractors = (base, config, blocks, count, instance) => {
+  const used = /* @__PURE__ */ new Set([schemaKey(base)]);
+  const distractors = [];
+  const mutators = [
+    () => trySubstituteAtom(base, config),
+    () => trySubstituteFormulaVar(base),
+    () => trySubstituteSeqVar(base),
+    () => trySubstituteConnective(base, config),
+    () => tryAddRemovePremise(
+      base,
+      blocks,
+      config.premiseCounts,
+      config.contextSize,
+      config.formulaSize
+    )
+  ];
+  let attempts = 0;
+  while (distractors.length < count && attempts < 50) {
+    attempts += 1;
+    const mutatorList = shuffle(mutators);
+    for (const mutate of mutatorList) {
+      const result = mutate();
+      if (result === null) continue;
+      const key = schemaKey(result);
+      if (used.has(key)) continue;
+      if (canMatchInstance(result, instance)) continue;
+      used.add(key);
+      distractors.push(result);
+      break;
+    }
+  }
+  let fallbackAttempts = 0;
+  while (distractors.length < count && fallbackAttempts < 50) {
+    fallbackAttempts += 1;
+    const fresh = generateBaseSchema(
+      blocks,
+      config.premiseCounts,
+      config.contextSize,
+      config.formulaSize
+    );
+    const key = schemaKey(fresh);
+    if (!used.has(key) && !canMatchInstance(fresh, instance)) {
+      used.add(key);
+      distractors.push(fresh);
+    }
+  }
+  return distractors;
+};
+var propsEqual = (a91, b) => {
+  if (a91.kind !== b.kind) return false;
+  switch (a91.kind) {
+    case "atom":
+      return b.kind === "atom" && a91.value === b.value;
+    case "falsum":
+    case "verum":
+      return true;
+    case "negation":
+      return b.kind === "negation" && propsEqual(a91.negand, b.negand);
+    case "implication":
+      return b.kind === "implication" && propsEqual(a91.antecedent, b.antecedent) && propsEqual(a91.consequent, b.consequent);
+    case "conjunction":
+      return b.kind === "conjunction" && propsEqual(a91.leftConjunct, b.leftConjunct) && propsEqual(a91.rightConjunct, b.rightConjunct);
+    case "disjunction":
+      return b.kind === "disjunction" && propsEqual(a91.leftDisjunct, b.leftDisjunct) && propsEqual(a91.rightDisjunct, b.rightDisjunct);
+  }
+};
+var matchSchemaFormula = (sf, p, fb) => {
+  switch (sf.kind) {
+    case "var": {
+      const bound = fb.get(sf.name);
+      if (bound !== void 0) return propsEqual(bound, p);
+      fb.set(sf.name, p);
+      return true;
+    }
+    case "atom":
+      return p.kind === "atom" && p.value === sf.value;
+    case "falsum":
+      return p.kind === "falsum";
+    case "verum":
+      return p.kind === "verum";
+    case "negation":
+      return p.kind === "negation" && matchSchemaFormula(sf.negand, p.negand, fb);
+    case "implication":
+      return p.kind === "implication" && matchSchemaFormula(sf.antecedent, p.antecedent, fb) && matchSchemaFormula(sf.consequent, p.consequent, fb);
+    case "conjunction":
+      return p.kind === "conjunction" && matchSchemaFormula(sf.leftConjunct, p.leftConjunct, fb) && matchSchemaFormula(sf.rightConjunct, p.rightConjunct, fb);
+    case "disjunction":
+      return p.kind === "disjunction" && matchSchemaFormula(sf.leftDisjunct, p.leftDisjunct, fb) && matchSchemaFormula(sf.rightDisjunct, p.rightDisjunct, fb);
+  }
+};
+var matchSchemaContext = (ctx, ctxIdx, props, propIdx, fb, sb) => {
+  if (ctxIdx === ctx.length) return propIdx === props.length;
+  const item = ctx[ctxIdx];
+  if (item === void 0) return propIdx === props.length;
+  if (item.kind !== "seq") {
+    if (propIdx >= props.length) return false;
+    const prop = props[propIdx];
+    if (prop === void 0) return false;
+    return matchSchemaFormula(item, prop, fb) && matchSchemaContext(ctx, ctxIdx + 1, props, propIdx + 1, fb, sb);
+  }
+  const bound = sb.get(item.name);
+  if (bound !== void 0) {
+    if (propIdx + bound.length > props.length) return false;
+    for (let i90 = 0; i90 < bound.length; i90 += 1) {
+      const bi = bound[i90];
+      const pi = props[propIdx + i90];
+      if (bi === void 0 || pi === void 0 || !propsEqual(bi, pi))
+        return false;
+    }
+    return matchSchemaContext(
+      ctx,
+      ctxIdx + 1,
+      props,
+      propIdx + bound.length,
+      fb,
+      sb
+    );
+  }
+  const minForRest = ctx.slice(ctxIdx + 1).filter((i90) => i90.kind !== "seq").length;
+  const maxLen = props.length - propIdx - minForRest;
+  for (let len = 0; len <= maxLen; len += 1) {
+    const savedFb = new Map(fb);
+    const savedSb = new Map(sb);
+    sb.set(item.name, props.slice(propIdx, propIdx + len));
+    if (matchSchemaContext(ctx, ctxIdx + 1, props, propIdx + len, fb, sb))
+      return true;
+    fb.clear();
+    for (const [k, v2] of savedFb) fb.set(k, v2);
+    sb.clear();
+    for (const [k, v2] of savedSb) sb.set(k, v2);
+  }
+  return false;
+};
+var matchSchemaSequent = (schema, concrete, fb, sb) => matchSchemaContext(schema.antecedent, 0, concrete.antecedent, 0, fb, sb) && matchSchemaContext(schema.succedent, 0, concrete.succedent, 0, fb, sb);
+var canMatchInstance = (schema, instance) => {
+  if (schema.premises.length !== instance.premises.length) return false;
+  const fb = /* @__PURE__ */ new Map();
+  const sb = /* @__PURE__ */ new Map();
+  for (let i90 = 0; i90 < schema.premises.length; i90 += 1) {
+    const sp = schema.premises[i90];
+    const ip = instance.premises[i90];
+    if (sp === void 0 || ip === void 0) return false;
+    if (!matchSchemaSequent(sp, ip, fb, sb)) return false;
+  }
+  return matchSchemaSequent(schema.conclusion, instance.conclusion, fb, sb);
+};
+var generatePreviewSchemas = (config, count) => {
+  const blocks = buildBlocks(config);
+  if (blocks === null) return [];
+  return Array.from({ length: count }, (_, i90) => ({
+    ...generateBaseSchema(
+      blocks,
+      config.premiseCounts,
+      config.contextSize,
+      config.formulaSize
+    ),
+    name: `${i90 + 1}`
+  }));
+};
+var generateQuestion = (config) => {
+  const blocks = buildBlocks(config);
+  if (blocks === null) return null;
+  const base = generateBaseSchema(
+    blocks,
+    config.premiseCounts,
+    config.contextSize,
+    config.formulaSize
+  );
+  const instance = instantiate(
+    base,
+    config.instanceFormulaSize,
+    config.instanceSequenceSize,
+    config.instanceConnectives,
+    config.instanceSymbols
+  );
+  const distractors = generateDistractors(base, config, blocks, 3, instance);
+  const all = shuffle([base, ...distractors]);
+  const answerIndex = all.indexOf(base);
+  return {
+    schemas: all.map((s, i90) => ({ ...s, name: `${i90 + 1}` })),
+    answerIndex,
+    instance
+  };
+};
+var makeRandomProp = (formulaSize, connectives2, symbols) => {
+  const wc = (c) => connectives2.includes(c) ? 1 : 0;
+  const ws = (s) => symbols.includes(s) ? 1 : 0;
+  return randomWeighted(
+    bellRandom(0, formulaSize),
+    {
+      negation: wc("negation"),
+      implication: wc("implication"),
+      conjunction: wc("conjunction"),
+      disjunction: wc("disjunction")
+    },
+    {
+      p: ws("p"),
+      q: ws("q"),
+      r: ws("r"),
+      s: ws("s"),
+      u: ws("u"),
+      v: ws("v"),
+      falsum: wc("falsum"),
+      verum: wc("verum")
+    }
+  )();
+};
+var instantiateFormula = (f2, fb, formulaSize, connectives2, symbols) => {
+  switch (f2.kind) {
+    case "var": {
+      let val = fb.get(f2.name);
+      if (val === void 0) {
+        val = makeRandomProp(formulaSize, connectives2, symbols);
+        fb.set(f2.name, val);
+      }
+      return val;
+    }
+    case "atom":
+      return { kind: "atom", value: f2.value };
+    case "falsum":
+      return { kind: "falsum" };
+    case "verum":
+      return { kind: "verum" };
+    case "negation":
+      return {
+        kind: "negation",
+        negand: instantiateFormula(
+          f2.negand,
+          fb,
+          formulaSize,
+          connectives2,
+          symbols
+        )
+      };
+    case "implication":
+      return {
+        kind: "implication",
+        antecedent: instantiateFormula(
+          f2.antecedent,
+          fb,
+          formulaSize,
+          connectives2,
+          symbols
+        ),
+        consequent: instantiateFormula(
+          f2.consequent,
+          fb,
+          formulaSize,
+          connectives2,
+          symbols
+        )
+      };
+    case "conjunction":
+      return {
+        kind: "conjunction",
+        leftConjunct: instantiateFormula(
+          f2.leftConjunct,
+          fb,
+          formulaSize,
+          connectives2,
+          symbols
+        ),
+        rightConjunct: instantiateFormula(
+          f2.rightConjunct,
+          fb,
+          formulaSize,
+          connectives2,
+          symbols
+        )
+      };
+    case "disjunction":
+      return {
+        kind: "disjunction",
+        leftDisjunct: instantiateFormula(
+          f2.leftDisjunct,
+          fb,
+          formulaSize,
+          connectives2,
+          symbols
+        ),
+        rightDisjunct: instantiateFormula(
+          f2.rightDisjunct,
+          fb,
+          formulaSize,
+          connectives2,
+          symbols
+        )
+      };
+  }
+};
+var instantiateContext = (ctx, fb, sb, formulaSize, sequenceSize, connectives2, symbols) => {
+  const result = [];
+  for (const item of ctx) {
+    if (item.kind === "seq") {
+      let val = sb.get(item.name);
+      if (val === void 0) {
+        val = Array.from(
+          { length: bellRandom(0, sequenceSize) },
+          () => makeRandomProp(formulaSize, connectives2, symbols)
+        );
+        sb.set(item.name, val);
+      }
+      result.push(...val);
+    } else {
+      result.push(
+        instantiateFormula(item, fb, formulaSize, connectives2, symbols)
+      );
+    }
+  }
+  return result;
+};
+var instantiate = (schema, formulaSize = 2, sequenceSize = 2, connectives2 = [], symbols = ["p", "q", "r", "s", "u", "v"]) => {
+  const fb = /* @__PURE__ */ new Map();
+  const sb = /* @__PURE__ */ new Map();
+  const instantiateSeq = (s) => ({
+    antecedent: instantiateContext(
+      s.antecedent,
+      fb,
+      sb,
+      formulaSize,
+      sequenceSize,
+      connectives2,
+      symbols
+    ),
+    succedent: instantiateContext(
+      s.succedent,
+      fb,
+      sb,
+      formulaSize,
+      sequenceSize,
+      connectives2,
+      symbols
+    )
+  });
+  return {
+    premises: schema.premises.map(instantiateSeq),
+    conclusion: instantiateSeq(schema.conclusion)
+  };
+};
+
+// src/quiz/render.ts
+function fromSchemaFormula(f2) {
+  switch (f2.kind) {
+    case "var":
+      return fromAtom({ kind: "atom", value: f2.name });
+    case "atom":
+      return fromAtom({ kind: "atom", value: f2.value });
+    case "falsum":
+      return fromFalsum({ kind: "falsum" });
+    case "verum":
+      return fromVerum({ kind: "verum" });
+    case "negation":
+      return printUnary("negation", false, true)(expandSchema(3, f2.negand));
+    case "conjunction":
+      return printBinary(
+        "conjunction",
+        false,
+        true
+      )(expandSchema(3, f2.leftConjunct), expandSchema(3, f2.rightConjunct));
+    case "disjunction":
+      return printBinary(
+        "disjunction",
+        false,
+        true
+      )(expandSchema(3, f2.leftDisjunct), expandSchema(3, f2.rightDisjunct));
+    case "implication":
+      return printBinary(
+        "implication",
+        false,
+        true
+      )(expandSchema(2, f2.antecedent), expandSchema(2, f2.consequent));
+  }
+}
+var schemaPrecedence = (f2) => {
+  switch (f2.kind) {
+    case "var":
+    case "atom":
+    case "falsum":
+    case "verum":
+      return 4;
+    case "negation":
+      return 3;
+    case "conjunction":
+    case "disjunction":
+      return 2;
+    case "implication":
+      return 1;
+  }
+};
+function expandSchema(minPrec, f2) {
+  if (f2.kind === "atom" || f2.kind === "var") return fromSchemaFormula(f2);
+  return schemaPrecedence(f2) >= minPrec ? printUnary("optional")(fromSchemaFormula(f2)) : printUnary("parenthesis")(fromSchemaFormula(f2));
+}
+var fromSchemaContext = (ctx) => printArray("formulas")(
+  ctx.map(
+    (item) => item.kind === "seq" ? fromAtom({ kind: "atom", value: item.name }) : fromSchemaFormula(item)
+  )
+);
+var fromSchemaSequent = (s) => (t2) => trim(
+  printBinary("sequent")(
+    fromSchemaContext(s.antecedent),
+    fromSchemaContext(s.succedent)
+  )(t2)
+);
+var schemaSequentText = (s) => plain(fromSchemaSequent(s)(basic));
+var fromSchemaRule = (schema, showLabel = true) => treeAuto(
+  schemaSequentText(schema.conclusion),
+  schema.premises.map(schemaSequentText),
+  showLabel ? "(" + schema.name + ")" : null
+);
+
+// src/web/quiz.ts
+var ZOOM_MIN2 = 0.4;
+var ZOOM_MAX2 = 2;
+var ZOOM_STEP2 = 0.2;
+var AUTO_ZOOM_MIN = 0.8;
+var AUTO_ZOOM_MAX2 = 1.2;
+var AUTO_ZOOM_PAD2 = 0.9;
+var renderQuestionTree = (instance, label) => {
+  const node = document.createElement("div");
+  node.setAttribute("class", "tree-node");
+  const premisesEl = document.createElement("div");
+  premisesEl.setAttribute("class", "tree-premises");
+  for (const p of instance.premises) {
+    const pNode = document.createElement("div");
+    pNode.setAttribute("class", "tree-node");
+    const pSeq = document.createElement("div");
+    pSeq.setAttribute("class", "tree-sequent");
+    pSeq.innerHTML = html(
+      fromSequent(sequent(p.antecedent, p.succedent))(basic)
+    );
+    pNode.appendChild(pSeq);
+    premisesEl.appendChild(pNode);
+  }
+  node.appendChild(premisesEl);
+  const inference = document.createElement("div");
+  inference.setAttribute("class", "tree-inference");
+  if (label !== null) {
+    const labelEl = document.createElement("div");
+    labelEl.setAttribute("class", "tree-rule-label");
+    labelEl.innerHTML = html(printString("(" + label + ")")(basic));
+    inference.appendChild(labelEl);
+  }
+  node.appendChild(inference);
+  const concSeq = document.createElement("div");
+  concSeq.setAttribute("class", "tree-sequent");
+  concSeq.innerHTML = html(
+    fromSequent(
+      sequent(instance.conclusion.antecedent, instance.conclusion.succedent)
+    )(basic)
+  );
+  node.appendChild(concSeq);
+  return node;
+};
+var newState = (config) => {
+  const q = generateQuestion(config);
+  if (q === null) return null;
+  return { ...q, guessIndex: null };
+};
+var mountQuiz = (container, navigate2, config) => {
+  let state = newState(config);
+  let zoom = 1;
+  let pendingAutoZoom = true;
+  let regenerateTimer = null;
+  let pausePopupOpen = false;
+  const render = () => {
+    if (regenerateTimer !== null) {
+      clearTimeout(regenerateTimer);
+      regenerateTimer = null;
+    }
+    container.innerHTML = "";
+    const answer = state?.schemas[state.answerIndex];
+    const instance = state?.instance ?? null;
+    if (instance !== null && answer !== void 0) {
+      const questionArea = document.createElement("div");
+      questionArea.setAttribute("class", "quiz-question");
+      questionArea.style.setProperty("--tree-zoom", String(zoom));
+      const treeEl = renderQuestionTree(
+        instance,
+        state !== null && state.guessIndex !== null ? answer.name : "\xA0?\xA0"
+      );
+      questionArea.appendChild(treeEl);
+      container.appendChild(questionArea);
+      requestAnimationFrame(() => {
+        layoutTree(treeEl, { skipActiveScroll: true });
+        if (pendingAutoZoom) {
+          pendingAutoZoom = false;
+          const premiseSequents = Array.from(
+            treeEl.querySelectorAll(
+              ":scope > .tree-premises > .tree-node > .tree-sequent"
+            )
+          );
+          const conclusionSequent = treeEl.querySelector(
+            ":scope > .tree-sequent"
+          );
+          const sequents = [
+            ...premiseSequents,
+            ...conclusionSequent ? [conclusionSequent] : []
+          ];
+          const widest = sequents.reduce(
+            (max, s) => max === null || s.getBoundingClientRect().width > max.getBoundingClientRect().width ? s : max,
+            null
+          );
+          const areaRect = questionArea.getBoundingClientRect();
+          const areaStyle = getComputedStyle(questionArea);
+          const availW = areaRect.width - parseFloat(areaStyle.paddingLeft) - parseFloat(areaStyle.paddingRight);
+          if (widest && widest.getBoundingClientRect().width > 0 && availW > 0) {
+            const target = Math.max(
+              AUTO_ZOOM_MIN,
+              Math.min(
+                AUTO_ZOOM_MAX2,
+                zoom * availW * AUTO_ZOOM_PAD2 / widest.getBoundingClientRect().width
+              )
+            );
+            if (Math.abs(target - zoom) > 0.01) {
+              zoom = target;
+              questionArea.style.setProperty("--tree-zoom", String(zoom));
+              layoutTree(treeEl, { skipActiveScroll: true });
+            }
+          }
+        }
+        requestAnimationFrame(() => {
+          const treeWidth = treeEl.getBoundingClientRect().width;
+          const areaWidth = questionArea.getBoundingClientRect().width;
+          questionArea.scrollLeft = (treeWidth - areaWidth) / 2;
+        });
+      });
+    }
+    const panel = document.createElement("div");
+    panel.setAttribute("class", "quiz-panel");
+    const menuBtn = document.createElement("div");
+    menuBtn.setAttribute("class", "button quiz-menu-btn");
+    menuBtn.textContent = t("menu");
+    menuBtn.onclick = () => {
+      pausePopupOpen = true;
+      render();
+    };
+    panel.appendChild(menuBtn);
+    if (state === null) {
+      const msg = document.createElement("div");
+      msg.textContent = "Enable at least one symbol to play.";
+      panel.appendChild(msg);
+      container.appendChild(panel);
+      return;
+    }
+    const zoomRow = document.createElement("div");
+    zoomRow.setAttribute("class", "quiz-zoom");
+    const zoomOut = document.createElement("div");
+    zoomOut.setAttribute(
+      "class",
+      "button" + (zoom <= ZOOM_MIN2 ? " disabled" : "")
+    );
+    zoomOut.textContent = "\u2212";
+    zoomOut.onclick = () => {
+      zoom = Math.max(ZOOM_MIN2, zoom - ZOOM_STEP2);
+      render();
+    };
+    zoomRow.appendChild(zoomOut);
+    const zoomReset = document.createElement("div");
+    zoomReset.setAttribute("class", "button");
+    zoomReset.textContent = "\u2299";
+    zoomReset.onclick = () => {
+      zoom = 1;
+      render();
+    };
+    zoomRow.appendChild(zoomReset);
+    const zoomIn = document.createElement("div");
+    zoomIn.setAttribute(
+      "class",
+      "button" + (zoom >= ZOOM_MAX2 ? " disabled" : "")
+    );
+    zoomIn.textContent = "+";
+    zoomIn.onclick = () => {
+      zoom = Math.min(ZOOM_MAX2, zoom + ZOOM_STEP2);
+      render();
+    };
+    zoomRow.appendChild(zoomIn);
+    panel.appendChild(zoomRow);
+    const cardsArea = document.createElement("div");
+    cardsArea.setAttribute("class", "quiz-cards");
+    for (let i90 = 0; i90 < state.schemas.length; i90 += 1) {
+      const schema = state.schemas[i90];
+      if (schema === void 0) continue;
+      const card = document.createElement("pre");
+      let cls = "quiz-card rule button";
+      if (state.guessIndex !== null) {
+        if (i90 === state.answerIndex) cls += " quiz-card-correct";
+        else if (i90 === state.guessIndex) cls += " quiz-card-wrong";
+        else cls += " disabled";
+      }
+      card.setAttribute("class", cls);
+      card.innerHTML = '<span class="rule-label long">' + fromSchemaRule(schema, true) + '</span><span class="rule-label short">' + fromSchemaRule(schema, false) + "</span>";
+      if (state.guessIndex === null) {
+        const idx = i90;
+        card.onclick = () => {
+          if (state === null) return;
+          state = { ...state, guessIndex: idx };
+          render();
+          regenerateTimer = setTimeout(() => {
+            state = newState(config);
+            pendingAutoZoom = true;
+            render();
+          }, 1500);
+        };
+      }
+      cardsArea.appendChild(card);
+    }
+    panel.appendChild(cardsArea);
+    container.appendChild(panel);
+    if (pausePopupOpen) {
+      const resume = () => {
+        pausePopupOpen = false;
+        render();
+      };
+      const exitToMenu = () => {
+        pausePopupOpen = false;
+        navigate2("menu");
+      };
+      const openSettings = () => {
+        pausePopupOpen = false;
+        navigate2("match-config");
+      };
+      const restart = () => {
+        pausePopupOpen = false;
+        state = newState(config);
+        pendingAutoZoom = true;
+        render();
+      };
+      container.appendChild(
+        createPausePopup(
+          resume,
+          exitToMenu,
+          restart,
+          false,
+          void 0,
+          openSettings
+        )
+      );
+    }
+  };
+  render();
+  const handleKey = (ev) => {
+    if (ev.ctrlKey || ev.metaKey || ev.altKey) return;
+    const digitMatch = ev.code.match(/^Digit([1-4])$/);
+    if (digitMatch && !pausePopupOpen && state !== null && state.guessIndex === null) {
+      const idxStr = digitMatch[1];
+      if (idxStr === void 0) return;
+      const idx = parseInt(idxStr) - 1;
+      if (idx < state.schemas.length) {
+        state = { ...state, guessIndex: idx };
+        render();
+        regenerateTimer = setTimeout(() => {
+          state = newState(config);
+          pendingAutoZoom = true;
+          render();
+        }, 1500);
+      }
+      return;
+    }
+    const action = qwertyKeyMap[ev.code];
+    if (!action) return;
+    if (action === "menu") {
+      pausePopupOpen = !pausePopupOpen;
+      render();
+    } else if (action === "reset") {
+      pausePopupOpen = false;
+      state = newState(config);
+      pendingAutoZoom = true;
+      render();
+    } else if (pausePopupOpen) {
+      if (action === "undo") {
+        pausePopupOpen = false;
+        render();
+      } else if (action === "exit") {
+        pausePopupOpen = false;
+        navigate2("menu");
+      }
+    }
+  };
+  document.addEventListener("keydown", handleKey);
+  return {
+    cleanup: () => {
+      document.removeEventListener("keydown", handleKey);
+      if (regenerateTimer !== null) {
+        clearTimeout(regenerateTimer);
+        regenerateTimer = null;
+      }
+    },
+    rerender: render
+  };
+};
+
+// src/quiz/config.ts
+var ALL_SYMBOLS = ["p", "q", "r", "s", "u", "v"];
+var ALL_INSTANCE_SYMBOLS = ALL_SYMBOLS;
+var ALL_CONNECTIVE_TYPES = [
+  "implication",
+  "conjunction",
+  "disjunction",
+  "negation",
+  "falsum",
+  "verum"
+];
+var ALL_VARIABLES = ["A", "B", "C", "D", "E", "F"];
+var ALL_SEQUENCES = ["\u0393", "\u0394", "\u03A3", "\u03A0", "\u039E", "\u03A8"];
+var SEQ_ABBREV = {
+  \u0393: "G",
+  \u0394: "D",
+  \u03A3: "S",
+  \u03A0: "P",
+  \u039E: "X",
+  \u03A8: "Y"
+};
+var CONN_ABBREV = {
+  implication: "i",
+  conjunction: "c",
+  disjunction: "d",
+  negation: "n",
+  falsum: "f",
+  verum: "v"
+};
+var A = (arr) => [...arr];
+var PRESETS = [
+  // 0: pure symbol matching
+  {
+    symbols: A(ALL_SYMBOLS),
+    connectives: [],
+    variables: [],
+    sequences: [],
+    formulaSize: 1,
+    premiseCounts: [0, 1, 2],
+    contextSize: 2,
+    instanceFormulaSize: 1,
+    instanceSequenceSize: 2,
+    instanceConnectives: [],
+    instanceSymbols: []
+  },
+  // 1: symbols + connectives, no variables
+  {
+    symbols: A(ALL_SYMBOLS),
+    connectives: A(ALL_CONNECTIVE_TYPES),
+    variables: [],
+    sequences: [],
+    formulaSize: 1,
+    premiseCounts: [0, 1, 2],
+    contextSize: 2,
+    instanceFormulaSize: 1,
+    instanceSequenceSize: 2,
+    instanceConnectives: [],
+    instanceSymbols: []
+  },
+  // 2: symbols + connectives + variables, inst symbols
+  {
+    symbols: A(ALL_SYMBOLS),
+    connectives: A(ALL_CONNECTIVE_TYPES),
+    variables: A(ALL_VARIABLES),
+    sequences: [],
+    formulaSize: 1,
+    premiseCounts: [0, 1, 2],
+    contextSize: 2,
+    instanceFormulaSize: 1,
+    instanceSequenceSize: 2,
+    instanceConnectives: [],
+    instanceSymbols: A(ALL_INSTANCE_SYMBOLS)
+  },
+  // 3: connectives + variables, no symbols
+  {
+    symbols: [],
+    connectives: A(ALL_CONNECTIVE_TYPES),
+    variables: A(ALL_VARIABLES),
+    sequences: [],
+    formulaSize: 1,
+    premiseCounts: [0, 1, 2],
+    contextSize: 2,
+    instanceFormulaSize: 1,
+    instanceSequenceSize: 2,
+    instanceConnectives: [],
+    instanceSymbols: A(ALL_INSTANCE_SYMBOLS)
+  },
+  // 4: variables only, inst connectives
+  {
+    symbols: [],
+    connectives: [],
+    variables: A(ALL_VARIABLES),
+    sequences: [],
+    formulaSize: 1,
+    premiseCounts: [0, 1, 2],
+    contextSize: 2,
+    instanceFormulaSize: 1,
+    instanceSequenceSize: 2,
+    instanceConnectives: A(ALL_CONNECTIVE_TYPES),
+    instanceSymbols: A(ALL_INSTANCE_SYMBOLS)
+  },
+  // 5: connectives + variables, inst connectives
+  {
+    symbols: [],
+    connectives: A(ALL_CONNECTIVE_TYPES),
+    variables: A(ALL_VARIABLES),
+    sequences: [],
+    formulaSize: 1,
+    premiseCounts: [0, 1, 2],
+    contextSize: 2,
+    instanceFormulaSize: 1,
+    instanceSequenceSize: 2,
+    instanceConnectives: A(ALL_CONNECTIVE_TYPES),
+    instanceSymbols: A(ALL_INSTANCE_SYMBOLS)
+  },
+  // 6: variables + sequences, short inst seq
+  {
+    symbols: [],
+    connectives: [],
+    variables: A(ALL_VARIABLES),
+    sequences: A(ALL_SEQUENCES),
+    formulaSize: 1,
+    premiseCounts: [0, 1, 2],
+    contextSize: 2,
+    instanceFormulaSize: 1,
+    instanceSequenceSize: 1,
+    instanceConnectives: [],
+    instanceSymbols: A(ALL_INSTANCE_SYMBOLS)
+  },
+  // 7: variables + sequences, longer inst seq
+  {
+    symbols: [],
+    connectives: [],
+    variables: A(ALL_VARIABLES),
+    sequences: A(ALL_SEQUENCES),
+    formulaSize: 1,
+    premiseCounts: [0, 1, 2],
+    contextSize: 2,
+    instanceFormulaSize: 1,
+    instanceSequenceSize: 3,
+    instanceConnectives: [],
+    instanceSymbols: A(ALL_INSTANCE_SYMBOLS)
+  },
+  // 8: connectives + variables + sequences, inst connectives
+  {
+    symbols: [],
+    connectives: A(ALL_CONNECTIVE_TYPES),
+    variables: A(ALL_VARIABLES),
+    sequences: A(ALL_SEQUENCES),
+    formulaSize: 1,
+    premiseCounts: [0, 1, 2],
+    contextSize: 2,
+    instanceFormulaSize: 1,
+    instanceSequenceSize: 2,
+    instanceConnectives: A(ALL_CONNECTIVE_TYPES),
+    instanceSymbols: A(ALL_INSTANCE_SYMBOLS)
+  },
+  // 9: full, larger formulas
+  {
+    symbols: [],
+    connectives: A(ALL_CONNECTIVE_TYPES),
+    variables: A(ALL_VARIABLES),
+    sequences: A(ALL_SEQUENCES),
+    formulaSize: 2,
+    premiseCounts: [0, 1, 2],
+    contextSize: 3,
+    instanceFormulaSize: 2,
+    instanceSequenceSize: 3,
+    instanceConnectives: A(ALL_CONNECTIVE_TYPES),
+    instanceSymbols: A(ALL_INSTANCE_SYMBOLS)
+  }
+];
+var sortedJoin = (arr) => [...arr].sort().join(",");
+var matchPreset = (config) => {
+  for (let i90 = 0; i90 < PRESETS.length; i90 += 1) {
+    const p = PRESETS[i90];
+    if (p === void 0) continue;
+    if (sortedJoin(config.symbols) === sortedJoin(p.symbols) && sortedJoin(config.connectives) === sortedJoin(p.connectives) && sortedJoin(config.variables) === sortedJoin(p.variables) && sortedJoin(config.sequences) === sortedJoin(p.sequences) && config.formulaSize === p.formulaSize && sortedJoin(config.premiseCounts.map(String)) === sortedJoin(p.premiseCounts.map(String)) && config.contextSize === p.contextSize && config.instanceFormulaSize === p.instanceFormulaSize && config.instanceSequenceSize === p.instanceSequenceSize && sortedJoin(config.instanceConnectives) === sortedJoin(p.instanceConnectives) && sortedJoin(config.instanceSymbols) === sortedJoin(p.instanceSymbols))
+      return i90;
+  }
+  return null;
+};
+var defaultQuizConfig = () => ({
+  symbols: [],
+  connectives: [...ALL_CONNECTIVE_TYPES],
+  variables: [...ALL_VARIABLES],
+  sequences: [...ALL_SEQUENCES],
+  formulaSize: 1,
+  premiseCounts: [1],
+  contextSize: 2,
+  instanceFormulaSize: 2,
+  instanceSequenceSize: 2,
+  instanceConnectives: [...ALL_CONNECTIVE_TYPES],
+  instanceSymbols: [...ALL_INSTANCE_SYMBOLS]
+});
+var parseQuizConfigFromParams = (params) => {
+  const defaults = defaultQuizConfig();
+  const symbolsParam = params.get("qsymbols");
+  const connectivesParam = params.get("qconnectives");
+  const variablesParam = params.get("qvariables");
+  const sequencesParam = params.get("qsequences");
+  const sizeParam = params.get("qsize");
+  const premisesParam = params.get("qpremises");
+  const contextParam = params.get("qcontext");
+  const instSizeParam = params.get("qinstsize");
+  const instSeqSizeParam = params.get("qinstseq");
+  const instConnParam = params.get("qinstconn");
+  const instSymParam = params.get("qinstsym");
+  return {
+    symbols: symbolsParam !== null ? ALL_SYMBOLS.filter((s) => symbolsParam.includes(s)) : defaults.symbols,
+    connectives: connectivesParam !== null ? ALL_CONNECTIVE_TYPES.filter(
+      (c) => connectivesParam.includes(CONN_ABBREV[c] ?? "")
+    ) : defaults.connectives,
+    variables: variablesParam !== null ? ALL_VARIABLES.filter((v2) => variablesParam.includes(v2)) : defaults.variables,
+    sequences: sequencesParam !== null ? ALL_SEQUENCES.filter(
+      (s) => sequencesParam.includes(SEQ_ABBREV[s] ?? "")
+    ) : defaults.sequences,
+    formulaSize: sizeParam !== null ? Math.max(
+      0,
+      Math.min(10, parseInt(sizeParam, 10) || defaults.formulaSize)
+    ) : defaults.formulaSize,
+    premiseCounts: premisesParam !== null ? [0, 1, 2].filter((n) => premisesParam.includes(String(n))) : defaults.premiseCounts,
+    contextSize: contextParam !== null ? Math.max(
+      0,
+      Math.min(6, parseInt(contextParam, 10) || defaults.contextSize)
+    ) : defaults.contextSize,
+    instanceFormulaSize: instSizeParam !== null ? Math.max(
+      0,
+      Math.min(
+        10,
+        parseInt(instSizeParam, 10) || defaults.instanceFormulaSize
+      )
+    ) : defaults.instanceFormulaSize,
+    instanceSequenceSize: instSeqSizeParam !== null ? Math.max(
+      0,
+      Math.min(
+        6,
+        parseInt(instSeqSizeParam, 10) || defaults.instanceSequenceSize
+      )
+    ) : defaults.instanceSequenceSize,
+    instanceConnectives: instConnParam !== null ? ALL_CONNECTIVE_TYPES.filter(
+      (c) => instConnParam.includes(CONN_ABBREV[c] ?? "")
+    ) : defaults.instanceConnectives,
+    instanceSymbols: instSymParam !== null ? ALL_INSTANCE_SYMBOLS.filter((s) => instSymParam.includes(s)) : defaults.instanceSymbols
+  };
+};
+var setQuizConfigParams = (config, params) => {
+  params.set("qsymbols", config.symbols.join(""));
+  params.set(
+    "qconnectives",
+    config.connectives.map((c) => CONN_ABBREV[c] ?? "").join("")
+  );
+  params.set("qvariables", config.variables.join(""));
+  params.set(
+    "qsequences",
+    config.sequences.map((s) => SEQ_ABBREV[s] ?? "").join("")
+  );
+  params.set("qsize", String(config.formulaSize));
+  params.set("qpremises", config.premiseCounts.join(""));
+  params.set("qcontext", String(config.contextSize));
+  params.set("qinstsize", String(config.instanceFormulaSize));
+  params.set("qinstseq", String(config.instanceSequenceSize));
+  params.set(
+    "qinstconn",
+    config.instanceConnectives.map((c) => CONN_ABBREV[c] ?? "").join("")
+  );
+  params.set("qinstsym", config.instanceSymbols.join(""));
+};
+
+// src/web/quiz-config.ts
+var ALL_PREMISE_COUNTS = [0, 1, 2];
+var emptySequent = { antecedent: [], succedent: [] };
+var premiseCountShape = (n) => {
+  const schema = {
+    name: "",
+    premises: Array.from({ length: n }, () => emptySequent),
+    conclusion: emptySequent
+  };
+  return fromSchemaRule(schema, false);
+};
+var renderAtom = (name4) => html(fromAtom(atom(name4))(basic));
+var sequentText = (ant, suc) => plain(fromSequent(sequent(ant, suc))(basic));
+var fromInstanceRule = (schema, formulaSize, sequenceSize, connectives2, symbols) => {
+  const inst = instantiate(
+    schema,
+    formulaSize,
+    sequenceSize,
+    connectives2,
+    symbols
+  );
+  return treeAuto(
+    sequentText(inst.conclusion.antecedent, inst.conclusion.succedent),
+    inst.premises.map((p) => sequentText(p.antecedent, p.succedent)),
+    null
+  );
+};
+var createToggle = (content, useHtml, title, isActive, onToggle) => {
+  const btn = document.createElement("pre");
+  btn.className = "button toggle";
+  if (useHtml) {
+    btn.innerHTML = content;
+  } else {
+    btn.textContent = content;
+  }
+  btn.title = title;
+  const led = document.createElement("span");
+  led.className = "led" + (isActive() ? " on" : "");
+  btn.appendChild(led);
+  btn.onclick = () => {
+    onToggle();
+    led.className = "led" + (isActive() ? " on" : "");
+    syncUrl();
+  };
+  return btn;
+};
+var createNumberInput = (value, onChange, min = 0, max = 10) => {
+  const input = document.createElement("input");
+  input.type = "number";
+  input.className = "config-input";
+  input.value = String(value);
+  input.min = String(min);
+  input.max = String(max);
+  input.step = "1";
+  input.onchange = () => {
+    const parsed = parseInt(input.value, 10);
+    if (!isNaN(parsed) && parsed >= min && parsed <= max) {
+      onChange(parsed);
+      syncUrl();
+    }
+  };
+  return input;
+};
+var createRow = (label, input) => {
+  const row = document.createElement("div");
+  row.className = "config-row";
+  const labelEl = document.createElement("label");
+  labelEl.className = "config-label";
+  labelEl.textContent = label;
+  row.appendChild(labelEl);
+  row.appendChild(input);
+  return row;
+};
+var createSection = (title) => {
+  const section = document.createElement("div");
+  section.className = "config-section";
+  const heading = document.createElement("div");
+  heading.className = "config-subsection-title";
+  heading.textContent = title;
+  section.appendChild(heading);
+  return section;
+};
+var syncUrl = () => {
+};
+var renderPreview = () => {
+};
+var renderPresetButtons = () => {
+};
+var mountQuizConfig = (container, navigate2, onStart) => {
+  const config = parseQuizConfigFromParams(
+    new URLSearchParams(window.location.search)
+  );
+  syncUrl = () => {
+    const params = new URLSearchParams(window.location.search);
+    setQuizConfigParams(config, params);
+    history.replaceState(history.state, "", `?${params.toString()}`);
+    renderPresetButtons();
+    renderPreview();
+  };
+  const toggle = (arr, value) => {
+    const idx = arr.indexOf(value);
+    if (idx === -1) {
+      arr.push(value);
+    } else {
+      arr.splice(idx, 1);
+    }
+  };
+  const render = () => {
+    container.innerHTML = "";
+    const layout = document.createElement("div");
+    layout.className = "random-config";
+    layout.appendChild(createLangSwitcher());
+    const title = document.createElement("div");
+    title.className = "config-title";
+    title.textContent = t("quiz");
+    layout.appendChild(title);
+    const columns = document.createElement("div");
+    columns.className = "config-columns";
+    const settings = document.createElement("div");
+    settings.className = "config-settings";
+    const ruleSection = document.createElement("div");
+    ruleSection.className = "config-section";
+    const ruleTitle = document.createElement("div");
+    ruleTitle.className = "config-section-title";
+    ruleTitle.textContent = t("ruleSettings");
+    ruleSection.appendChild(ruleTitle);
+    const symbolSection = createSection(t("symbols"));
+    const symbolToggles = document.createElement("div");
+    symbolToggles.className = "config-toggles";
+    for (const s of ALL_SYMBOLS) {
+      symbolToggles.appendChild(
+        createToggle(
+          renderAtom(s),
+          true,
+          s,
+          () => config.symbols.includes(s),
+          () => toggle(config.symbols, s)
+        )
+      );
+    }
+    symbolSection.appendChild(symbolToggles);
+    ruleSection.appendChild(symbolSection);
+    const connLabel = {
+      negation: "\xAC",
+      implication: "\u2192",
+      conjunction: "\u2227",
+      disjunction: "\u2228",
+      falsum: "\u22A5",
+      verum: "\u22A4"
+    };
+    const connSection = createSection(t("connectives"));
+    const connToggles = document.createElement("div");
+    connToggles.className = "config-toggles";
+    for (const c of ALL_CONNECTIVE_TYPES) {
+      connToggles.appendChild(
+        createToggle(
+          connLabel[c] ?? c,
+          false,
+          c,
+          () => config.connectives.includes(c),
+          () => toggle(config.connectives, c)
+        )
+      );
+    }
+    connSection.appendChild(connToggles);
+    ruleSection.appendChild(connSection);
+    const varSection = createSection(t("variables"));
+    const varToggles = document.createElement("div");
+    varToggles.className = "config-toggles";
+    for (const v2 of ALL_VARIABLES) {
+      varToggles.appendChild(
+        createToggle(
+          v2,
+          false,
+          v2,
+          () => config.variables.includes(v2),
+          () => toggle(config.variables, v2)
+        )
+      );
+    }
+    varSection.appendChild(varToggles);
+    ruleSection.appendChild(varSection);
+    const seqSection = createSection(t("sequences"));
+    const seqToggles = document.createElement("div");
+    seqToggles.className = "config-toggles";
+    for (const s of ALL_SEQUENCES) {
+      seqToggles.appendChild(
+        createToggle(
+          s,
+          false,
+          s,
+          () => config.sequences.includes(s),
+          () => toggle(config.sequences, s)
+        )
+      );
+    }
+    seqSection.appendChild(seqToggles);
+    ruleSection.appendChild(seqSection);
+    const sizeSection = createSection(t("size"));
+    sizeSection.appendChild(
+      createRow(
+        t("size"),
+        createNumberInput(config.formulaSize, (v2) => {
+          config.formulaSize = v2;
+        })
+      )
+    );
+    sizeSection.appendChild(
+      createRow(
+        t("contextSize"),
+        createNumberInput(
+          config.contextSize,
+          (v2) => {
+            config.contextSize = v2;
+          },
+          0,
+          6
+        )
+      )
+    );
+    ruleSection.appendChild(sizeSection);
+    settings.appendChild(ruleSection);
+    const presetSection = document.createElement("div");
+    presetSection.className = "config-section";
+    const presetTitle = document.createElement("div");
+    presetTitle.className = "config-section-title";
+    presetTitle.textContent = t("presets");
+    presetSection.appendChild(presetTitle);
+    const presetToggles = document.createElement("div");
+    presetToggles.className = "config-toggles preset-toggles";
+    const presetBtns = [];
+    for (let i90 = 0; i90 < PRESETS.length; i90 += 1) {
+      const idx = i90;
+      const btn = document.createElement("pre");
+      btn.className = "button";
+      btn.textContent = String(idx);
+      btn.onclick = () => {
+        const p = PRESETS[idx];
+        if (p === void 0) return;
+        Object.assign(config, {
+          ...p,
+          symbols: [...p.symbols],
+          connectives: [...p.connectives],
+          variables: [...p.variables],
+          sequences: [...p.sequences],
+          premiseCounts: [...p.premiseCounts],
+          instanceConnectives: [...p.instanceConnectives],
+          instanceSymbols: [...p.instanceSymbols]
+        });
+        syncUrl();
+        render();
+      };
+      presetToggles.appendChild(btn);
+      presetBtns.push(btn);
+    }
+    renderPresetButtons = () => {
+      const active2 = matchPreset(config);
+      for (let i90 = 0; i90 < presetBtns.length; i90 += 1) {
+        const btn = presetBtns[i90];
+        if (btn !== void 0)
+          btn.className = "button" + (active2 === i90 ? " active" : "");
+      }
+    };
+    renderPresetButtons();
+    presetSection.appendChild(presetToggles);
+    settings.insertBefore(presetSection, ruleSection);
+    const buttons = document.createElement("div");
+    buttons.className = "config-buttons";
+    const backBtn = document.createElement("div");
+    backBtn.className = "button";
+    backBtn.textContent = t("back");
+    backBtn.onclick = () => navigate2("menu");
+    buttons.appendChild(backBtn);
+    const startBtn = document.createElement("div");
+    startBtn.className = "button";
+    startBtn.textContent = t("start");
+    startBtn.onclick = () => onStart(config);
+    buttons.appendChild(startBtn);
+    settings.insertBefore(buttons, ruleSection);
+    const premisesTopSection = document.createElement("div");
+    premisesTopSection.className = "config-section";
+    const premisesTitle = document.createElement("div");
+    premisesTitle.className = "config-section-title";
+    premisesTitle.textContent = t("premises");
+    premisesTopSection.appendChild(premisesTitle);
+    const premisesToggles = document.createElement("div");
+    premisesToggles.className = "config-toggles";
+    for (const n of ALL_PREMISE_COUNTS) {
+      const btn = createToggle(
+        premiseCountShape(n),
+        false,
+        String(n),
+        () => config.premiseCounts.includes(n),
+        () => {
+          const idx = config.premiseCounts.indexOf(n);
+          if (idx === -1) config.premiseCounts.push(n);
+          else config.premiseCounts.splice(idx, 1);
+        }
+      );
+      btn.classList.add("toggle-large");
+      premisesToggles.appendChild(btn);
+    }
+    premisesTopSection.appendChild(premisesToggles);
+    settings.insertBefore(premisesTopSection, ruleSection);
+    const instSection = document.createElement("div");
+    instSection.className = "config-section";
+    const instTitle = document.createElement("div");
+    instTitle.className = "config-section-title";
+    instTitle.textContent = t("instantiationSettings");
+    instSection.appendChild(instTitle);
+    const instSymbolSection = createSection(t("symbols"));
+    const instSymbolToggles = document.createElement("div");
+    instSymbolToggles.className = "config-toggles";
+    for (const s of ALL_INSTANCE_SYMBOLS) {
+      instSymbolToggles.appendChild(
+        createToggle(
+          renderAtom(s),
+          true,
+          s,
+          () => config.instanceSymbols.includes(s),
+          () => toggle(config.instanceSymbols, s)
+        )
+      );
+    }
+    instSymbolSection.appendChild(instSymbolToggles);
+    instSection.appendChild(instSymbolSection);
+    const instConnLabel = {
+      negation: "\xAC",
+      implication: "\u2192",
+      conjunction: "\u2227",
+      disjunction: "\u2228",
+      falsum: "\u22A5",
+      verum: "\u22A4"
+    };
+    const instConnSection = createSection(t("connectives"));
+    const instConnToggles = document.createElement("div");
+    instConnToggles.className = "config-toggles";
+    for (const c of ALL_CONNECTIVE_TYPES) {
+      instConnToggles.appendChild(
+        createToggle(
+          instConnLabel[c] ?? c,
+          false,
+          c,
+          () => config.instanceConnectives.includes(c),
+          () => toggle(config.instanceConnectives, c)
+        )
+      );
+    }
+    instConnSection.appendChild(instConnToggles);
+    instSection.appendChild(instConnSection);
+    const instSizeSection = createSection(t("size"));
+    instSizeSection.appendChild(
+      createRow(
+        t("size"),
+        createNumberInput(config.instanceFormulaSize, (v2) => {
+          config.instanceFormulaSize = v2;
+        })
+      )
+    );
+    instSizeSection.appendChild(
+      createRow(
+        t("sequenceSize"),
+        createNumberInput(
+          config.instanceSequenceSize,
+          (v2) => {
+            config.instanceSequenceSize = v2;
+          },
+          0,
+          6
+        )
+      )
+    );
+    instSection.appendChild(instSizeSection);
+    settings.appendChild(instSection);
+    columns.appendChild(settings);
+    const previewCol = document.createElement("div");
+    previewCol.className = "config-preview";
+    const previewTitle = document.createElement("div");
+    previewTitle.className = "config-section-title";
+    previewTitle.textContent = t("preview");
+    previewCol.appendChild(previewTitle);
+    const previewCards = document.createElement("div");
+    previewCards.className = "preview-rows";
+    previewCol.appendChild(previewCards);
+    renderPreview = () => {
+      previewCards.innerHTML = "";
+      const schemas = generatePreviewSchemas(config, 6);
+      for (const schema of schemas) {
+        const row = document.createElement("div");
+        row.className = "preview-row";
+        const schemaCard = document.createElement("pre");
+        schemaCard.className = "quiz-card rule hint";
+        schemaCard.innerHTML = '<span class="rule-label long">' + fromSchemaRule(schema, false) + '</span><span class="rule-label short">' + fromSchemaRule(schema, false) + "</span>";
+        row.appendChild(schemaCard);
+        for (let i90 = 0; i90 < 1; i90 += 1) {
+          const instCard = document.createElement("pre");
+          instCard.className = "quiz-card rule";
+          const text = fromInstanceRule(
+            schema,
+            config.instanceFormulaSize,
+            config.instanceSequenceSize,
+            config.instanceConnectives,
+            config.instanceSymbols
+          );
+          instCard.textContent = text;
+          row.appendChild(instCard);
+        }
+        previewCards.appendChild(row);
+      }
+    };
+    renderPreview();
+    columns.appendChild(previewCol);
+    layout.appendChild(columns);
+    container.appendChild(layout);
+  };
+  render();
+  return { cleanup: () => {
+  }, rerender: render };
+};
+
+// src/web/match-intro.ts
+var mountMatchIntro = (container, navigate2) => {
+  const render = () => {
+    container.innerHTML = "";
+    const panel = document.createElement("div");
+    panel.setAttribute("class", "menu");
+    panel.appendChild(createLangSwitcher());
+    const title = document.createElement("div");
+    title.setAttribute("class", "menu-title");
+    title.textContent = t("quiz");
+    panel.appendChild(title);
+    const modes = document.createElement("div");
+    modes.setAttribute("class", "menu-modes");
+    const startBtn = document.createElement("div");
+    startBtn.setAttribute("class", "button menu-mode");
+    startBtn.textContent = t("start");
+    startBtn.onclick = () => navigate2("match-curated");
+    modes.appendChild(startBtn);
+    const customBtn = document.createElement("div");
+    customBtn.setAttribute("class", "button menu-mode");
+    customBtn.textContent = t("custom");
+    customBtn.onclick = () => navigate2("match-config");
+    modes.appendChild(customBtn);
+    panel.appendChild(modes);
+    container.appendChild(panel);
+  };
+  render();
+  return { cleanup: () => {
+  }, rerender: render };
+};
+
+// src/web/match-curated.ts
+var TOTAL_ROUNDS = 100;
+var BLOCK_SIZE = 10;
+var ADVANCE_THRESHOLD = 8;
+var STAY_THRESHOLD = 5;
+var MAX_SCORE = 550;
+var AUTO_ZOOM_MIN2 = 0.8;
+var AUTO_ZOOM_MAX3 = 1.2;
+var AUTO_ZOOM_PAD3 = 0.9;
+var newSession = () => ({
+  roundsPlayed: 0,
+  currentPreset: 0,
+  correctInBlock: 0,
+  roundResults: [],
+  phase: "playing"
+});
+var advancePreset = (current2, correct) => {
+  if (correct >= ADVANCE_THRESHOLD)
+    return Math.min(PRESETS.length - 1, current2 + 1);
+  if (correct >= STAY_THRESHOLD) return current2;
+  return Math.max(0, current2 - 1);
+};
+var totalScore = (results) => results.reduce((sum, r) => sum + (r.correct ? r.preset + 1 : 0), 0);
+var renderQuestionTree2 = (instance, label) => {
+  const node = document.createElement("div");
+  node.setAttribute("class", "tree-node");
+  const premisesEl = document.createElement("div");
+  premisesEl.setAttribute("class", "tree-premises");
+  for (const p of instance.premises) {
+    const pNode = document.createElement("div");
+    pNode.setAttribute("class", "tree-node");
+    const pSeq = document.createElement("div");
+    pSeq.setAttribute("class", "tree-sequent");
+    pSeq.innerHTML = html(
+      fromSequent(sequent(p.antecedent, p.succedent))(basic)
+    );
+    pNode.appendChild(pSeq);
+    premisesEl.appendChild(pNode);
+  }
+  node.appendChild(premisesEl);
+  const inference = document.createElement("div");
+  inference.setAttribute("class", "tree-inference");
+  if (label !== null) {
+    const labelEl = document.createElement("div");
+    labelEl.setAttribute("class", "tree-rule-label");
+    labelEl.innerHTML = html(printString("(" + label + ")")(basic));
+    inference.appendChild(labelEl);
+  }
+  node.appendChild(inference);
+  const concSeq = document.createElement("div");
+  concSeq.setAttribute("class", "tree-sequent");
+  concSeq.innerHTML = html(
+    fromSequent(
+      sequent(instance.conclusion.antecedent, instance.conclusion.succedent)
+    )(basic)
+  );
+  node.appendChild(concSeq);
+  return node;
+};
+var newQuestion = (presetIndex) => {
+  const config = PRESETS[presetIndex];
+  if (config === void 0) return null;
+  const q = generateQuestion(config);
+  if (q === null) return null;
+  return { ...q, guessIndex: null };
+};
+var mountMatchCurated = (container, navigate2) => {
+  let session2 = newSession();
+  let question = newQuestion(session2.currentPreset);
+  let zoom = 1;
+  let pendingAutoZoom = true;
+  let regenerateTimer = null;
+  let pausePopupOpen = false;
+  const render = () => {
+    if (regenerateTimer !== null) {
+      clearTimeout(regenerateTimer);
+      regenerateTimer = null;
+    }
+    container.innerHTML = "";
+    if (session2.phase === "done") {
+      renderSummary();
+    } else {
+      renderGame();
+    }
+  };
+  const renderSummary = () => {
+    const panel = document.createElement("div");
+    panel.setAttribute("class", "menu");
+    const title = document.createElement("div");
+    title.setAttribute("class", "menu-title");
+    title.textContent = t("matchDone");
+    panel.appendChild(title);
+    const info = document.createElement("div");
+    info.setAttribute("class", "menu-modes");
+    const score = totalScore(session2.roundResults);
+    const scoreEl = document.createElement("div");
+    scoreEl.textContent = t("matchScore").replace("{score}", String(score)).replace("{max}", String(MAX_SCORE));
+    info.appendChild(scoreEl);
+    const presetEl = document.createElement("div");
+    presetEl.textContent = t("matchFinalPreset").replace(
+      "{preset}",
+      String(session2.currentPreset)
+    );
+    info.appendChild(presetEl);
+    panel.appendChild(info);
+    const btns = document.createElement("div");
+    btns.setAttribute("class", "menu-modes");
+    const again = document.createElement("div");
+    again.setAttribute("class", "button menu-mode");
+    again.textContent = t("playAgain");
+    again.onclick = () => {
+      session2 = newSession();
+      question = newQuestion(session2.currentPreset);
+      zoom = 1;
+      pendingAutoZoom = true;
+      render();
+    };
+    btns.appendChild(again);
+    const exit = document.createElement("div");
+    exit.setAttribute("class", "button menu-mode");
+    exit.textContent = t("exitToMainMenu");
+    exit.onclick = () => navigate2("menu");
+    btns.appendChild(exit);
+    panel.appendChild(btns);
+    container.appendChild(panel);
+  };
+  const renderGame = () => {
+    const q = question;
+    if (q !== null) {
+      const answer = q.schemas[q.answerIndex];
+      if (answer !== void 0) {
+        const questionArea = document.createElement("div");
+        questionArea.setAttribute("class", "quiz-question");
+        questionArea.style.setProperty("--tree-zoom", String(zoom));
+        const treeEl = renderQuestionTree2(
+          q.instance,
+          q.guessIndex !== null ? answer.name : "\xA0?\xA0"
+        );
+        questionArea.appendChild(treeEl);
+        container.appendChild(questionArea);
+        requestAnimationFrame(() => {
+          layoutTree(treeEl, { skipActiveScroll: true });
+          if (pendingAutoZoom) {
+            pendingAutoZoom = false;
+            const premiseSequents = Array.from(
+              treeEl.querySelectorAll(
+                ":scope > .tree-premises > .tree-node > .tree-sequent"
+              )
+            );
+            const conclusionSequent = treeEl.querySelector(
+              ":scope > .tree-sequent"
+            );
+            const sequents = [
+              ...premiseSequents,
+              ...conclusionSequent ? [conclusionSequent] : []
+            ];
+            const widest = sequents.reduce(
+              (max, s) => max === null || s.getBoundingClientRect().width > max.getBoundingClientRect().width ? s : max,
+              null
+            );
+            const areaRect = questionArea.getBoundingClientRect();
+            const areaStyle = getComputedStyle(questionArea);
+            const availW = areaRect.width - parseFloat(areaStyle.paddingLeft) - parseFloat(areaStyle.paddingRight);
+            if (widest && widest.getBoundingClientRect().width > 0 && availW > 0) {
+              const target = Math.max(
+                AUTO_ZOOM_MIN2,
+                Math.min(
+                  AUTO_ZOOM_MAX3,
+                  zoom * availW * AUTO_ZOOM_PAD3 / widest.getBoundingClientRect().width
+                )
+              );
+              if (Math.abs(target - zoom) > 0.01) {
+                zoom = target;
+                questionArea.style.setProperty("--tree-zoom", String(zoom));
+                layoutTree(treeEl, { skipActiveScroll: true });
+              }
+            }
+          }
+          requestAnimationFrame(() => {
+            const treeWidth = treeEl.getBoundingClientRect().width;
+            const areaWidth = questionArea.getBoundingClientRect().width;
+            questionArea.scrollLeft = (treeWidth - areaWidth) / 2;
+          });
+        });
+      }
+    }
+    const panel = document.createElement("div");
+    panel.setAttribute("class", "quiz-panel");
+    const menuBtn = document.createElement("div");
+    menuBtn.setAttribute("class", "button quiz-menu-btn");
+    menuBtn.textContent = t("menu");
+    menuBtn.onclick = () => {
+      pausePopupOpen = true;
+      render();
+    };
+    panel.appendChild(menuBtn);
+    const progress = document.createElement("div");
+    progress.setAttribute("class", "curated-progress");
+    progress.textContent = String(session2.roundsPlayed + 1) + " / " + String(TOTAL_ROUNDS);
+    panel.appendChild(progress);
+    if (q === null) {
+      const msg = document.createElement("div");
+      msg.textContent = "No question available.";
+      panel.appendChild(msg);
+      container.appendChild(panel);
+      return;
+    }
+    const cardsArea = document.createElement("div");
+    cardsArea.setAttribute("class", "quiz-cards");
+    for (let i90 = 0; i90 < q.schemas.length; i90 += 1) {
+      const schema = q.schemas[i90];
+      if (schema === void 0) continue;
+      const card = document.createElement("pre");
+      let cls = "quiz-card rule button";
+      if (q.guessIndex !== null) {
+        if (i90 === q.answerIndex) cls += " quiz-card-correct";
+        else if (i90 === q.guessIndex) cls += " quiz-card-wrong";
+        else cls += " disabled";
+      }
+      card.setAttribute("class", cls);
+      card.innerHTML = '<span class="rule-label long">' + fromSchemaRule(schema, true) + '</span><span class="rule-label short">' + fromSchemaRule(schema, false) + "</span>";
+      if (q.guessIndex === null) {
+        const idx = i90;
+        card.onclick = () => guess(idx);
+      }
+      cardsArea.appendChild(card);
+    }
+    panel.appendChild(cardsArea);
+    container.appendChild(panel);
+    if (pausePopupOpen) {
+      const resume = () => {
+        pausePopupOpen = false;
+        render();
+      };
+      const reset3 = () => {
+        pausePopupOpen = false;
+        session2 = newSession();
+        question = newQuestion(session2.currentPreset);
+        zoom = 1;
+        pendingAutoZoom = true;
+        render();
+      };
+      const exitToMenu = () => {
+        pausePopupOpen = false;
+        navigate2("menu");
+      };
+      const customChallenge = () => {
+        pausePopupOpen = false;
+        navigate2("match-config");
+      };
+      container.appendChild(
+        createPausePopup(
+          resume,
+          exitToMenu,
+          reset3,
+          false,
+          void 0,
+          void 0,
+          customChallenge
+        )
+      );
+    }
+  };
+  const guess = (idx) => {
+    if (question === null || question.guessIndex !== null) return;
+    const correct = idx === question.answerIndex;
+    question = { ...question, guessIndex: idx };
+    render();
+    regenerateTimer = setTimeout(() => {
+      session2.roundResults.push({ preset: session2.currentPreset, correct });
+      session2.roundsPlayed += 1;
+      session2.correctInBlock += correct ? 1 : 0;
+      if (session2.roundsPlayed % BLOCK_SIZE === 0) {
+        session2.currentPreset = advancePreset(
+          session2.currentPreset,
+          session2.correctInBlock
+        );
+        session2.correctInBlock = 0;
+      }
+      if (session2.roundsPlayed === TOTAL_ROUNDS) {
+        session2.phase = "done";
+        question = null;
+        render();
+        return;
+      }
+      question = newQuestion(session2.currentPreset);
+      pendingAutoZoom = true;
+      render();
+    }, 1500);
+  };
+  render();
+  const handleKey = (ev) => {
+    if (ev.ctrlKey || ev.metaKey || ev.altKey) return;
+    if (session2.phase === "done") return;
+    const action = qwertyKeyMap[ev.code];
+    if (action === "menu") {
+      pausePopupOpen = !pausePopupOpen;
+      render();
+      return;
+    }
+    if (pausePopupOpen) {
+      if (action === "undo") {
+        pausePopupOpen = false;
+        render();
+      } else if (action === "reset") {
+        pausePopupOpen = false;
+        session2 = newSession();
+        question = newQuestion(session2.currentPreset);
+        zoom = 1;
+        pendingAutoZoom = true;
+        render();
+      } else if (action === "exit") {
+        pausePopupOpen = false;
+        navigate2("menu");
+      }
+      return;
+    }
+    const digitMatch = ev.code.match(/^Digit([1-4])$/);
+    if (digitMatch && question !== null && question.guessIndex === null) {
+      const idxStr = digitMatch[1];
+      if (idxStr === void 0) return;
+      const idx = parseInt(idxStr) - 1;
+      if (idx < question.schemas.length) {
+        guess(idx);
+      }
+    }
+  };
+  document.addEventListener("keydown", handleKey);
+  return {
+    cleanup: () => {
+      document.removeEventListener("keydown", handleKey);
+      if (regenerateTimer !== null) {
+        clearTimeout(regenerateTimer);
+        regenerateTimer = null;
+      }
+    },
+    rerender: render
+  };
+};
+
+// src/web/system.ts
+var mountSystem = (container, _navigate) => {
+  const render = () => {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    container.innerHTML = "";
+    const panel = document.createElement("div");
+    panel.setAttribute("class", "system");
+    if (id != null && isHelpSystemId(id)) {
+      const back = document.createElement("a");
+      back.setAttribute("class", "button system-back");
+      back.setAttribute("href", "?mode=system");
+      back.innerHTML = t("backToSystems");
+      back.onclick = (e) => {
+        e.preventDefault();
+        history.pushState({ screen: "system" }, "", "?mode=system");
+        render();
+      };
+      panel.appendChild(back);
+      const pre = document.createElement("pre");
+      pre.setAttribute("class", "system-doc");
+      pre.textContent = renderSystemHelp(id);
+      panel.appendChild(pre);
+    } else {
+      const title = document.createElement("div");
+      title.setAttribute("class", "system-title");
+      title.innerHTML = t("systems");
+      panel.appendChild(title);
+      const list = document.createElement("div");
+      list.setAttribute("class", "system-list");
+      for (const sys of Object.values(helpSystems)) {
+        const link = document.createElement("a");
+        link.setAttribute("class", "button system-item");
+        link.setAttribute("href", `?mode=system&id=${sys.id}`);
+        link.innerHTML = sys.name;
+        link.onclick = (e) => {
+          e.preventDefault();
+          history.pushState(
+            { screen: "system" },
+            "",
+            `?mode=system&id=${sys.id}`
+          );
+          render();
+        };
+        list.appendChild(link);
+      }
+      panel.appendChild(list);
+    }
+    container.appendChild(panel);
+  };
+  render();
+  return { cleanup: () => {
+  }, rerender: render };
+};
+
+// src/random/config.ts
+var defaultRandomConfig = () => ({
+  size: 10,
+  connectives: {
+    negation: 1,
+    implication: 3,
+    conjunction: 3,
+    disjunction: 3
+  },
+  symbols: {
+    p: 6,
+    q: 5,
+    r: 5,
+    s: 2,
+    u: 1,
+    v: 1,
+    falsum: 1,
+    verum: 1
+  },
+  targetNonStructural: 10,
+  bypassPercent: 0
+});
+
+// src/web/challenge-protocol.ts
+var serializeConfig = (config) => config;
+
+// src/web/random-config.ts
+var pickNumber = (params, key, fallback) => {
+  const raw2 = params.get(key);
+  if (raw2 === null || raw2 === "") return fallback;
+  const value = parseFloat(raw2);
+  return Number.isFinite(value) ? value : fallback;
+};
+var atomKeys = [
+  "p",
+  "q",
+  "r",
+  "s",
+  "u",
+  "v"
+];
+var parseConfigFromParams = (params) => {
+  const defaults = defaultRandomConfig();
+  const symbolsParam = params.get("symbols");
+  const connectivesParam = params.get("connectives");
+  const symbols = { ...defaults.symbols };
+  if (symbolsParam !== null) {
+    for (const key of atomKeys) {
+      symbols[key] = symbolsParam.includes(key) ? defaults.symbols[key] : 0;
+    }
+  }
+  if (connectivesParam !== null) {
+    symbols.falsum = connectivesParam.includes("f") ? defaults.symbols.falsum : 0;
+    symbols.verum = connectivesParam.includes("v") ? defaults.symbols.verum : 0;
+  }
+  const connectives2 = { ...defaults.connectives };
+  if (connectivesParam !== null) {
+    connectives2.implication = connectivesParam.includes("i") ? defaults.connectives.implication : 0;
+    connectives2.conjunction = connectivesParam.includes("c") ? defaults.connectives.conjunction : 0;
+    connectives2.disjunction = connectivesParam.includes("d") ? defaults.connectives.disjunction : 0;
+    connectives2.negation = connectivesParam.includes("n") ? defaults.connectives.negation : 0;
+  }
+  return {
+    size: pickNumber(params, "formula_size", defaults.size),
+    targetNonStructural: pickNumber(
+      params,
+      "proof_size",
+      defaults.targetNonStructural
+    ),
+    bypassPercent: pickNumber(params, "chaoticity", defaults.bypassPercent),
+    connectives: connectives2,
+    symbols
+  };
+};
+var setConfigParams = (config, params) => {
+  const symbols = atomKeys.filter((k) => config.symbols[k] > 0).join("");
+  const connectives2 = [
+    config.connectives.implication > 0 ? "i" : "",
+    config.connectives.conjunction > 0 ? "c" : "",
+    config.connectives.disjunction > 0 ? "d" : "",
+    config.connectives.negation > 0 ? "n" : "",
+    config.symbols.falsum > 0 ? "f" : "",
+    config.symbols.verum > 0 ? "v" : ""
+  ].join("");
+  params.set("symbols", symbols);
+  params.set("connectives", connectives2);
+  params.set("formula_size", String(config.size));
+  params.set(
+    "proof_size",
+    config.targetNonStructural === Infinity ? "" : String(config.targetNonStructural)
+  );
+  params.set("chaoticity", String(config.bypassPercent));
+};
+var TARGET_COUNT = 10;
+var entryDistance = (nonStructural, config) => {
+  const diff = nonStructural - config.targetNonStructural;
+  if (diff === 0) return 0;
+  return diff > 0 ? diff * 2 - 1 : -diff * 2;
+};
+var insertSorted = (entries2, entry) => {
+  const result = [...entries2];
+  const idx = result.findIndex((e) => e.distance > entry.distance);
+  if (idx === -1) {
+    result.push(entry);
+  } else {
+    result.splice(idx, 0, entry);
+  }
+  return result.slice(0, TARGET_COUNT);
+};
+var isDone = (entries2) => entries2.length >= TARGET_COUNT && entries2.every((e) => e.distance === 0);
+var renderAtom2 = (name4) => html(fromAtom(atom(name4))(basic));
+var renderFormula = (p) => {
+  const segments = fromProp(p)(basic);
+  return html(segments);
+};
+var timeoutForBuffer = (bufferSize) => {
+  if (bufferSize === 0) return 3e4;
+  if (bufferSize < 5) return 1e4;
+  return 2e3;
+};
+var createPreviewWorker = (config, onResult) => {
+  const worker = new Worker("lk.w.js");
+  worker.onmessage = (e) => {
+    onResult(e.data);
+  };
+  const send = (msg) => {
+    worker.postMessage(msg);
+  };
+  const workerConfig = () => ({
+    ...config,
+    bypassPercent: 0,
+    targetNonStructural: Infinity
+  });
+  send({ type: "configure", config: serializeConfig(workerConfig()) });
+  send({ type: "timeout", ms: timeoutForBuffer(0) });
+  send({ type: "resume" });
+  return {
+    configure: (newConfig) => {
+      config = newConfig;
+      send({ type: "pause" });
+      send({
+        type: "configure",
+        config: serializeConfig(workerConfig())
+      });
+      send({ type: "timeout", ms: timeoutForBuffer(0) });
+      send({ type: "resume" });
+    },
+    updateTimeout: (bufferSize) => {
+      send({ type: "timeout", ms: timeoutForBuffer(bufferSize) });
+    },
+    terminate: () => {
+      worker.terminate();
+    }
+  };
+};
+var renderPreviewList = (entries2) => {
+  const list = document.querySelector(".config-preview-list");
+  if (!list) return;
+  list.innerHTML = "";
+  for (const entry of entries2) {
+    const item = document.createElement("div");
+    item.className = "config-preview-item" + (entry.distance > 0 ? " approximate" : "");
+    const count = document.createElement("span");
+    count.className = "config-preview-count";
+    count.textContent = String(entry.nonStructural);
+    item.appendChild(count);
+    const formula = document.createElement("span");
+    formula.innerHTML = renderFormula(entry.formula);
+    item.appendChild(formula);
+    list.appendChild(item);
+  }
+};
+var createNumberInput2 = (value, onChange, min = 0, max, step = 1, placeholder) => {
+  const input = document.createElement("input");
+  input.type = "number";
+  input.className = "config-input";
+  input.min = String(min);
+  if (max !== void 0) input.max = String(max);
+  input.step = String(step);
+  if (value === Infinity) {
+    input.value = "";
+    input.placeholder = placeholder ?? "";
+  } else {
+    input.value = String(value);
+  }
+  input.onchange = () => {
+    const parsed = parseFloat(input.value);
+    if (input.value === "") {
+      onChange(Infinity);
+    } else if (!isNaN(parsed)) {
+      onChange(parsed);
+    }
+  };
+  return input;
+};
+var createRow2 = (label, input) => {
+  const row = document.createElement("div");
+  row.className = "config-row";
+  const labelEl = document.createElement("label");
+  labelEl.className = "config-label";
+  labelEl.textContent = label;
+  row.appendChild(labelEl);
+  row.appendChild(input);
+  return row;
+};
+var createSection2 = (title) => {
+  const section = document.createElement("div");
+  section.className = "config-section";
+  const heading = document.createElement("div");
+  heading.className = "config-section-title";
+  heading.textContent = title;
+  section.appendChild(heading);
+  return section;
+};
+var mountRandomConfig = (container, navigate2, onStart) => {
+  const config = parseConfigFromParams(
+    new URLSearchParams(window.location.search)
+  );
+  const syncUrl2 = () => {
+    const params = new URLSearchParams(window.location.search);
+    setConfigParams(config, params);
+    history.replaceState(history.state, "", `?${params.toString()}`);
+  };
+  let entries2 = [];
+  let totalFormulasTried = 0;
+  let totalTautologiesFound = 0;
+  let totalSolved = 0;
+  let searchStartTime = Date.now();
+  let lastWorkerUpdate = Date.now();
+  let clockInterval;
+  const updateStats = () => {
+    const el = document.querySelector(".config-stats");
+    if (!el) return;
+    const now = Date.now();
+    const elapsed = (now - searchStartTime) / 1e3;
+    const rate = elapsed > 0 ? totalFormulasTried / elapsed : 0;
+    const sinceUpdate = ((now - lastWorkerUpdate) / 1e3).toFixed(1);
+    el.textContent = formatStats({
+      formulas: totalFormulasTried,
+      rate: rate.toFixed(1),
+      tautologies: totalTautologiesFound,
+      solved: totalSolved,
+      sinceUpdate
+    });
+  };
+  const startClock = () => {
+    stopClock();
+    clockInterval = setInterval(updateStats, 200);
+  };
+  const stopClock = () => {
+    if (clockInterval !== void 0) {
+      clearInterval(clockInterval);
+      clockInterval = void 0;
+    }
+  };
+  const handleResult = (msg) => {
+    lastWorkerUpdate = Date.now();
+    if (msg.type === "stats") {
+      totalFormulasTried += msg.formulasTried;
+      totalTautologiesFound += msg.tautologiesFound;
+      totalSolved += msg.solved;
+      updateStats();
+      return;
+    }
+    if (msg.type === "challenge") {
+      totalFormulasTried += msg.result.formulasTried;
+      updateStats();
+      if (isDone(entries2)) return;
+      const { challenge: challenge2, nonStructuralCount } = msg.result;
+      const formula = challenge2.goal.succedent[0];
+      if (formula === void 0) return;
+      const distance = entryDistance(nonStructuralCount, config);
+      const entry = {
+        formula,
+        nonStructural: nonStructuralCount,
+        distance
+      };
+      entries2 = insertSorted(entries2, entry);
+      renderPreviewList(entries2);
+      previewWorker?.updateTimeout(entries2.length);
+      if (isDone(entries2) && previewWorker) {
+        previewWorker.terminate();
+        previewWorker = void 0;
+        stopClock();
+      }
+    }
+  };
+  let previewWorker = createPreviewWorker(
+    config,
+    handleResult
+  );
+  const restartSearch = () => {
+    syncUrl2();
+    entries2 = [];
+    totalFormulasTried = 0;
+    totalTautologiesFound = 0;
+    totalSolved = 0;
+    searchStartTime = Date.now();
+    lastWorkerUpdate = Date.now();
+    if (previewWorker) previewWorker.terminate();
+    previewWorker = createPreviewWorker(config, handleResult);
+    renderPreviewList(entries2);
+    startClock();
+  };
+  const onInputChange = (setter) => (v2) => {
+    setter(v2);
+    restartSearch();
+  };
+  const rerender = () => {
+    container.innerHTML = "";
+    const layout = document.createElement("div");
+    layout.className = "random-config";
+    layout.appendChild(createLangSwitcher());
+    const title = document.createElement("div");
+    title.className = "config-title";
+    title.textContent = t("randomConfig");
+    layout.appendChild(title);
+    const columns = document.createElement("div");
+    columns.className = "config-columns";
+    const settings = document.createElement("div");
+    settings.className = "config-settings";
+    const shapeSection = createSection2(t("formulaShape"));
+    const connectiveHeading = document.createElement("div");
+    connectiveHeading.className = "config-subsection-title";
+    connectiveHeading.textContent = t("connectives");
+    shapeSection.appendChild(connectiveHeading);
+    const defaultConnectives = defaultRandomConfig().connectives;
+    const connectiveKeys = [
+      { key: "implication", label: t("implicationWeight"), symbol: "\u2192" },
+      { key: "conjunction", label: t("conjunctionWeight"), symbol: "\u2227" },
+      { key: "disjunction", label: t("disjunctionWeight"), symbol: "\u2228" },
+      { key: "negation", label: t("negationWeight"), symbol: "\xAC" }
+    ];
+    const createToggle2 = (content, useHtml, title2, isActive, onToggle) => {
+      const btn = document.createElement("pre");
+      btn.className = "button toggle";
+      if (useHtml) {
+        btn.innerHTML = content;
+      } else {
+        btn.textContent = content;
+      }
+      btn.title = title2;
+      const led = document.createElement("span");
+      led.className = "led" + (isActive() ? " on" : "");
+      btn.appendChild(led);
+      btn.onclick = () => {
+        onToggle();
+        led.className = "led" + (isActive() ? " on" : "");
+        restartSearch();
+      };
+      return btn;
+    };
+    const connectiveToggles = document.createElement("div");
+    connectiveToggles.className = "config-toggles";
+    for (const { key, label, symbol } of connectiveKeys) {
+      connectiveToggles.appendChild(
+        createToggle2(
+          symbol,
+          false,
+          label,
+          () => config.connectives[key] > 0,
+          () => {
+            config.connectives[key] = config.connectives[key] > 0 ? 0 : defaultConnectives[key];
+          }
+        )
+      );
+    }
+    const defaultSymbols = defaultRandomConfig().symbols;
+    const constantKeys = [
+      { key: "falsum", symbol: "\u22A5" },
+      { key: "verum", symbol: "\u22A4" }
+    ];
+    for (const { key, symbol } of constantKeys) {
+      connectiveToggles.appendChild(
+        createToggle2(
+          symbol,
+          false,
+          symbol,
+          () => config.symbols[key] > 0,
+          () => {
+            config.symbols[key] = config.symbols[key] > 0 ? 0 : defaultSymbols[key];
+          }
+        )
+      );
+    }
+    shapeSection.appendChild(connectiveToggles);
+    const symbolHeading = document.createElement("div");
+    symbolHeading.className = "config-subsection-title";
+    symbolHeading.textContent = t("symbols");
+    shapeSection.appendChild(symbolHeading);
+    const symbolKeys = [
+      "p",
+      "q",
+      "r",
+      "s",
+      "u",
+      "v"
+    ];
+    const symbolToggles = document.createElement("div");
+    symbolToggles.className = "config-toggles";
+    for (const key of symbolKeys) {
+      symbolToggles.appendChild(
+        createToggle2(
+          renderAtom2(key),
+          true,
+          key,
+          () => config.symbols[key] > 0,
+          () => {
+            config.symbols[key] = config.symbols[key] > 0 ? 0 : defaultSymbols[key];
+          }
+        )
+      );
+    }
+    shapeSection.appendChild(symbolToggles);
+    settings.appendChild(shapeSection);
+    const filterHeading = document.createElement("div");
+    filterHeading.className = "config-subsection-title";
+    filterHeading.textContent = t("filter");
+    shapeSection.appendChild(filterHeading);
+    shapeSection.appendChild(
+      createRow2(
+        t("size"),
+        createNumberInput2(
+          config.size,
+          onInputChange((v2) => {
+            config.size = v2;
+          }),
+          1,
+          30
+        )
+      )
+    );
+    shapeSection.appendChild(
+      createRow2(
+        t("targetNonStructural"),
+        createNumberInput2(
+          config.targetNonStructural,
+          onInputChange((v2) => {
+            config.targetNonStructural = v2;
+          }),
+          1
+        )
+      )
+    );
+    shapeSection.appendChild(
+      createRow2(
+        t("bypassPercent"),
+        createNumberInput2(
+          config.bypassPercent,
+          onInputChange((v2) => {
+            config.bypassPercent = v2;
+          }),
+          0,
+          100
+        )
+      )
+    );
+    const buttons = document.createElement("div");
+    buttons.className = "config-buttons";
+    const backBtn = document.createElement("div");
+    backBtn.className = "button";
+    backBtn.textContent = t("back");
+    backBtn.onclick = () => navigate2("menu");
+    buttons.appendChild(backBtn);
+    const startBtn = document.createElement("div");
+    startBtn.className = "button";
+    startBtn.textContent = t("start");
+    startBtn.onclick = () => onStart(config);
+    buttons.appendChild(startBtn);
+    settings.appendChild(buttons);
+    columns.appendChild(settings);
+    const preview = document.createElement("div");
+    preview.className = "config-preview";
+    const previewTitle = document.createElement("div");
+    previewTitle.className = "config-section-title";
+    previewTitle.textContent = t("preview");
+    preview.appendChild(previewTitle);
+    const stats = document.createElement("div");
+    stats.className = "config-stats";
+    preview.appendChild(stats);
+    const list = document.createElement("div");
+    list.className = "config-preview-list";
+    preview.appendChild(list);
+    columns.appendChild(preview);
+    layout.appendChild(columns);
+    container.appendChild(layout);
+    restartSearch();
+  };
+  rerender();
+  const cleanup = () => {
+    stopClock();
+    if (previewWorker) {
+      previewWorker.terminate();
+      previewWorker = void 0;
+    }
+  };
+  return { cleanup, rerender };
+};
+
 // src/web/challenge-pool.ts
 var POOL_TARGET = 5;
 var FALLBACK_SIZE = 5;
@@ -9809,7 +12025,8 @@ var pool = new ChallengePool();
 var session = new Session();
 var factory = {
   campaign: () => new Workspace(challenges),
-  random: () => new Workspace({ challenge: pool.take().challenge })
+  random: () => new Workspace({ challenge: pool.take().challenge }),
+  match: () => new Workspace(challenges)
 };
 var gen = repl(session, factory);
 gen.next("");
@@ -9827,7 +12044,7 @@ var navigate = (screen) => {
     setGazeModeActive(false);
     session.returnToMenu();
   }
-  if (includes(gameModes, screen)) {
+  if (includes(gameModes, screen) && screen !== "match") {
     enterMode(screen);
   }
   currentScreen = screen;
@@ -9848,6 +12065,17 @@ var navigate = (screen) => {
         "formula_size",
         "proof_size",
         "chaoticity"
+      ]) {
+        const val = currentParams.get(key);
+        if (val !== null) nextParams.set(key, val);
+      }
+    }
+    if (screen === "match" || screen === "match-config") {
+      for (const key of [
+        "qsymbols",
+        "qconnectives",
+        "qvariables",
+        "qsequences"
       ]) {
         const val = currentParams.get(key);
         if (val !== null) nextParams.set(key, val);
@@ -9876,6 +12104,32 @@ var mount = (screen) => {
       break;
     case "system":
       current = mountSystem(body, navigate);
+      break;
+    case "match": {
+      const qConfig = parseQuizConfigFromParams(
+        new URLSearchParams(window.location.search)
+      );
+      current = mountQuiz(body, navigate, qConfig);
+      break;
+    }
+    case "match-config":
+      current = mountQuizConfig(body, navigate, (config) => {
+        current.cleanup();
+        currentScreen = "match";
+        const params = new URLSearchParams();
+        const lang = new URLSearchParams(window.location.search).get("lang");
+        if (lang !== null) params.set("lang", lang);
+        params.set("mode", "match");
+        setQuizConfigParams(config, params);
+        history.pushState({ screen: "match" }, "", `?${params.toString()}`);
+        mount("match");
+      });
+      break;
+    case "match-intro":
+      current = mountMatchIntro(body, navigate);
+      break;
+    case "match-curated":
+      current = mountMatchCurated(body, navigate);
       break;
     case "random-config":
       current = mountRandomConfig(body, navigate, (config) => {
@@ -9935,6 +12189,18 @@ var init3 = () => {
   } else if (mode === "system") {
     currentScreen = "system";
     mount("system");
+  } else if (mode === "match") {
+    currentScreen = "match";
+    mount("match");
+  } else if (mode === "match-config") {
+    currentScreen = "match-config";
+    mount("match-config");
+  } else if (mode === "match-intro") {
+    currentScreen = "match-intro";
+    mount("match-intro");
+  } else if (mode === "match-curated") {
+    currentScreen = "match-curated";
+    mount("match-curated");
   } else if (params.get("level") !== null) {
     enterMode("campaign");
     currentScreen = "campaign";
@@ -9953,7 +12219,7 @@ window.addEventListener("popstate", (event) => {
     setGazeModeActive(false);
     session.returnToMenu();
   }
-  if (includes(gameModes, screen)) {
+  if (includes(gameModes, screen) && screen !== "match") {
     enterMode(screen);
   }
   currentScreen = screen;
