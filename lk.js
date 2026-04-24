@@ -6423,6 +6423,7 @@ var en = {
   back: "Back",
   preview: "Preview",
   score: "Score",
+  round: "Round",
   par: "Par",
   variables: "Variables",
   sequences: "Sequences",
@@ -6487,6 +6488,7 @@ var fi = {
   back: "Takaisin",
   preview: "Esikatselu",
   score: "Pisteet",
+  round: "Kierros",
   par: "Par",
   variables: "Muuttujat",
   sequences: "Jonot",
@@ -6551,6 +6553,7 @@ var es = {
   back: "Atr\xE1s",
   preview: "Vista previa",
   score: "Puntuaci\xF3n",
+  round: "Ronda",
   par: "Par",
   variables: "Variables",
   sequences: "Secuencias",
@@ -6615,6 +6618,7 @@ var cs = {
   back: "Zp\u011Bt",
   preview: "N\xE1hled",
   score: "Sk\xF3re",
+  round: "Kolo",
   par: "Par",
   variables: "Prom\u011Bnn\xE9",
   sequences: "Sekvence",
@@ -6679,6 +6683,7 @@ var pl = {
   back: "Powr\xF3t",
   preview: "Podgl\u0105d",
   score: "Wynik",
+  round: "Runda",
   par: "Par",
   variables: "Zmienne",
   sequences: "Sekwencje",
@@ -10054,12 +10059,18 @@ var renderQuestionTree = (instance, label) => {
 var newState = (config) => {
   const q = generateQuestion(config);
   if (q === null) return null;
-  return { ...q, guessIndex: null };
+  return {
+    ...q,
+    wrongIndices: /* @__PURE__ */ new Set(),
+    solved: false,
+    flaggedIndices: /* @__PURE__ */ new Set()
+  };
 };
 var mountQuiz = (container, navigate2, config) => {
   let state = newState(config);
   let zoom = 1;
   let pendingAutoZoom = true;
+  let cardEls = [];
   let regenerateTimer = null;
   let pausePopupOpen = false;
   const render = () => {
@@ -10076,7 +10087,7 @@ var mountQuiz = (container, navigate2, config) => {
       questionArea.style.setProperty("--tree-zoom", String(zoom));
       const treeEl = renderQuestionTree(
         instance,
-        state !== null && state.guessIndex !== null ? answer.name : "\xA0?\xA0"
+        state !== null && state.solved ? answer.name : "\xA0?\xA0"
       );
       questionArea.appendChild(treeEl);
       container.appendChild(questionArea);
@@ -10121,7 +10132,8 @@ var mountQuiz = (container, navigate2, config) => {
         requestAnimationFrame(() => {
           const treeWidth = treeEl.getBoundingClientRect().width;
           const areaWidth = questionArea.getBoundingClientRect().width;
-          questionArea.scrollLeft = (treeWidth - areaWidth) / 2;
+          const padLeft = parseFloat(getComputedStyle(questionArea).paddingLeft);
+          questionArea.scrollLeft = padLeft + (treeWidth - areaWidth) / 2;
         });
       });
     }
@@ -10175,36 +10187,109 @@ var mountQuiz = (container, navigate2, config) => {
     };
     zoomRow.appendChild(zoomIn);
     panel.appendChild(zoomRow);
+    cardEls = [];
     const cardsArea = document.createElement("div");
     cardsArea.setAttribute("class", "quiz-cards");
+    const flagsRow = state.solved ? null : document.createElement("div");
+    if (flagsRow !== null) flagsRow.setAttribute("class", "quiz-flags");
     for (let i90 = 0; i90 < state.schemas.length; i90 += 1) {
       const schema = state.schemas[i90];
       if (schema === void 0) continue;
+      const isWrong = state.wrongIndices.has(i90);
+      const flagged = state.flaggedIndices.has(i90);
       const card = document.createElement("pre");
       let cls = "quiz-card rule button";
-      if (state.guessIndex !== null) {
+      if (state.solved) {
         if (i90 === state.answerIndex) cls += " quiz-card-correct";
-        else if (i90 === state.guessIndex) cls += " quiz-card-wrong";
+        else if (isWrong) cls += " quiz-card-wrong";
         else cls += " disabled";
+      } else if (isWrong) {
+        cls += " quiz-card-wrong";
+      } else if (flagged) {
+        cls += " disabled";
       }
       card.setAttribute("class", cls);
-      card.innerHTML = '<span class="rule-label long">' + fromSchemaRule(schema, true) + '</span><span class="rule-label short">' + fromSchemaRule(schema, false) + "</span>";
-      if (state.guessIndex === null) {
+      card.innerHTML = '<span class="rule-label long">' + fromSchemaRule(schema, true) + '</span><span class="rule-label short">' + fromSchemaRule(schema, true) + "</span>";
+      const flagBtn = document.createElement("div");
+      flagBtn.setAttribute("class", "button toggle quiz-card-flag");
+      flagBtn.textContent = "\u{1F6A9}";
+      const led = document.createElement("span");
+      led.setAttribute("class", "led" + (flagged ? " on" : ""));
+      flagBtn.appendChild(led);
+      if (!state.solved && !isWrong && !flagged) {
         const idx = i90;
         card.onclick = () => {
-          if (state === null) return;
-          state = { ...state, guessIndex: idx };
-          render();
-          regenerateTimer = setTimeout(() => {
-            state = newState(config);
-            pendingAutoZoom = true;
+          if (state === null || state.solved) return;
+          if (state.wrongIndices.has(idx)) return;
+          if (idx === state.answerIndex) {
+            state = { ...state, solved: true };
             render();
-          }, 1500);
+            regenerateTimer = setTimeout(() => {
+              state = newState(config);
+              pendingAutoZoom = true;
+              render();
+            }, 1500);
+          } else {
+            state = {
+              ...state,
+              wrongIndices: /* @__PURE__ */ new Set([...state.wrongIndices, idx])
+            };
+            card.classList.add("quiz-card-wrong");
+            card.onclick = null;
+            flagBtn.classList.add("disabled");
+            flagBtn.onclick = null;
+          }
         };
       }
-      cardsArea.appendChild(card);
+      if (isWrong) {
+        flagBtn.classList.add("disabled");
+      } else {
+        flagBtn.onclick = () => {
+          if (state === null || state.solved) return;
+          if (state.flaggedIndices.has(i90)) {
+            state.flaggedIndices.delete(i90);
+            card.classList.remove("disabled");
+            const idx = i90;
+            card.onclick = () => {
+              if (state === null || state.solved) return;
+              if (state.wrongIndices.has(idx)) return;
+              if (idx === state.answerIndex) {
+                state = { ...state, solved: true };
+                render();
+                regenerateTimer = setTimeout(() => {
+                  state = newState(config);
+                  pendingAutoZoom = true;
+                  render();
+                }, 1500);
+              } else {
+                state = {
+                  ...state,
+                  wrongIndices: /* @__PURE__ */ new Set([...state.wrongIndices, idx])
+                };
+                card.classList.add("quiz-card-wrong");
+                card.onclick = null;
+                flagBtn.classList.add("disabled");
+                flagBtn.onclick = null;
+              }
+            };
+            led.classList.remove("on");
+          } else {
+            state.flaggedIndices.add(i90);
+            card.classList.add("disabled");
+            card.onclick = null;
+            led.classList.add("on");
+          }
+        };
+      }
+      cardEls[i90] = { card, flagBtn };
+      const slot = document.createElement("div");
+      slot.setAttribute("class", "quiz-card-slot");
+      slot.appendChild(card);
+      cardsArea.appendChild(slot);
+      if (flagsRow !== null) flagsRow.appendChild(flagBtn);
     }
     panel.appendChild(cardsArea);
+    if (flagsRow !== null) panel.appendChild(flagsRow);
     container.appendChild(panel);
     if (pausePopupOpen) {
       const resume = () => {
@@ -10241,18 +10326,32 @@ var mountQuiz = (container, navigate2, config) => {
   const handleKey = (ev) => {
     if (ev.ctrlKey || ev.metaKey || ev.altKey) return;
     const digitMatch = ev.code.match(/^Digit([1-4])$/);
-    if (digitMatch && !pausePopupOpen && state !== null && state.guessIndex === null) {
+    if (digitMatch && !pausePopupOpen && state !== null && !state.solved) {
       const idxStr = digitMatch[1];
       if (idxStr === void 0) return;
       const idx = parseInt(idxStr) - 1;
-      if (idx < state.schemas.length) {
-        state = { ...state, guessIndex: idx };
-        render();
-        regenerateTimer = setTimeout(() => {
-          state = newState(config);
-          pendingAutoZoom = true;
+      if (idx < state.schemas.length && !state.wrongIndices.has(idx) && !state.flaggedIndices.has(idx)) {
+        if (idx === state.answerIndex) {
+          state = { ...state, solved: true };
           render();
-        }, 1500);
+          regenerateTimer = setTimeout(() => {
+            state = newState(config);
+            pendingAutoZoom = true;
+            render();
+          }, 1500);
+        } else {
+          state = {
+            ...state,
+            wrongIndices: /* @__PURE__ */ new Set([...state.wrongIndices, idx])
+          };
+          const el = cardEls[idx];
+          if (el !== void 0) {
+            el.card.classList.add("quiz-card-wrong");
+            el.card.onclick = null;
+            el.flagBtn.classList.add("disabled");
+            el.flagBtn.onclick = null;
+          }
+        }
       }
       return;
     }
@@ -11014,7 +11113,8 @@ var TOTAL_ROUNDS = 100;
 var BLOCK_SIZE = 10;
 var ADVANCE_THRESHOLD = 8;
 var STAY_THRESHOLD = 5;
-var MAX_SCORE = 550;
+var CHOICE_COUNT = 4;
+var MAX_SCORE = 5500;
 var AUTO_ZOOM_MIN2 = 0.8;
 var AUTO_ZOOM_MAX3 = 1.2;
 var AUTO_ZOOM_PAD3 = 0.9;
@@ -11031,7 +11131,11 @@ var advancePreset = (current2, correct) => {
   if (correct >= STAY_THRESHOLD) return current2;
   return Math.max(0, current2 - 1);
 };
-var totalScore = (results) => results.reduce((sum, r) => sum + (r.correct ? r.preset + 1 : 0), 0);
+var scoreForRound = (preset, attempts) => {
+  if (attempts >= CHOICE_COUNT) return 0;
+  return Math.floor((preset + 1) * 10 / Math.pow(2, attempts - 1));
+};
+var totalScore = (results) => results.reduce((sum, r) => sum + scoreForRound(r.preset, r.attempts), 0);
 var renderQuestionTree2 = (instance, label) => {
   const node = document.createElement("div");
   node.setAttribute("class", "tree-node");
@@ -11073,13 +11177,19 @@ var newQuestion = (presetIndex) => {
   if (config === void 0) return null;
   const q = generateQuestion(config);
   if (q === null) return null;
-  return { ...q, guessIndex: null };
+  return {
+    ...q,
+    wrongIndices: /* @__PURE__ */ new Set(),
+    solved: false,
+    flaggedIndices: /* @__PURE__ */ new Set()
+  };
 };
 var mountMatchCurated = (container, navigate2) => {
   let session2 = newSession();
   let question = newQuestion(session2.currentPreset);
   let zoom = 1;
   let pendingAutoZoom = true;
+  let cardEls = [];
   let regenerateTimer = null;
   let pausePopupOpen = false;
   const render = () => {
@@ -11145,7 +11255,7 @@ var mountMatchCurated = (container, navigate2) => {
         questionArea.style.setProperty("--tree-zoom", String(zoom));
         const treeEl = renderQuestionTree2(
           q.instance,
-          q.guessIndex !== null ? answer.name : "\xA0?\xA0"
+          q.solved ? answer.name : " ? "
         );
         questionArea.appendChild(treeEl);
         container.appendChild(questionArea);
@@ -11190,7 +11300,10 @@ var mountMatchCurated = (container, navigate2) => {
           requestAnimationFrame(() => {
             const treeWidth = treeEl.getBoundingClientRect().width;
             const areaWidth = questionArea.getBoundingClientRect().width;
-            questionArea.scrollLeft = (treeWidth - areaWidth) / 2;
+            const padLeft = parseFloat(
+              getComputedStyle(questionArea).paddingLeft
+            );
+            questionArea.scrollLeft = padLeft + (treeWidth - areaWidth) / 2;
           });
         });
       }
@@ -11205,10 +11318,19 @@ var mountMatchCurated = (container, navigate2) => {
       render();
     };
     panel.appendChild(menuBtn);
-    const progress = document.createElement("div");
-    progress.setAttribute("class", "curated-progress");
-    progress.textContent = String(session2.roundsPlayed + 1) + " / " + String(TOTAL_ROUNDS);
-    panel.appendChild(progress);
+    const stats = document.createElement("div");
+    stats.setAttribute("class", "curated-stats");
+    const roundEl = document.createElement("div");
+    roundEl.textContent = t("round") + " " + String(session2.roundsPlayed + 1) + "/" + String(TOTAL_ROUNDS);
+    stats.appendChild(roundEl);
+    const levelEl = document.createElement("div");
+    levelEl.textContent = t("score") + " x" + String(session2.currentPreset + 1);
+    stats.appendChild(levelEl);
+    panel.appendChild(stats);
+    const scoreEl = document.createElement("div");
+    scoreEl.setAttribute("class", "curated-score");
+    scoreEl.textContent = String(totalScore(session2.roundResults));
+    panel.appendChild(scoreEl);
     if (q === null) {
       const msg = document.createElement("div");
       msg.textContent = "No question available.";
@@ -11216,27 +11338,67 @@ var mountMatchCurated = (container, navigate2) => {
       container.appendChild(panel);
       return;
     }
+    cardEls = [];
     const cardsArea = document.createElement("div");
     cardsArea.setAttribute("class", "quiz-cards");
+    const flagsRow = q.solved ? null : document.createElement("div");
+    if (flagsRow !== null) flagsRow.setAttribute("class", "quiz-flags");
     for (let i90 = 0; i90 < q.schemas.length; i90 += 1) {
       const schema = q.schemas[i90];
       if (schema === void 0) continue;
+      const isWrong = q.wrongIndices.has(i90);
+      const flagged = q.flaggedIndices.has(i90);
       const card = document.createElement("pre");
       let cls = "quiz-card rule button";
-      if (q.guessIndex !== null) {
+      if (q.solved) {
         if (i90 === q.answerIndex) cls += " quiz-card-correct";
-        else if (i90 === q.guessIndex) cls += " quiz-card-wrong";
+        else if (isWrong) cls += " quiz-card-wrong";
         else cls += " disabled";
+      } else if (isWrong) {
+        cls += " quiz-card-wrong";
+      } else if (flagged) {
+        cls += " disabled";
       }
       card.setAttribute("class", cls);
-      card.innerHTML = '<span class="rule-label long">' + fromSchemaRule(schema, true) + '</span><span class="rule-label short">' + fromSchemaRule(schema, false) + "</span>";
-      if (q.guessIndex === null) {
+      card.innerHTML = '<span class="rule-label long">' + fromSchemaRule(schema, true) + '</span><span class="rule-label short">' + fromSchemaRule(schema, true) + "</span>";
+      if (!q.solved && !isWrong && !flagged) {
         const idx = i90;
         card.onclick = () => guess(idx);
       }
-      cardsArea.appendChild(card);
+      const slot = document.createElement("div");
+      slot.setAttribute("class", "quiz-card-slot");
+      slot.appendChild(card);
+      cardsArea.appendChild(slot);
+      const flagBtn = document.createElement("div");
+      flagBtn.setAttribute("class", "button toggle quiz-card-flag");
+      flagBtn.textContent = "\u{1F6A9}";
+      const led = document.createElement("span");
+      led.setAttribute("class", "led" + (flagged ? " on" : ""));
+      flagBtn.appendChild(led);
+      if (isWrong) {
+        flagBtn.classList.add("disabled");
+      } else {
+        const idx = i90;
+        flagBtn.onclick = () => {
+          if (question === null || question.solved) return;
+          if (question.flaggedIndices.has(idx)) {
+            question.flaggedIndices.delete(idx);
+            card.classList.remove("disabled");
+            card.onclick = () => guess(idx);
+            led.classList.remove("on");
+          } else {
+            question.flaggedIndices.add(idx);
+            card.classList.add("disabled");
+            card.onclick = null;
+            led.classList.add("on");
+          }
+        };
+      }
+      cardEls[i90] = { card, flagBtn };
+      if (flagsRow !== null) flagsRow.appendChild(flagBtn);
     }
     panel.appendChild(cardsArea);
+    if (flagsRow !== null) panel.appendChild(flagsRow);
     container.appendChild(panel);
     if (pausePopupOpen) {
       const resume = () => {
@@ -11273,31 +11435,48 @@ var mountMatchCurated = (container, navigate2) => {
     }
   };
   const guess = (idx) => {
-    if (question === null || question.guessIndex !== null) return;
-    const correct = idx === question.answerIndex;
-    question = { ...question, guessIndex: idx };
-    render();
-    regenerateTimer = setTimeout(() => {
-      session2.roundResults.push({ preset: session2.currentPreset, correct });
-      session2.roundsPlayed += 1;
-      session2.correctInBlock += correct ? 1 : 0;
-      if (session2.roundsPlayed % BLOCK_SIZE === 0) {
-        session2.currentPreset = advancePreset(
-          session2.currentPreset,
-          session2.correctInBlock
-        );
-        session2.correctInBlock = 0;
-      }
-      if (session2.roundsPlayed === TOTAL_ROUNDS) {
-        session2.phase = "done";
-        question = null;
-        render();
-        return;
-      }
-      question = newQuestion(session2.currentPreset);
-      pendingAutoZoom = true;
+    if (question === null || question.solved) return;
+    if (question.wrongIndices.has(idx)) return;
+    if (idx === question.answerIndex) {
+      const firstTry = question.wrongIndices.size === 0;
+      const wrongCount = question.wrongIndices.size;
+      question = { ...question, solved: true };
       render();
-    }, 1500);
+      regenerateTimer = setTimeout(() => {
+        const attempts = wrongCount + 1;
+        session2.roundResults.push({ preset: session2.currentPreset, attempts });
+        session2.roundsPlayed += 1;
+        if (firstTry) session2.correctInBlock += 1;
+        if (session2.roundsPlayed % BLOCK_SIZE === 0) {
+          session2.currentPreset = advancePreset(
+            session2.currentPreset,
+            session2.correctInBlock
+          );
+          session2.correctInBlock = 0;
+        }
+        if (session2.roundsPlayed === TOTAL_ROUNDS) {
+          session2.phase = "done";
+          question = null;
+          render();
+          return;
+        }
+        question = newQuestion(session2.currentPreset);
+        pendingAutoZoom = true;
+        render();
+      }, 1500);
+    } else {
+      question = {
+        ...question,
+        wrongIndices: /* @__PURE__ */ new Set([...question.wrongIndices, idx])
+      };
+      const el = cardEls[idx];
+      if (el !== void 0) {
+        el.card.classList.add("quiz-card-wrong");
+        el.card.onclick = null;
+        el.flagBtn.classList.add("disabled");
+        el.flagBtn.onclick = null;
+      }
+    }
   };
   render();
   const handleKey = (ev) => {
@@ -11327,11 +11506,11 @@ var mountMatchCurated = (container, navigate2) => {
       return;
     }
     const digitMatch = ev.code.match(/^Digit([1-4])$/);
-    if (digitMatch && question !== null && question.guessIndex === null) {
+    if (digitMatch && question !== null && !question.solved) {
       const idxStr = digitMatch[1];
       if (idxStr === void 0) return;
       const idx = parseInt(idxStr) - 1;
-      if (idx < question.schemas.length) {
+      if (idx < question.schemas.length && !question.wrongIndices.has(idx) && !question.flaggedIndices.has(idx)) {
         guess(idx);
       }
     }
