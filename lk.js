@@ -6423,6 +6423,7 @@ var en = {
   back: "Back",
   preview: "Preview",
   score: "Score",
+  moves: "Moves",
   round: "Round",
   par: "Par",
   variables: "Variables",
@@ -6489,6 +6490,7 @@ var fi = {
   back: "Takaisin",
   preview: "Esikatselu",
   score: "Pisteet",
+  moves: "Siirrot",
   round: "Kierros",
   par: "Par",
   variables: "Muuttujat",
@@ -6555,6 +6557,7 @@ var es = {
   back: "Atr\xE1s",
   preview: "Vista previa",
   score: "Puntuaci\xF3n",
+  moves: "Movimientos",
   round: "Ronda",
   par: "Par",
   variables: "Variables",
@@ -6621,6 +6624,7 @@ var cs = {
   back: "Zp\u011Bt",
   preview: "N\xE1hled",
   score: "Sk\xF3re",
+  moves: "Tahy",
   round: "Kolo",
   par: "Par",
   variables: "Prom\u011Bnn\xE9",
@@ -6687,6 +6691,7 @@ var pl = {
   back: "Powr\xF3t",
   preview: "Podgl\u0105d",
   score: "Wynik",
+  moves: "Ruchy",
   round: "Runda",
   par: "Par",
   variables: "Zmienne",
@@ -7637,17 +7642,10 @@ var countRuleUsage = (d) => {
 };
 var formatHudCounts = (counts) => {
   const order = ["axiom", "structural", "logical", "meta"];
-  let lastNonZero = -1;
-  order.forEach((cat, i90) => {
-    if (counts[cat] > 0) lastNonZero = i90;
-  });
   const total = order.reduce((sum, cat) => sum + counts[cat], 0);
-  if (lastNonZero === -1) return "<b>0</b>";
-  const segments = order.slice(0, lastNonZero + 1).map((cat) => counts[cat]);
-  if (segments.length === 1) return `<b>${total}</b>`;
-  return `<b>${total}</b> <span class="breakdown">${segments.join("+")}</span>`;
+  return `<b>${total}</b>`;
 };
-var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
+var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu) => {
   const ls = workspace.applicableRules();
   const rules79 = workspace.availableRules();
   const solved = workspace.isSolved();
@@ -7737,10 +7735,34 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
       gazeHints
     )
   );
+  const rulesBtn = document.createElement("div");
+  rulesBtn.setAttribute("class", "button toggle bench-rules-btn");
+  rulesBtn.setAttribute("aria-label", t("rules"));
+  rulesBtn.textContent = "?";
+  rulesBtn.onclick = () => {
+    rulesVisible = !rulesVisible;
+    rerender();
+  };
+  const rulesLed = document.createElement("span");
+  rulesLed.setAttribute("class", "led" + (rulesVisible ? " on" : ""));
+  rulesBtn.appendChild(rulesLed);
+  const topbar = document.createElement("div");
+  topbar.setAttribute("class", "bench-topbar");
+  const topbarLeft = document.createElement("div");
+  topbarLeft.setAttribute("class", "bench-topbar-left");
+  if (onMenu !== void 0) {
+    const menuBtn = document.createElement("div");
+    menuBtn.setAttribute("class", "button quiz-menu-btn");
+    menuBtn.setAttribute("aria-label", t("menu"));
+    menuBtn.textContent = "\u22EE";
+    menuBtn.onclick = onMenu;
+    topbarLeft.appendChild(menuBtn);
+  }
+  topbar.appendChild(topbarLeft);
   const hud = document.createElement("div");
   hud.setAttribute("class", "hud" + (solved ? " solved" : ""));
   const hudCounts = formatHudCounts(countRuleUsage(focus2.derivation));
-  hud.innerHTML = solved ? t("score") + " " + hudCounts : hudCounts;
+  hud.innerHTML = solved ? t("moves") + " " + hudCounts : hudCounts;
   if (solved) {
     const solution89 = workspace.currentSolution();
     const par = document.createElement("div");
@@ -7748,7 +7770,14 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
     par.innerHTML = solution89 ? t("par") + " " + formatHudCounts(countRuleUsage(solution89)) : t("par") + " \u{1F480}";
     hud.appendChild(par);
   }
-  panel.appendChild(hud);
+  topbar.appendChild(hud);
+  const topbarRight = document.createElement("div");
+  topbarRight.setAttribute("class", "bench-topbar-right");
+  if (!solved) {
+    topbarRight.appendChild(rulesBtn);
+  }
+  topbar.appendChild(topbarRight);
+  panel.appendChild(topbar);
   const rulesSheet = document.createElement("div");
   const sheetMode = isGazeModeActive() ? "gaze" : "hot";
   rulesSheet.setAttribute("class", "rules-sheet " + sheetMode);
@@ -7908,19 +7937,6 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
     g.setAttribute("class", ["controls-group", ...cls].join(" "));
     return g;
   };
-  const rulesBtn = createButton(
-    t("rules"),
-    false,
-    () => {
-      rulesVisible = !rulesVisible;
-      rerender();
-    },
-    getActionHint("toggleRules")
-  );
-  rulesBtn.classList.add("toggle");
-  const rulesLed = document.createElement("span");
-  rulesLed.setAttribute("class", "led" + (rulesVisible ? " on" : ""));
-  rulesBtn.appendChild(rulesLed);
   const axiomBtn = createButton(
     t("axiom"),
     inactive || !keys(center).some((k) => ls.includes(k)),
@@ -7935,9 +7951,6 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
   gazeGroup.appendChild(gazeWeakeningBtn);
   gazeGroup.appendChild(gazeConnectiveBtn);
   gazeGroup.appendChild(gazeRightBtn);
-  const rulesGroup = makeGroup();
-  rulesGroup.setAttribute("class", "controls-group controls-rules");
-  rulesGroup.appendChild(rulesBtn);
   const axiomGroup = makeGroup();
   axiomGroup.setAttribute("class", "controls-group controls-axiom");
   axiomGroup.appendChild(axiomBtn);
@@ -7945,7 +7958,7 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
   zoomGroup.appendChild(zoomOut);
   zoomGroup.appendChild(zoomReset);
   zoomGroup.appendChild(zoomIn);
-  controlsEl.setAttribute("class", "controls-group");
+  controlsEl.setAttribute("class", "controls-group controls-undo");
   const centerCell = document.createElement("div");
   centerCell.setAttribute("class", "controls-center");
   const branchCount = branches(workspace.currentConjecture().derivation).length;
@@ -7973,7 +7986,6 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
   branchGroup.appendChild(nextBranchBtn);
   const rightCell = document.createElement("div");
   rightCell.setAttribute("class", "controls-right");
-  rightCell.appendChild(branchGroup);
   rightCell.appendChild(zoomGroup);
   const controlsBar = document.createElement("div");
   controlsBar.setAttribute("class", "controls");
@@ -7981,11 +7993,14 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender) => {
     congrats.buttons.setAttribute("class", "congrabuttons controls-group");
     centerCell.appendChild(congrats.buttons);
   } else {
-    centerCell.appendChild(rulesGroup);
+    centerCell.appendChild(controlsEl);
     centerCell.appendChild(gazeGroup);
     centerCell.appendChild(axiomGroup);
   }
-  controlsBar.appendChild(controlsEl);
+  const leftCell = document.createElement("div");
+  leftCell.setAttribute("class", "controls-left");
+  leftCell.appendChild(branchGroup);
+  controlsBar.appendChild(leftCell);
   controlsBar.appendChild(centerCell);
   controlsBar.appendChild(rightCell);
   panel.appendChild(controlsBar);
@@ -8368,14 +8383,11 @@ var createListing = (ws, onSelect) => {
   shroud.appendChild(panel);
   return shroud;
 };
-var createControls = (ws, _listingEl, rerender, onMenu, showLevelButton, onLevel) => {
+var createControls = (ws, _listingEl, rerender, showLevelButton, onLevel) => {
   const canUndo = activePath(ws.currentConjecture()).length > 0;
   const undoEnabled = canUndo || isGazeModeActive();
   const panel = document.createElement("div");
   panel.setAttribute("class", "controls");
-  panel.appendChild(
-    createButton(t("menu"), false, onMenu, getActionHint("menu"))
-  );
   if (showLevelButton) {
     panel.appendChild(
       createButton(t("level"), false, onLevel, getActionHint("level"))
@@ -8493,12 +8505,13 @@ var mountCampaign = (container, navigate2, session2) => {
       ws,
       listingEl,
       rerender,
-      togglePausePopup,
       levelPresses >= 2,
       () => toggleLevel(listingEl)
     );
     const makeCongrats = () => createCongrats(ws, selectLevel, rerender);
-    container.appendChild(createBench(ws, makeCongrats, controlsEl, rerender));
+    container.appendChild(
+      createBench(ws, makeCongrats, controlsEl, rerender, togglePausePopup)
+    );
     if (pausePopupOpen) {
       const canReset = activePath(ws.currentConjecture()).length > 0;
       const resetEnabled = canReset || isGazeModeActive();
@@ -8596,15 +8609,12 @@ var mountCampaign = (container, navigate2, session2) => {
 };
 
 // src/web/random.ts
-var createControls2 = (getWorkspace, rerender, onMenu) => {
+var createControls2 = (getWorkspace, rerender) => {
   const ws = getWorkspace();
   const canUndo = activePath(ws.currentConjecture()).length > 0;
   const undoEnabled = canUndo || isGazeModeActive();
   const panel = document.createElement("div");
   panel.setAttribute("class", "controls");
-  panel.appendChild(
-    createButton(t("menu"), false, onMenu, getActionHint("menu"))
-  );
   panel.appendChild(
     createButton(
       t("undo"),
@@ -8675,9 +8685,11 @@ var mountRandom = (container, navigate2, session2, onNewChallenge) => {
   const rerender = () => {
     const ws = getWorkspace();
     container.innerHTML = "";
-    const controlsEl = createControls2(getWorkspace, rerender, togglePausePopup);
+    const controlsEl = createControls2(getWorkspace, rerender);
     const makeCongrats = () => createCongrats2(onNew, openSettings);
-    container.appendChild(createBench(ws, makeCongrats, controlsEl, rerender));
+    container.appendChild(
+      createBench(ws, makeCongrats, controlsEl, rerender, togglePausePopup)
+    );
     if (pausePopupOpen) {
       const canReset = activePath(ws.currentConjecture()).length > 0;
       const resetEnabled = canReset || isGazeModeActive();
@@ -11195,6 +11207,7 @@ var mountMatchCurated = (container, navigate2) => {
   let zoom = 1;
   let pendingAutoZoom = true;
   let cardEls = [];
+  let treeLabelEl = null;
   let regenerateTimer = null;
   let pausePopupOpen = false;
   const render = () => {
@@ -11287,10 +11300,8 @@ var mountMatchCurated = (container, navigate2) => {
         const questionArea = document.createElement("div");
         questionArea.setAttribute("class", "match-question");
         questionArea.style.setProperty("--tree-zoom", String(zoom));
-        const treeEl = renderQuestionTree2(
-          q.instance,
-          q.solved ? answer.name : " ? "
-        );
+        const treeEl = renderQuestionTree2(q.instance, " ? ");
+        treeLabelEl = treeEl.querySelector(".tree-rule-label");
         questionArea.appendChild(treeEl);
         layout.appendChild(questionArea);
         requestAnimationFrame(() => {
@@ -11460,7 +11471,25 @@ var mountMatchCurated = (container, navigate2) => {
       const firstTry = question.wrongIndices.size === 0;
       const wrongCount = question.wrongIndices.size;
       question = { ...question, solved: true };
-      render();
+      const answer = question.schemas[question.answerIndex];
+      if (treeLabelEl !== null && answer !== void 0) {
+        treeLabelEl.innerHTML = html(
+          printString("(" + answer.name + ")")(basic)
+        );
+      }
+      for (let i90 = 0; i90 < question.schemas.length; i90 += 1) {
+        const el = cardEls[i90];
+        if (el === void 0) continue;
+        el.card.onclick = null;
+        el.flagBtn.classList.add("disabled");
+        el.flagBtn.onclick = null;
+        if (i90 === question.answerIndex) {
+          el.card.classList.remove("disabled");
+          el.card.classList.add("quiz-card-correct");
+        } else if (!question.wrongIndices.has(i90)) {
+          el.card.classList.add("disabled");
+        }
+      }
       regenerateTimer = setTimeout(() => {
         const attempts = wrongCount + 1;
         session2.roundResults.push({ preset: session2.currentPreset, attempts });
