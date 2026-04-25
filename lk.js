@@ -6438,7 +6438,8 @@ var en = {
   customChallenge: "Custom Challenge",
   matchDone: "Match Complete",
   matchScore: "Score: {score} / {max}",
-  matchFinalPreset: "Final preset: {preset}"
+  matchFinalPreset: "Final preset: {preset}",
+  multiplier: "Multiplier"
 };
 var fi = {
   title: "LK",
@@ -6503,7 +6504,8 @@ var fi = {
   customChallenge: "Muokattu haaste",
   matchDone: "Tunnistus valmis",
   matchScore: "Pisteet: {score} / {max}",
-  matchFinalPreset: "Viimeinen esiasetus: {preset}"
+  matchFinalPreset: "Viimeinen esiasetus: {preset}",
+  multiplier: "Kerroin"
 };
 var es = {
   title: "LK",
@@ -6568,7 +6570,8 @@ var es = {
   customChallenge: "Desaf\xEDo personalizado",
   matchDone: "Prueba completa",
   matchScore: "Puntuaci\xF3n: {score} / {max}",
-  matchFinalPreset: "Preajuste final: {preset}"
+  matchFinalPreset: "Preajuste final: {preset}",
+  multiplier: "Multiplicador"
 };
 var cs = {
   title: "LK",
@@ -6633,7 +6636,8 @@ var cs = {
   customChallenge: "Vlastn\xED v\xFDzva",
   matchDone: "Kv\xEDz dokon\u010Den",
   matchScore: "Sk\xF3re: {score} / {max}",
-  matchFinalPreset: "Posledn\xED p\u0159edvolba: {preset}"
+  matchFinalPreset: "Posledn\xED p\u0159edvolba: {preset}",
+  multiplier: "N\xE1sobitel"
 };
 var pl = {
   title: "LK",
@@ -6698,7 +6702,8 @@ var pl = {
   customChallenge: "Niestandardowe wyzwanie",
   matchDone: "Quiz uko\u0144czony",
   matchScore: "Wynik: {score} / {max}",
-  matchFinalPreset: "Ostatnie ustawienie wst\u0119pne: {preset}"
+  matchFinalPreset: "Ostatnie ustawienie wst\u0119pne: {preset}",
+  multiplier: "Mno\u017Cnik"
 };
 var messages = {
   cs,
@@ -10083,7 +10088,7 @@ var mountQuiz = (container, navigate2, config) => {
     const instance = state?.instance ?? null;
     if (instance !== null && answer !== void 0) {
       const questionArea = document.createElement("div");
-      questionArea.setAttribute("class", "quiz-question");
+      questionArea.setAttribute("class", "match-question");
       questionArea.style.setProperty("--tree-zoom", String(zoom));
       const treeEl = renderQuestionTree(
         instance,
@@ -11247,18 +11252,47 @@ var mountMatchCurated = (container, navigate2) => {
   };
   const renderGame = () => {
     const q = question;
+    const wrapper = document.createElement("div");
+    wrapper.setAttribute("class", "match-viewport");
+    const layout = document.createElement("div");
+    layout.setAttribute("class", "match-layout");
+    wrapper.appendChild(layout);
+    const hud = document.createElement("div");
+    hud.setAttribute("class", "match-hud");
+    const menuBtn = document.createElement("div");
+    menuBtn.setAttribute("class", "button quiz-menu-btn");
+    menuBtn.textContent = "\u22EE";
+    menuBtn.onclick = () => {
+      pausePopupOpen = true;
+      render();
+    };
+    hud.appendChild(menuBtn);
+    const scoreEl = document.createElement("div");
+    scoreEl.setAttribute("class", "curated-score");
+    scoreEl.textContent = String(totalScore(session2.roundResults));
+    hud.appendChild(scoreEl);
+    const stats = document.createElement("div");
+    stats.setAttribute("class", "curated-stats");
+    const roundEl = document.createElement("div");
+    roundEl.textContent = t("round") + " " + String(session2.roundsPlayed + 1) + "/" + String(TOTAL_ROUNDS);
+    stats.appendChild(roundEl);
+    const levelEl = document.createElement("div");
+    levelEl.textContent = t("score") + " x" + String(session2.currentPreset + 1);
+    stats.appendChild(levelEl);
+    hud.appendChild(stats);
+    layout.appendChild(hud);
     if (q !== null) {
       const answer = q.schemas[q.answerIndex];
       if (answer !== void 0) {
         const questionArea = document.createElement("div");
-        questionArea.setAttribute("class", "quiz-question");
+        questionArea.setAttribute("class", "match-question");
         questionArea.style.setProperty("--tree-zoom", String(zoom));
         const treeEl = renderQuestionTree2(
           q.instance,
           q.solved ? answer.name : " ? "
         );
         questionArea.appendChild(treeEl);
-        container.appendChild(questionArea);
+        layout.appendChild(questionArea);
         requestAnimationFrame(() => {
           layoutTree(treeEl, { skipActiveScroll: true });
           if (pendingAutoZoom) {
@@ -11308,41 +11342,24 @@ var mountMatchCurated = (container, navigate2) => {
         });
       }
     }
-    const panel = document.createElement("div");
-    panel.setAttribute("class", "quiz-panel");
-    const menuBtn = document.createElement("div");
-    menuBtn.setAttribute("class", "button quiz-menu-btn");
-    menuBtn.textContent = t("menu");
-    menuBtn.onclick = () => {
-      pausePopupOpen = true;
-      render();
-    };
-    panel.appendChild(menuBtn);
-    const stats = document.createElement("div");
-    stats.setAttribute("class", "curated-stats");
-    const roundEl = document.createElement("div");
-    roundEl.textContent = t("round") + " " + String(session2.roundsPlayed + 1) + "/" + String(TOTAL_ROUNDS);
-    stats.appendChild(roundEl);
-    const levelEl = document.createElement("div");
-    levelEl.textContent = t("score") + " x" + String(session2.currentPreset + 1);
-    stats.appendChild(levelEl);
-    panel.appendChild(stats);
-    const scoreEl = document.createElement("div");
-    scoreEl.setAttribute("class", "curated-score");
-    scoreEl.textContent = String(totalScore(session2.roundResults));
-    panel.appendChild(scoreEl);
+    const answers = document.createElement("div");
+    answers.setAttribute("class", "match-answers");
+    const controls = document.createElement("div");
+    controls.setAttribute("class", "match-controls");
     if (q === null) {
       const msg = document.createElement("div");
       msg.textContent = "No question available.";
-      panel.appendChild(msg);
-      container.appendChild(panel);
+      answers.appendChild(msg);
+      layout.appendChild(answers);
+      layout.appendChild(controls);
+      container.appendChild(wrapper);
       return;
     }
     cardEls = [];
     const cardsArea = document.createElement("div");
     cardsArea.setAttribute("class", "quiz-cards");
-    const flagsRow = q.solved ? null : document.createElement("div");
-    if (flagsRow !== null) flagsRow.setAttribute("class", "quiz-flags");
+    const flagsRow = document.createElement("div");
+    flagsRow.setAttribute("class", "quiz-flags");
     for (let i90 = 0; i90 < q.schemas.length; i90 += 1) {
       const schema = q.schemas[i90];
       if (schema === void 0) continue;
@@ -11375,7 +11392,7 @@ var mountMatchCurated = (container, navigate2) => {
       const led = document.createElement("span");
       led.setAttribute("class", "led" + (flagged ? " on" : ""));
       flagBtn.appendChild(led);
-      if (isWrong) {
+      if (isWrong || q.solved) {
         flagBtn.classList.add("disabled");
       } else {
         const idx = i90;
@@ -11395,11 +11412,13 @@ var mountMatchCurated = (container, navigate2) => {
         };
       }
       cardEls[i90] = { card, flagBtn };
-      if (flagsRow !== null) flagsRow.appendChild(flagBtn);
+      flagsRow.appendChild(flagBtn);
     }
-    panel.appendChild(cardsArea);
-    if (flagsRow !== null) panel.appendChild(flagsRow);
-    container.appendChild(panel);
+    answers.appendChild(cardsArea);
+    layout.appendChild(answers);
+    controls.appendChild(flagsRow);
+    layout.appendChild(controls);
+    container.appendChild(wrapper);
     if (pausePopupOpen) {
       const resume = () => {
         pausePopupOpen = false;
