@@ -1897,6 +1897,7 @@
     fcut: ruleFCut,
     mp: ruleMP
   };
+  var isReverseId1 = (s) => s in reverse1;
   var reverseSplit2 = {
     fcr: ruleFCR,
     fdl: ruleFDL,
@@ -1967,7 +1968,7 @@
 
   // src/solver/bruteStructure0.ts
   var seqKey = (s) => JSON.stringify([s.antecedent, s.succedent]);
-  var buildStructurePath = (d, rules, p) => {
+  var buildStructurePath = (d, rules2, p) => {
     if (equals3(d.result, p.result)) {
       return proofUsing(d.result, p.deps, p.rule);
     }
@@ -1984,7 +1985,7 @@
       const currentKey = seqKey(current.result);
       for (const [rId, rule] of entries(reverseStructure0)) {
         const ruleId = rId;
-        if (!includes(rules, ruleId)) continue;
+        if (!includes(rules2, ruleId)) continue;
         const reversed = rule.tryReverse(current);
         if (!reversed || reversed.kind !== "transformation") continue;
         const [dep] = reversed.deps;
@@ -2014,8 +2015,8 @@
     }
     return proof;
   };
-  var bruteStructure0 = (d, rules, p) => function* () {
-    const result = buildStructurePath(d, rules, p);
+  var bruteStructure0 = (d, rules2, p) => function* () {
+    const result = buildStructurePath(d, rules2, p);
     if (result !== null) {
       yield result;
     }
@@ -2035,52 +2036,52 @@
       yield premise(sequent([], [farRight]));
     }
   };
-  var bruteWeaken0 = (d, rules, p) => function* () {
+  var bruteWeaken0 = (d, rules2, p) => function* () {
     if (equals3(d.result, p.result)) {
       yield proofUsing(d.result, p.deps, p.rule);
       return;
     }
     const swl2 = "swl";
-    if (includes(rules, swl2) && d.result.antecedent.length > p.result.antecedent.length && reverseStructure0[swl2].isResultDerivation(d)) {
+    if (includes(rules2, swl2) && d.result.antecedent.length > p.result.antecedent.length && reverseStructure0[swl2].isResultDerivation(d)) {
       const step = reverseStructure0.swl.reverse(d);
       const [dep] = step.deps;
       if (dep.kind === "premise") {
         yield* map(
-          bruteWeaken0(dep, rules, p),
+          bruteWeaken0(dep, rules2, p),
           (depProof) => proofUsing(step.result, [depProof], swl2)
         )();
       }
       return;
     }
     const swr2 = "swr";
-    if (includes(rules, swr2) && d.result.succedent.length > p.result.succedent.length && reverseStructure0[swr2].isResultDerivation(d)) {
+    if (includes(rules2, swr2) && d.result.succedent.length > p.result.succedent.length && reverseStructure0[swr2].isResultDerivation(d)) {
       const step = reverseStructure0.swr.reverse(d);
       const [dep] = step.deps;
       if (dep.kind === "premise") {
         yield* map(
-          bruteWeaken0(dep, rules, p),
+          bruteWeaken0(dep, rules2, p),
           (depProof) => proofUsing(step.result, [depProof], swr2)
         )();
       }
       return;
     }
   };
-  var bruteAxiom0 = (d, rules, limit) => function* () {
+  var bruteAxiom0 = (d, rules2, limit) => function* () {
     for (const rule of Object.values(reverseAxiom0)) {
-      if (!includes(rules, rule.id)) {
+      if (!includes(rules2, rule.id)) {
         continue;
       }
       const result = rule.tryReverse(d);
       if (!result) {
         continue;
       }
-      yield* brute0(result, rules, limit)();
+      yield* brute0(result, rules2, limit)();
     }
   };
-  var candidateConnectives = (rules, sequent2) => {
+  var candidateConnectives = (rules2, sequent2) => {
     const kinds = /* @__PURE__ */ new Set();
     for (const [rId, rule] of entries(reverse0)) {
-      if (!includes(rules, rId)) continue;
+      if (!includes(rules2, rId)) continue;
       for (const kind of rule.connectives) kinds.add(kind);
     }
     for (const p of [...sequent2.antecedent, ...sequent2.succedent])
@@ -2110,47 +2111,47 @@
       }
     }
   };
-  var bruteLogic1 = (d, rules, limit) => function* () {
+  var bruteLogic1 = (d, rules2, limit) => function* () {
     const applicableRules = entries(reverse1).filter(
-      ([rId]) => includes(rules, rId)
+      ([rId]) => includes(rules2, rId)
     );
     if (applicableRules.length === 0) return;
     const atoms2 = uniq2([
       ...d.result.antecedent.flatMap(atoms),
       ...d.result.succedent.flatMap(atoms)
     ]);
-    const connectives2 = candidateConnectives(rules, d.result);
+    const connectives2 = candidateConnectives(rules2, d.result);
     for (let opCount = 0; opCount <= limit * 2; opCount += 1) {
       for (const formula of formulasOfOpCount(opCount, atoms2, connectives2)()) {
         for (const [, rule] of applicableRules) {
           const result = rule.tryReverse(formula)(d);
           if (!result) continue;
-          yield* brute0(result, rules, limit)();
+          yield* brute0(result, rules2, limit)();
         }
       }
     }
   };
-  var bruteLogic0 = (d, rules, limit) => function* () {
+  var bruteLogic0 = (d, rules2, limit) => function* () {
     yield* flatMap(
       hypoWeaken(d),
       (hypo) => flatMap(
-        bruteAxiom0(hypo, rules, limit),
-        (h) => bruteWeaken0(d, rules, h)
+        bruteAxiom0(hypo, rules2, limit),
+        (h) => bruteWeaken0(d, rules2, h)
       )
     )();
     for (const rule of Object.values(reverseLogic0)) {
-      if (!includes(rules, rule.id)) {
+      if (!includes(rules2, rule.id)) {
         continue;
       }
       const result = rule.tryReverse(d);
       if (!result) {
         continue;
       }
-      yield* brute0(result, rules, limit)();
+      yield* brute0(result, rules2, limit)();
     }
-    yield* bruteLogic1(d, rules, limit)();
+    yield* bruteLogic1(d, rules2, limit)();
   };
-  var hypoStructure = (d, rules) => function* () {
+  var hypoStructure = (d, rules2) => function* () {
     const visited = /* @__PURE__ */ new Set();
     const queue = [d];
     while (queue.length > 0) {
@@ -2162,7 +2163,7 @@
       yield current;
       for (const [rId, rule] of entries(reverseStructure0)) {
         const ruleId = rId;
-        if (!includes(rules, ruleId)) continue;
+        if (!includes(rules2, ruleId)) continue;
         const reversed = rule.tryReverse(current);
         if (!reversed || reversed.kind !== "transformation") continue;
         const [dep] = reversed.deps;
@@ -2171,7 +2172,7 @@
       }
     }
   };
-  var brute0Premise = (d, rules, limit) => function* () {
+  var brute0Premise = (d, rules2, limit) => function* () {
     if (limit < 1) {
       return;
     }
@@ -2179,31 +2180,31 @@
       return;
     }
     yield* flatMap(
-      hypoStructure(d, rules),
+      hypoStructure(d, rules2),
       (hypo) => flatMap(
-        bruteLogic0(hypo, rules, limit),
-        (h) => bruteStructure0(d, rules, h)
+        bruteLogic0(hypo, rules2, limit),
+        (h) => bruteStructure0(d, rules2, h)
       )
     )();
   };
-  var brute0Transformation = (d, rules, limit) => function* () {
+  var brute0Transformation = (d, rules2, limit) => function* () {
     const depProofs = sequence(
-      d.deps.map((dep) => brute0(dep, rules, limit - 1))
+      d.deps.map((dep) => brute0(dep, rules2, limit - 1))
     );
     yield* map(
       depProofs,
       (proofs) => proofUsing(d.result, proofs, d.rule)
     )();
   };
-  var brute0 = (d, rules, limit) => function* () {
+  var brute0 = (d, rules2, limit) => function* () {
     switch (d.kind) {
       case "premise":
-        yield* brute0Premise(d, rules, limit)();
+        yield* brute0Premise(d, rules2, limit)();
         break;
       case "transformation": {
         const rule = d.rule;
-        if (includes(rules, rule)) {
-          yield* brute0Transformation({ ...d, rule }, rules, limit)();
+        if (includes(rules2, rule)) {
+          yield* brute0Transformation({ ...d, rule }, rules2, limit)();
         }
         break;
       }
@@ -2228,8 +2229,30 @@
     }
   };
 
-  // src/random/challenge.ts
-  var RULES = [
+  // src/systems/rk.ts
+  var iota = {
+    i: ruleI.apply,
+    v: ruleV.apply,
+    f: ruleF.apply
+  };
+  var zeta = {
+    cut: ruleCut.apply,
+    cl: ruleCL.apply,
+    dr: ruleDR.apply,
+    dl: ruleDL.apply,
+    cr: ruleCR.apply,
+    il: ruleIL.apply,
+    ir: ruleIR.apply,
+    nl: ruleNL.apply,
+    nr: ruleNR.apply,
+    swl: ruleSWL.apply,
+    swr: ruleSWR.apply,
+    sRotLF: ruleSRotLF.apply,
+    sRotLB: ruleSRotLB.apply,
+    sRotRF: ruleSRotRF.apply,
+    sRotRB: ruleSRotRB.apply
+  };
+  var rules = [
     "i",
     "f",
     "v",
@@ -2246,8 +2269,15 @@
     "dl",
     "dr",
     "il",
-    "ir"
+    "ir",
+    "cut"
   ];
+
+  // src/random/challenge.ts
+  var RULES = rules;
+  var SOLVER_RULES = RULES.filter(
+    (r) => !isReverseId1(r)
+  );
   var STRUCTURAL_RULES = /* @__PURE__ */ new Set([
     "swl",
     "swr",
@@ -2266,7 +2296,7 @@
     return self2 + d.deps.reduce((sum, dep) => sum + countNonStructural(dep), 0);
   };
   var random2 = (size = 10, minDifficulty = 8) => () => {
-    const rules = RULES;
+    const rules2 = RULES;
     let solution;
     while (typeof solution === "undefined") {
       ;
@@ -2276,7 +2306,7 @@
           (tautology) => {
             const [proof, difficulty] = brute({
               goal: conclusion(tautology),
-              rules
+              rules: SOLVER_RULES
             });
             return difficulty < minDifficulty ? empty() : of(proof);
           }
@@ -2284,7 +2314,7 @@
       );
     }
     return {
-      rules,
+      rules: rules2,
       goal: solution.result,
       solution
     };
@@ -2355,7 +2385,7 @@
     return result;
   };
   function* randomConfiguredStep(config, getTimeout = () => 5e3) {
-    const rules = RULES;
+    const rules2 = RULES;
     const maxDepth = config.targetNonStructural + 10;
     const bypass = config.bypassPercent / 100;
     let formulasTried = 0;
@@ -2376,7 +2406,7 @@
       const isBypassed = Math.random() < bypass;
       if (isBypassed) {
         return {
-          challenge: { rules, goal: conclusion(formula) },
+          challenge: { rules: rules2, goal: conclusion(formula) },
           nonStructuralCount: 0,
           bypassed: true,
           formulasTried,
@@ -2386,7 +2416,10 @@
       }
       if (!isTautology(formula)) continue;
       tautologiesFound += 1;
-      const solver = bruteSearch({ goal: conclusion(formula), rules });
+      const solver = bruteSearch({
+        goal: conclusion(formula),
+        rules: SOLVER_RULES
+      });
       let proof;
       let depth = 0;
       const solveStart = Date.now();
@@ -2406,7 +2439,7 @@
       if (isFinite(config.targetNonStructural) && nonStructuralCount !== config.targetNonStructural)
         continue;
       return {
-        challenge: { rules, goal: proof.result, solution: proof },
+        challenge: { rules: rules2, goal: proof.result, solution: proof },
         nonStructuralCount,
         bypassed: false,
         formulasTried,

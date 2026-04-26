@@ -2197,6 +2197,11 @@ var reverse02 = (rev) => ({
   kind: "reverse0",
   rev
 });
+var reverse12 = (rev, a89) => ({
+  kind: "reverse1",
+  rev,
+  a: a89
+});
 var undo = () => ({ kind: "undo" });
 var reset = () => ({ kind: "reset" });
 var nextBranch = () => ({ kind: "nextBranch" });
@@ -2649,7 +2654,7 @@ function fromRuleId(s, l = "L", r = "R") {
         a1: () => "a1",
         a2: () => "a2",
         a3: () => "a3",
-        cut: () => "cut",
+        cut: () => "\u2702\uFE0F",
         fcut: () => "fcut",
         fcr: () => t2.conjunction.join(empty3) + right2(r, "\u1DA0"),
         fdl: () => t2.disjunction.join(empty3) + left3(l, "\u1DA0"),
@@ -2910,7 +2915,8 @@ var rules2 = [
   "dl",
   "dr",
   "il",
-  "ir"
+  "ir",
+  "cut"
 ];
 var name = "RK";
 var rk = {
@@ -5325,7 +5331,10 @@ var en = {
   matchDone: "Match Complete",
   matchScore: "Score: {score} / {max}",
   matchFinalPreset: "Final preset: {preset}",
-  multiplier: "Multiplier"
+  multiplier: "Multiplier",
+  cutTitle: "Choose Cut Formula",
+  cutConfirm: "Apply Cut",
+  lemma: "Lemma"
 };
 var fi = {
   title: "LK",
@@ -5392,7 +5401,10 @@ var fi = {
   matchDone: "Tunnistus valmis",
   matchScore: "Pisteet: {score} / {max}",
   matchFinalPreset: "Viimeinen esiasetus: {preset}",
-  multiplier: "Kerroin"
+  multiplier: "Kerroin",
+  cutTitle: "Valitse leikkaava kaava",
+  cutConfirm: "K\xE4yt\xE4 leikkausta",
+  lemma: "Lemma"
 };
 var es = {
   title: "LK",
@@ -5459,7 +5471,10 @@ var es = {
   matchDone: "Prueba completa",
   matchScore: "Puntuaci\xF3n: {score} / {max}",
   matchFinalPreset: "Preajuste final: {preset}",
-  multiplier: "Multiplicador"
+  multiplier: "Multiplicador",
+  cutTitle: "Elige la f\xF3rmula de corte",
+  cutConfirm: "Aplicar corte",
+  lemma: "Lema"
 };
 var cs = {
   title: "LK",
@@ -5526,7 +5541,10 @@ var cs = {
   matchDone: "Kv\xEDz dokon\u010Den",
   matchScore: "Sk\xF3re: {score} / {max}",
   matchFinalPreset: "Posledn\xED p\u0159edvolba: {preset}",
-  multiplier: "N\xE1sobitel"
+  multiplier: "N\xE1sobitel",
+  cutTitle: "Zvolte vzorec \u0159ezu",
+  cutConfirm: "Pou\u017E\xEDt \u0159ez",
+  lemma: "Lemma"
 };
 var pl = {
   title: "LK",
@@ -5593,7 +5611,10 @@ var pl = {
   matchDone: "Quiz uko\u0144czony",
   matchScore: "Wynik: {score} / {max}",
   matchFinalPreset: "Ostatnie ustawienie wst\u0119pne: {preset}",
-  multiplier: "Mno\u017Cnik"
+  multiplier: "Mno\u017Cnik",
+  cutTitle: "Wybierz formu\u0142\u0119 ci\u0119cia",
+  cutConfirm: "Zastosuj ci\u0119cie",
+  lemma: "Lemat"
 };
 var messages = {
   cs,
@@ -5983,6 +6004,7 @@ var qwertyKeyMap = {
   KeyJ: "rightConnective",
   KeyL: "rightWeakening",
   Semicolon: "rightRotateRight",
+  KeyC: "lemma",
   Space: "axiom",
   Enter: "axiom",
   Backspace: "undo",
@@ -6185,7 +6207,8 @@ var ruleAction = {
   v: "axiom",
   a1: "axiom",
   a2: "axiom",
-  a3: "axiom"
+  a3: "axiom",
+  cut: "lemma"
 };
 var keyHintBadge = (hint, variant = "base") => {
   const badge = document.createElement("span");
@@ -6530,7 +6553,7 @@ var formatHudCounts = (counts) => {
   const total = order.reduce((sum, cat) => sum + counts[cat], 0);
   return `<b>${total}</b>`;
 };
-var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu) => {
+var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onApplyReverse1) => {
   const ls = workspace.applicableRules();
   const rules3 = workspace.availableRules();
   const solved = workspace.isSolved();
@@ -6540,13 +6563,27 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu) => {
   const inactive = solved || branchClosed;
   const apply2 = (key) => {
     setGazeModeActive(false);
-    if (isReverseId0(key)) workspace.applyEvent(reverse02(key));
-    rerender();
+    if (isReverseId0(key)) {
+      workspace.applyEvent(reverse02(key));
+      rerender();
+    } else if (isReverseId1(key) && onApplyReverse1 !== void 0) {
+      onApplyReverse1(key, (formula) => {
+        workspace.applyEvent(reverse12(key, formula));
+        rerender();
+      });
+    }
   };
   const applyCenter = (key) => {
     setGazeModeActive(false);
-    if (isReverseId0(key)) workspace.applyEvent(reverse02(key));
-    rerender();
+    if (isReverseId0(key)) {
+      workspace.applyEvent(reverse02(key));
+      rerender();
+    } else if (isReverseId1(key) && onApplyReverse1 !== void 0) {
+      onApplyReverse1(key, (formula) => {
+        workspace.applyEvent(reverse12(key, formula));
+        rerender();
+      });
+    }
   };
   const seq = activeSequent(workspace.currentConjecture());
   const available = workspace.availableRules();
@@ -6824,26 +6861,40 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu) => {
   };
   const axiomBtn = createButton(
     t("axiom"),
-    inactive || !keys(center).some((k) => ls.includes(k)),
+    inactive || !keys(center).some((k) => ls.includes(k) && isReverseId0(k)),
     () => {
       autoRule(workspace, keys(center));
       rerender();
     },
     getActionHint("axiom")
   );
+  const lemmaDisabled = inactive || onApplyReverse1 === void 0 || !ls.includes("cut");
+  const lemmaBtn = createButton(
+    t("lemma"),
+    lemmaDisabled,
+    () => {
+      if (onApplyReverse1 === void 0) return;
+      onApplyReverse1("cut", (formula) => {
+        workspace.applyEvent(reverse12("cut", formula));
+        rerender();
+      });
+    },
+    getActionHint("lemma")
+  );
+  const lemmaGroup = makeGroup("controls-lemma");
+  lemmaGroup.appendChild(lemmaBtn);
   const gazeGroup = makeGroup(isGazeModeActive() ? "gaze" : "hot");
   gazeGroup.appendChild(gazeLeftBtn);
   gazeGroup.appendChild(gazeWeakeningBtn);
   gazeGroup.appendChild(gazeConnectiveBtn);
   gazeGroup.appendChild(gazeRightBtn);
-  const axiomGroup = makeGroup();
-  axiomGroup.setAttribute("class", "controls-group controls-axiom");
+  const axiomGroup = makeGroup("controls-axiom");
   axiomGroup.appendChild(axiomBtn);
   const zoomGroup = makeGroup();
   zoomGroup.appendChild(zoomOut);
   zoomGroup.appendChild(zoomReset);
   zoomGroup.appendChild(zoomIn);
-  controlsEl.setAttribute("class", "controls-group controls-undo");
+  controlsEl.setAttribute("class", "controls-undo-inner");
   const centerCell = document.createElement("div");
   centerCell.setAttribute("class", "controls-center");
   const branchCount = branches(workspace.currentConjecture().derivation).length;
@@ -6857,6 +6908,7 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu) => {
     },
     getActionHint("prevBranch")
   );
+  prevBranchBtn.classList.add("branch-btn");
   const nextBranchBtn = createButton(
     "\u21B1",
     !canSwitch,
@@ -6866,9 +6918,11 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu) => {
     },
     getActionHint("nextBranch")
   );
-  const branchGroup = makeGroup();
-  branchGroup.appendChild(prevBranchBtn);
-  branchGroup.appendChild(nextBranchBtn);
+  nextBranchBtn.classList.add("branch-btn");
+  const navGroup = makeGroup("controls-undo");
+  navGroup.appendChild(prevBranchBtn);
+  navGroup.appendChild(controlsEl);
+  navGroup.appendChild(nextBranchBtn);
   const rightCell = document.createElement("div");
   rightCell.setAttribute("class", "controls-right");
   rightCell.appendChild(zoomGroup);
@@ -6878,13 +6932,13 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu) => {
     congrats.buttons.setAttribute("class", "congrabuttons controls-group");
     centerCell.appendChild(congrats.buttons);
   } else {
-    centerCell.appendChild(controlsEl);
+    centerCell.appendChild(lemmaGroup);
     centerCell.appendChild(gazeGroup);
     centerCell.appendChild(axiomGroup);
   }
   const leftCell = document.createElement("div");
   leftCell.setAttribute("class", "controls-left");
-  leftCell.appendChild(branchGroup);
+  leftCell.appendChild(navGroup);
   controlsBar.appendChild(leftCell);
   controlsBar.appendChild(centerCell);
   controlsBar.appendChild(rightCell);
@@ -6922,9 +6976,11 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu) => {
 };
 var autoRule = (workspace, rules3) => {
   const available = workspace.applicableRules();
-  const [first] = rules3.filter((rule) => available.includes(rule));
+  const [first] = rules3.filter(
+    (rule) => available.includes(rule) && isReverseId0(rule)
+  );
   if (!first) return;
-  if (isReverseId0(first)) workspace.applyEvent(reverse02(first));
+  workspace.applyEvent(reverse02(first));
 };
 var createPausePopup = (onResume, onExit, onReset, resetDisabled, onFresh, onSettings, onCustom) => {
   const shroud = document.createElement("div");
@@ -6989,7 +7045,7 @@ var RULE_APPLY_ACTIONS = /* @__PURE__ */ new Set([
   "rightRotateLeft",
   "rightRotateRight"
 ]);
-var createDispatch = (getWorkspace, rerender, navigate2, onSolved, onLevel, onMenu) => (action) => {
+var createDispatch = (getWorkspace, rerender, navigate2, onSolved, onLevel, onMenu, onApplyReverse1) => (action) => {
   if (action === "gazeLeft" || action === "gazeRight") {
     if (!isGazeModeActive()) {
       const workspace2 = getWorkspace();
@@ -7083,6 +7139,14 @@ var createDispatch = (getWorkspace, rerender, navigate2, onSolved, onLevel, onMe
     case "nextBranch":
       workspace.applyEvent(nextBranch());
       break;
+    case "lemma":
+      if (onApplyReverse1 !== void 0 && workspace.availableRules().includes("cut")) {
+        onApplyReverse1("cut", (formula) => {
+          workspace.applyEvent(reverse12("cut", formula));
+          rerender();
+        });
+      }
+      return;
     case "axiom":
       autoRule(workspace, keys(center));
       break;
@@ -7209,7 +7273,177 @@ var setupGamepad = (dispatch) => {
   };
 };
 
+// src/web/formula-editor.ts
+var makeBtn = (label, handler) => {
+  const btn = document.createElement("pre");
+  btn.setAttribute("class", "button");
+  btn.textContent = label;
+  btn.onclick = handler;
+  return btn;
+};
+var setDisabled = (btn, disabled, handler) => {
+  btn.setAttribute("class", disabled ? "button disabled" : "button");
+  btn.onclick = disabled ? null : handler;
+};
+var createFormulaEditor = (title, confirmLabel, onConfirm, onCancel) => {
+  let stack = [];
+  let history2 = [];
+  const saveAndSet = (next2) => {
+    history2 = [...history2, stack];
+    stack = next2;
+    renderState();
+  };
+  const pushProp = (p) => {
+    saveAndSet([...stack, p]);
+  };
+  const applyNeg = () => {
+    const top = stack[stack.length - 1];
+    if (top === void 0) return;
+    saveAndSet([...stack.slice(0, -1), negation(top)]);
+  };
+  const applyBin = (op) => {
+    const right3 = stack[stack.length - 1];
+    const left4 = stack[stack.length - 2];
+    if (right3 === void 0 || left4 === void 0) return;
+    const result = op === "conjunction" ? conjunction(left4, right3) : op === "disjunction" ? disjunction(left4, right3) : implication(left4, right3);
+    saveAndSet([...stack.slice(0, -2), result]);
+  };
+  const doUndo = () => {
+    const prev2 = history2[history2.length - 1];
+    if (prev2 === void 0) return;
+    stack = prev2;
+    history2 = history2.slice(0, -1);
+    renderState();
+  };
+  const shroud = document.createElement("div");
+  shroud.setAttribute("class", "shroud pause-shroud");
+  shroud.onclick = (ev) => {
+    if (ev.target === shroud) {
+      ev.preventDefault();
+      onCancel();
+    }
+  };
+  const popup = document.createElement("div");
+  popup.setAttribute("class", "formula-editor-popup");
+  popup.onclick = (ev) => {
+    ev.stopPropagation();
+  };
+  const titleEl = document.createElement("div");
+  titleEl.setAttribute("class", "formula-editor-title");
+  titleEl.textContent = title;
+  popup.appendChild(titleEl);
+  const stackDisplay = document.createElement("div");
+  stackDisplay.setAttribute("class", "formula-editor-stack");
+  popup.appendChild(stackDisplay);
+  const atomRow = document.createElement("div");
+  atomRow.setAttribute("class", "config-toggles");
+  const atomNames = ["p", "q", "r", "s", "u", "v"];
+  for (const name4 of atomNames) {
+    const a89 = atom(name4);
+    const btn = document.createElement("pre");
+    btn.setAttribute("class", "button");
+    btn.innerHTML = html(fromAtom(a89)(basic));
+    btn.onclick = () => {
+      pushProp(a89);
+    };
+    atomRow.appendChild(btn);
+  }
+  popup.appendChild(atomRow);
+  const connRow = document.createElement("div");
+  connRow.setAttribute("class", "config-toggles");
+  const implBtn = makeBtn("\u2192", () => {
+    applyBin("implication");
+  });
+  const conjBtn = makeBtn("\u2227", () => {
+    applyBin("conjunction");
+  });
+  const disjBtn = makeBtn("\u2228", () => {
+    applyBin("disjunction");
+  });
+  const negBtn = makeBtn("\xAC", () => {
+    applyNeg();
+  });
+  connRow.appendChild(implBtn);
+  connRow.appendChild(conjBtn);
+  connRow.appendChild(disjBtn);
+  connRow.appendChild(negBtn);
+  connRow.appendChild(
+    makeBtn("\u22A5", () => {
+      pushProp(falsum);
+    })
+  );
+  connRow.appendChild(
+    makeBtn("\u22A4", () => {
+      pushProp(verum);
+    })
+  );
+  popup.appendChild(connRow);
+  const controls = document.createElement("div");
+  controls.setAttribute("class", "formula-editor-controls");
+  const cancelBtn = document.createElement("pre");
+  cancelBtn.setAttribute("class", "button");
+  cancelBtn.textContent = t("back");
+  cancelBtn.onclick = onCancel;
+  controls.appendChild(cancelBtn);
+  const undoBtn = document.createElement("pre");
+  undoBtn.setAttribute("class", "button");
+  undoBtn.textContent = t("undo");
+  controls.appendChild(undoBtn);
+  const confirmBtn = document.createElement("pre");
+  confirmBtn.setAttribute("class", "button");
+  confirmBtn.textContent = confirmLabel;
+  controls.appendChild(confirmBtn);
+  popup.appendChild(controls);
+  shroud.appendChild(popup);
+  const renderState = () => {
+    stackDisplay.innerHTML = stack.length === 0 ? "\u2014" : stack.map((p) => html(fromProp(p)(basic))).join(" ");
+    setDisabled(negBtn, stack.length === 0, () => {
+      applyNeg();
+    });
+    setDisabled(implBtn, stack.length < 2, () => {
+      applyBin("implication");
+    });
+    setDisabled(conjBtn, stack.length < 2, () => {
+      applyBin("conjunction");
+    });
+    setDisabled(disjBtn, stack.length < 2, () => {
+      applyBin("disjunction");
+    });
+    setDisabled(undoBtn, history2.length === 0, () => {
+      doUndo();
+    });
+    const formula = stack.length === 1 ? stack[0] : void 0;
+    confirmBtn.setAttribute(
+      "class",
+      formula !== void 0 ? "button" : "button disabled"
+    );
+    if (formula !== void 0) {
+      const f2 = formula;
+      confirmBtn.onclick = () => {
+        onConfirm(f2);
+      };
+    } else {
+      confirmBtn.onclick = null;
+    }
+  };
+  renderState();
+  return shroud;
+};
+
 // src/web/campaign.ts
+var rulesUsedIn = (d) => {
+  if (d.kind === "premise") return /* @__PURE__ */ new Set();
+  const result = /* @__PURE__ */ new Set([d.rule]);
+  for (const dep of d.deps) {
+    for (const rule of rulesUsedIn(dep)) result.add(rule);
+  }
+  return result;
+};
+var challengeRules = (c) => {
+  if (!isChallenge(c)) return [];
+  const used = rulesUsedIn(c.solution);
+  return c.rules.filter((r) => used.has(r));
+};
 var createListing = (ws, onSelect) => {
   const shroud = document.createElement("div");
   shroud.setAttribute("class", "shroud");
@@ -7245,18 +7479,11 @@ var createListing = (ws, onSelect) => {
     title.setAttribute("class", "title");
     title.innerHTML = id;
     item.appendChild(title);
-    const pinned = isTutorial(challenge2) ? challenge2.pinned : [];
     const rules3 = document.createElement("div");
     rules3.setAttribute("class", "rules");
-    rules3.innerHTML = challenge2.rules.map((rule) => {
-      const text = html(
-        fromRuleId(rule, t("sideLeft"), t("sideRight"))(basic)
-      );
-      if (pinned.includes(rule)) {
-        return `<span class="pinned">${text}</span>`;
-      }
-      return text;
-    }).join(", ");
+    rules3.innerHTML = challengeRules(challenge2).map(
+      (rule) => html(fromRuleId(rule, t("sideLeft"), t("sideRight"))(basic))
+    ).join(", ");
     item.appendChild(rules3);
     const goal87 = document.createElement("div");
     goal87.setAttribute("class", "goal");
@@ -7382,6 +7609,30 @@ var mountCampaign = (container, navigate2, session2) => {
     pausePopupOpen = false;
     rerender();
   };
+  let formulaEditorOpen = false;
+  let closeFormulaEditor = null;
+  const onApplyReverse1 = (_key, onFormula) => {
+    if (formulaEditorOpen) return;
+    formulaEditorOpen = true;
+    const cancel = () => {
+      formulaEditorOpen = false;
+      closeFormulaEditor = null;
+      container.removeChild(modal);
+    };
+    const modal = createFormulaEditor(
+      t("cutTitle"),
+      t("cutConfirm"),
+      (formula) => {
+        formulaEditorOpen = false;
+        closeFormulaEditor = null;
+        container.removeChild(modal);
+        onFormula(formula);
+      },
+      cancel
+    );
+    closeFormulaEditor = cancel;
+    container.appendChild(modal);
+  };
   const rerender = () => {
     container.innerHTML = "";
     listingEl = createListing(ws, selectLevel);
@@ -7395,7 +7646,14 @@ var mountCampaign = (container, navigate2, session2) => {
     );
     const makeCongrats = () => createCongrats(ws, selectLevel, rerender);
     container.appendChild(
-      createBench(ws, makeCongrats, controlsEl, rerender, togglePausePopup)
+      createBench(
+        ws,
+        makeCongrats,
+        controlsEl,
+        rerender,
+        togglePausePopup,
+        onApplyReverse1
+      )
     );
     if (pausePopupOpen) {
       const canReset = activePath(ws.currentConjecture()).length > 0;
@@ -7432,9 +7690,16 @@ var mountCampaign = (container, navigate2, session2) => {
     navigate2,
     onSolved,
     () => toggleLevel(listingEl),
-    togglePausePopup
+    togglePausePopup,
+    onApplyReverse1
   );
   const dispatch = (action) => {
+    if (formulaEditorOpen) {
+      if (action === "menu" || action === "exit" || action === "undo") {
+        closeFormulaEditor?.();
+      }
+      return;
+    }
     if (action === "exit") {
       if (pausePopupOpen) exitToMenu();
       return;
@@ -7567,13 +7832,44 @@ var mountRandom = (container, navigate2, session2, onNewChallenge) => {
     pausePopupOpen = false;
     onNew();
   };
+  let formulaEditorOpen = false;
+  let closeFormulaEditor = null;
+  const onApplyReverse1 = (_key, onFormula) => {
+    if (formulaEditorOpen) return;
+    formulaEditorOpen = true;
+    const cancel = () => {
+      formulaEditorOpen = false;
+      closeFormulaEditor = null;
+      container.removeChild(modal);
+    };
+    const modal = createFormulaEditor(
+      t("cutTitle"),
+      t("cutConfirm"),
+      (formula) => {
+        formulaEditorOpen = false;
+        closeFormulaEditor = null;
+        container.removeChild(modal);
+        onFormula(formula);
+      },
+      cancel
+    );
+    closeFormulaEditor = cancel;
+    container.appendChild(modal);
+  };
   const rerender = () => {
     const ws = getWorkspace();
     container.innerHTML = "";
     const controlsEl = createControls2(getWorkspace, rerender);
     const makeCongrats = () => createCongrats2(onNew, openSettings);
     container.appendChild(
-      createBench(ws, makeCongrats, controlsEl, rerender, togglePausePopup)
+      createBench(
+        ws,
+        makeCongrats,
+        controlsEl,
+        rerender,
+        togglePausePopup,
+        onApplyReverse1
+      )
     );
     if (pausePopupOpen) {
       const canReset = activePath(ws.currentConjecture()).length > 0;
@@ -7610,9 +7906,16 @@ var mountRandom = (container, navigate2, session2, onNewChallenge) => {
     navigate2,
     onSolved,
     void 0,
-    togglePausePopup
+    togglePausePopup,
+    onApplyReverse1
   );
   const dispatch = (action) => {
+    if (formulaEditorOpen) {
+      if (action === "menu" || action === "exit" || action === "undo") {
+        closeFormulaEditor?.();
+      }
+      return;
+    }
     if (action === "exit") {
       if (pausePopupOpen) exitToMenu();
       return;
@@ -7929,25 +8232,10 @@ var brute = (c) => {
 };
 
 // src/random/challenge.ts
-var RULES = [
-  "i",
-  "f",
-  "v",
-  "swl",
-  "swr",
-  "sRotLF",
-  "sRotRF",
-  "sRotLB",
-  "sRotRB",
-  "nl",
-  "nr",
-  "cl",
-  "cr",
-  "dl",
-  "dr",
-  "il",
-  "ir"
-];
+var RULES = rules2;
+var SOLVER_RULES = RULES.filter(
+  (r) => !isReverseId1(r)
+);
 var STRUCTURAL_RULES = /* @__PURE__ */ new Set([
   "swl",
   "swr",
@@ -7976,7 +8264,7 @@ var random2 = (size = 10, minDifficulty = 8) => () => {
         (tautology) => {
           const [proof, difficulty] = brute({
             goal: conclusion(tautology),
-            rules: rules3
+            rules: SOLVER_RULES
           });
           return difficulty < minDifficulty ? empty() : of(proof);
         }
@@ -8086,7 +8374,10 @@ function* randomConfiguredStep(config, getTimeout = () => 5e3) {
     }
     if (!isTautology(formula)) continue;
     tautologiesFound += 1;
-    const solver = bruteSearch({ goal: conclusion(formula), rules: rules3 });
+    const solver = bruteSearch({
+      goal: conclusion(formula),
+      rules: SOLVER_RULES
+    });
     let proof;
     let depth = 0;
     const solveStart = Date.now();
