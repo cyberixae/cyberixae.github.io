@@ -5334,7 +5334,8 @@ var en = {
   multiplier: "Multiplier",
   cutTitle: "Choose Cut Formula",
   cutConfirm: "Apply Cut",
-  lemma: "Lemma"
+  lemma: "Lemma",
+  secret: "Secret"
 };
 var fi = {
   title: "LK",
@@ -5404,7 +5405,8 @@ var fi = {
   multiplier: "Kerroin",
   cutTitle: "Valitse leikkaava kaava",
   cutConfirm: "K\xE4yt\xE4 leikkausta",
-  lemma: "Lemma"
+  lemma: "Lemma",
+  secret: "Salainen"
 };
 var es = {
   title: "LK",
@@ -5474,7 +5476,8 @@ var es = {
   multiplier: "Multiplicador",
   cutTitle: "Elige la f\xF3rmula de corte",
   cutConfirm: "Aplicar corte",
-  lemma: "Lema"
+  lemma: "Lema",
+  secret: "Secreto"
 };
 var cs = {
   title: "LK",
@@ -5544,7 +5547,8 @@ var cs = {
   multiplier: "N\xE1sobitel",
   cutTitle: "Zvolte vzorec \u0159ezu",
   cutConfirm: "Pou\u017E\xEDt \u0159ez",
-  lemma: "Lemma"
+  lemma: "Lemma",
+  secret: "Tajn\xE9"
 };
 var pl = {
   title: "LK",
@@ -5614,7 +5618,8 @@ var pl = {
   multiplier: "Mno\u017Cnik",
   cutTitle: "Wybierz formu\u0142\u0119 ci\u0119cia",
   cutConfirm: "Zastosuj ci\u0119cie",
-  lemma: "Lemat"
+  lemma: "Lemat",
+  secret: "Tajne"
 };
 var messages = {
   cs,
@@ -5760,6 +5765,7 @@ var modeLabel = {
   match: () => t("quiz")
 };
 var mountMenu = (container, navigate2) => {
+  let clicks = 0;
   const render = () => {
     container.innerHTML = "";
     const panel = document.createElement("div");
@@ -5768,16 +5774,19 @@ var mountMenu = (container, navigate2) => {
     const title = document.createElement("div");
     title.setAttribute("class", "menu-title");
     title.innerHTML = t("title");
+    title.onclick = () => {
+      clicks += 1;
+      if (clicks > 5) navigate2("secret");
+    };
     panel.appendChild(title);
     const modes = document.createElement("div");
     modes.setAttribute("class", "menu-modes");
     for (const mode of gameModes) {
+      if (mode === "match") continue;
       const btn = document.createElement("div");
       btn.setAttribute("class", "button menu-mode");
       btn.innerHTML = modeLabel[mode]();
-      btn.onclick = () => navigate2(
-        mode === "random" ? "random-config" : mode === "match" ? "match-curated" : mode
-      );
+      btn.onclick = () => navigate2(mode === "random" ? "random-config" : mode);
       modes.appendChild(btn);
     }
     panel.appendChild(modes);
@@ -6553,7 +6562,7 @@ var formatHudCounts = (counts) => {
   const total = order.reduce((sum, cat) => sum + counts[cat], 0);
   return `<b>${total}</b>`;
 };
-var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onApplyReverse1) => {
+var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onApplyReverse1, hideLemma) => {
   const ls = workspace.applicableRules();
   const rules3 = workspace.availableRules();
   const solved = workspace.isSolved();
@@ -6932,7 +6941,7 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
     congrats.buttons.setAttribute("class", "congrabuttons controls-group");
     centerCell.appendChild(congrats.buttons);
   } else {
-    centerCell.appendChild(lemmaGroup);
+    if (hideLemma !== true) centerCell.appendChild(lemmaGroup);
     centerCell.appendChild(gazeGroup);
     centerCell.appendChild(axiomGroup);
   }
@@ -7652,7 +7661,8 @@ var mountCampaign = (container, navigate2, session2) => {
         controlsEl,
         rerender,
         togglePausePopup,
-        onApplyReverse1
+        onApplyReverse1,
+        true
       )
     );
     if (pausePopupOpen) {
@@ -10807,6 +10817,42 @@ var mountSystem = (container, _navigate) => {
   }, rerender: render };
 };
 
+// src/web/secret.ts
+var mountSecret = (container, navigate2) => {
+  const render = () => {
+    container.innerHTML = "";
+    const panel = document.createElement("div");
+    panel.setAttribute("class", "menu");
+    panel.appendChild(createLangSwitcher());
+    const title = document.createElement("div");
+    title.setAttribute("class", "menu-title");
+    title.innerHTML = t("secret");
+    panel.appendChild(title);
+    const modes = document.createElement("div");
+    modes.setAttribute("class", "menu-modes");
+    const matchBtn = document.createElement("div");
+    matchBtn.setAttribute("class", "button menu-mode");
+    matchBtn.innerHTML = t("quiz");
+    matchBtn.onclick = () => navigate2("match-curated");
+    modes.appendChild(matchBtn);
+    const systemsBtn = document.createElement("div");
+    systemsBtn.setAttribute("class", "button menu-mode");
+    systemsBtn.innerHTML = t("systems");
+    systemsBtn.onclick = () => navigate2("system");
+    modes.appendChild(systemsBtn);
+    panel.appendChild(modes);
+    const backBtn = document.createElement("div");
+    backBtn.setAttribute("class", "button menu-mode");
+    backBtn.innerHTML = t("back");
+    backBtn.onclick = () => navigate2("menu");
+    panel.appendChild(backBtn);
+    container.appendChild(panel);
+  };
+  render();
+  return { cleanup: () => {
+  }, rerender: render };
+};
+
 // src/random/config.ts
 var defaultRandomConfig = () => ({
   size: 10,
@@ -11505,6 +11551,9 @@ var mount = (screen) => {
         session.replaceWorkspace(ws);
       });
       break;
+    case "secret":
+      current = mountSecret(body, navigate);
+      break;
     case "system":
       current = mountSystem(body, navigate);
       break;
@@ -11589,6 +11638,9 @@ var init3 = () => {
   } else if (mode === "random-config") {
     currentScreen = "random-config";
     mount("random-config");
+  } else if (mode === "secret") {
+    currentScreen = "secret";
+    mount("secret");
   } else if (mode === "system") {
     currentScreen = "system";
     mount("system");
