@@ -5278,7 +5278,6 @@ var en = {
   resumeGame: "Resume Game",
   resetChallenge: "Reset Challenge",
   freshChallenge: "Fresh Challenge",
-  changeSettings: "Change Settings",
   exitToMainMenu: "Exit to Main Menu",
   left: "Left",
   right: "Right",
@@ -5349,7 +5348,6 @@ var fi = {
   resumeGame: "Jatka peli\xE4",
   resetChallenge: "Aloita alusta",
   freshChallenge: "Uusi haaste",
-  changeSettings: "Muuta asetuksia",
   exitToMainMenu: "P\xE4\xE4valikkoon",
   left: "Vasen",
   right: "Oikea",
@@ -5420,7 +5418,6 @@ var es = {
   resumeGame: "Reanudar juego",
   resetChallenge: "Reiniciar desaf\xEDo",
   freshChallenge: "Nuevo desaf\xEDo",
-  changeSettings: "Cambiar ajustes",
   exitToMainMenu: "Salir al men\xFA principal",
   left: "Izquierda",
   right: "Derecha",
@@ -5491,7 +5488,6 @@ var cs = {
   resumeGame: "Pokra\u010Dovat",
   resetChallenge: "Restartovat v\xFDzvu",
   freshChallenge: "Nov\xE1 v\xFDzva",
-  changeSettings: "Zm\u011Bnit nastaven\xED",
   exitToMainMenu: "Zp\u011Bt do hlavn\xEDho menu",
   left: "Vlevo",
   right: "Vpravo",
@@ -5562,7 +5558,6 @@ var pl = {
   resumeGame: "Wzn\xF3w gr\u0119",
   resetChallenge: "Zresetuj wyzwanie",
   freshChallenge: "Nowe wyzwanie",
-  changeSettings: "Zmie\u0144 ustawienia",
   exitToMainMenu: "Wyjd\u017A do menu g\u0142\xF3wnego",
   left: "Lewo",
   right: "Prawo",
@@ -5786,7 +5781,7 @@ var mountMenu = (container, navigate2) => {
       const btn = document.createElement("div");
       btn.setAttribute("class", "button menu-mode");
       btn.innerHTML = modeLabel[mode]();
-      btn.onclick = () => navigate2(mode === "random" ? "random-config" : mode);
+      btn.onclick = () => navigate2(mode);
       modes.appendChild(btn);
     }
     panel.appendChild(modes);
@@ -6677,6 +6672,8 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
   const rulesLed = document.createElement("span");
   rulesLed.setAttribute("class", "led" + (rulesVisible ? " on" : ""));
   rulesBtn.appendChild(rulesLed);
+  const rulesHint = getActionHint("toggleRules");
+  if (rulesHint !== void 0) rulesBtn.appendChild(keyHintBadge(rulesHint));
   const topbar = document.createElement("div");
   topbar.setAttribute("class", "bench-topbar");
   const topbarLeft = document.createElement("div");
@@ -6687,6 +6684,8 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
     menuBtn.setAttribute("aria-label", t("menu"));
     menuBtn.textContent = "\u22EE";
     menuBtn.onclick = onMenu;
+    const menuHint = getActionHint("menu");
+    if (menuHint !== void 0) menuBtn.appendChild(keyHintBadge(menuHint));
     topbarLeft.appendChild(menuBtn);
   }
   topbar.appendChild(topbarLeft);
@@ -7026,7 +7025,9 @@ var createPausePopup = (onResume, onExit, onReset, resetDisabled, onFresh, onSet
     )
   );
   if (onCustom) {
-    buttons.appendChild(createButton(t("customChallenge"), false, onCustom));
+    buttons.appendChild(
+      createButton(t("customChallenge"), false, onCustom, kbdHint("b"))
+    );
   }
   if (onFresh) {
     buttons.appendChild(
@@ -7034,7 +7035,9 @@ var createPausePopup = (onResume, onExit, onReset, resetDisabled, onFresh, onSet
     );
   }
   if (onSettings) {
-    buttons.appendChild(createButton(t("changeSettings"), false, onSettings));
+    buttons.appendChild(
+      createButton(t("customChallenge"), false, onSettings, kbdHint("b"))
+    );
   }
   buttons.appendChild(
     createButton(t("exitToMainMenu"), false, onExit, getActionHint("exit"))
@@ -7798,7 +7801,9 @@ var createCongrats2 = (onNew, onSettings) => {
   hurray.innerHTML = t("congratulations");
   const buttons = document.createElement("div");
   buttons.setAttribute("class", "congrabuttons");
-  buttons.appendChild(createButton(t("changeSettings"), false, onSettings));
+  buttons.appendChild(
+    createButton(t("customChallenge"), false, onSettings, kbdHint("b"))
+  );
   buttons.appendChild(
     createButton(t("newChallenge"), false, onNew, dualHint("n", "axiom"))
   );
@@ -7947,6 +7952,10 @@ var mountRandom = (container, navigate2, session2, onNewChallenge) => {
     markKeyboardInput();
     if (ev.code === "KeyN") {
       onNew();
+      return;
+    }
+    if (ev.code === "KeyB") {
+      openSettings();
       return;
     }
     if (ev.code === "Slash" || ev.code === "Equal") {
@@ -9560,6 +9569,10 @@ var mountQuiz = (container, navigate2, config) => {
     }
     const action = qwertyKeyMap[ev.code];
     if (!action) return;
+    if (ev.code === "KeyB" && pausePopupOpen) {
+      navigate2("match-config");
+      return;
+    }
     if (action === "menu") {
       pausePopupOpen = !pausePopupOpen;
       render();
@@ -9948,7 +9961,7 @@ var renderPreview = () => {
 };
 var renderPresetButtons = () => {
 };
-var mountQuizConfig = (container, navigate2, onStart) => {
+var mountQuizConfig = (container, _navigate, onStart) => {
   const config = parseQuizConfigFromParams(
     new URLSearchParams(window.location.search)
   );
@@ -10131,7 +10144,7 @@ var mountQuizConfig = (container, navigate2, onStart) => {
     const backBtn = document.createElement("div");
     backBtn.className = "button";
     backBtn.textContent = t("back");
-    backBtn.onclick = () => navigate2("menu");
+    backBtn.onclick = () => history.back();
     buttons.appendChild(backBtn);
     const startBtn = document.createElement("div");
     startBtn.className = "button";
@@ -10722,6 +10735,10 @@ var mountMatchCurated = (container, navigate2) => {
       render();
       return;
     }
+    if (ev.code === "KeyB") {
+      navigate2("match-config");
+      return;
+    }
     if (pausePopupOpen) {
       if (action === "undo") {
         pausePopupOpen = false;
@@ -11067,7 +11084,7 @@ var createSection2 = (title) => {
   section.appendChild(heading);
   return section;
 };
-var mountRandomConfig = (container, navigate2, onStart) => {
+var mountRandomConfig = (container, _navigate, onStart) => {
   const config = parseConfigFromParams(
     new URLSearchParams(window.location.search)
   );
@@ -11315,7 +11332,7 @@ var mountRandomConfig = (container, navigate2, onStart) => {
     const backBtn = document.createElement("div");
     backBtn.className = "button";
     backBtn.textContent = t("back");
-    backBtn.onclick = () => navigate2("menu");
+    backBtn.onclick = () => history.back();
     buttons.appendChild(backBtn);
     const startBtn = document.createElement("div");
     startBtn.className = "button";
@@ -11493,6 +11510,9 @@ var navigate = (screen) => {
     setGazeModeActive(false);
     session.returnToMenu();
   }
+  if (screen === "random") {
+    pool.configure(defaultRandomConfig());
+  }
   if (includes(gameModes, screen) && screen !== "match") {
     enterMode(screen);
   }
@@ -11507,7 +11527,7 @@ var navigate = (screen) => {
     url = qs ? `?${qs}` : window.location.pathname;
   } else {
     nextParams.set("mode", screen);
-    if (screen === "random" || screen === "random-config") {
+    if (screen === "random-config") {
       for (const key of [
         "symbols",
         "connectives",
