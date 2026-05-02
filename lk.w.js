@@ -1912,12 +1912,10 @@
     a1: ruleA1,
     a2: ruleA2,
     a3: ruleA3,
-    f: ruleF,
     cut: ruleCut,
     fcut: ruleFCut,
     i: ruleI,
-    mp: ruleMP,
-    v: ruleV
+    mp: ruleMP
   };
   var leftStructural = {
     scl: ruleSCL,
@@ -1937,6 +1935,7 @@
     fil: ruleFIL
   };
   var left = {
+    f: ruleF,
     ...leftStructural,
     ...leftLogical
   };
@@ -1957,6 +1956,7 @@
     ir: ruleIR
   };
   var right = {
+    v: ruleV,
     ...rightStructural,
     ...rightLogical
   };

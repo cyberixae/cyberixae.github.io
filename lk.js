@@ -2099,12 +2099,10 @@ var center = {
   a1: ruleA1,
   a2: ruleA2,
   a3: ruleA3,
-  f: ruleF,
   cut: ruleCut,
   fcut: ruleFCut,
   i: ruleI,
-  mp: ruleMP,
-  v: ruleV
+  mp: ruleMP
 };
 var leftStructural = {
   scl: ruleSCL,
@@ -2124,6 +2122,7 @@ var leftLogical = {
   fil: ruleFIL
 };
 var left = {
+  f: ruleF,
   ...leftStructural,
   ...leftLogical
 };
@@ -2144,6 +2143,7 @@ var rightLogical = {
   ir: ruleIR
 };
 var right = {
+  v: ruleV,
   ...rightStructural,
   ...rightLogical
 };
@@ -5334,7 +5334,9 @@ var en = {
   cutTitle: "Choose Cut Formula",
   cutConfirm: "Apply Cut",
   lemma: "Lemma",
-  secret: "Secret"
+  secret: "Secret",
+  prevBranch: "Prev",
+  nextBranch: "Next"
 };
 var fi = {
   title: "LK",
@@ -5404,7 +5406,9 @@ var fi = {
   cutTitle: "Valitse leikkaava kaava",
   cutConfirm: "K\xE4yt\xE4 leikkausta",
   lemma: "Lemma",
-  secret: "Salainen"
+  secret: "Salainen",
+  prevBranch: "Edell.",
+  nextBranch: "Seur."
 };
 var es = {
   title: "LK",
@@ -5474,7 +5478,9 @@ var es = {
   cutTitle: "Elige la f\xF3rmula de corte",
   cutConfirm: "Aplicar corte",
   lemma: "Lema",
-  secret: "Secreto"
+  secret: "Secreto",
+  prevBranch: "Ant.",
+  nextBranch: "Sig."
 };
 var cs = {
   title: "LK",
@@ -5544,7 +5550,9 @@ var cs = {
   cutTitle: "Zvolte vzorec \u0159ezu",
   cutConfirm: "Pou\u017E\xEDt \u0159ez",
   lemma: "Lemma",
-  secret: "Tajn\xE9"
+  secret: "Tajn\xE9",
+  prevBranch: "P\u0159edch.",
+  nextBranch: "Dal\u0161\xED"
 };
 var pl = {
   title: "LK",
@@ -5614,7 +5622,9 @@ var pl = {
   cutTitle: "Wybierz formu\u0142\u0119 ci\u0119cia",
   cutConfirm: "Zastosuj ci\u0119cie",
   lemma: "Lemat",
-  secret: "Tajne"
+  secret: "Tajne",
+  prevBranch: "Poprz.",
+  nextBranch: "Nast."
 };
 var messages = {
   cs,
@@ -6233,7 +6243,7 @@ var createButton = (label, disabled, onClick, hint, hintVariant = "base") => {
     if (hint !== void 0) {
       const labelSpan = document.createElement("span");
       labelSpan.setAttribute("class", "button-label");
-      labelSpan.textContent = " " + label;
+      labelSpan.textContent = label;
       el.appendChild(labelSpan);
     } else {
       el.innerHTML = label;
@@ -6241,11 +6251,11 @@ var createButton = (label, disabled, onClick, hint, hintVariant = "base") => {
   } else {
     const longSpan = document.createElement("span");
     longSpan.setAttribute("class", "button-label long");
-    longSpan.textContent = (hint !== void 0 ? " " : "") + label.long;
+    longSpan.textContent = label.long;
     el.appendChild(longSpan);
     const shortSpan = document.createElement("span");
     shortSpan.setAttribute("class", "button-label short");
-    shortSpan.textContent = (hint !== void 0 ? " " : "") + label.short;
+    shortSpan.textContent = label.short;
     el.appendChild(shortSpan);
   }
   return el;
@@ -6788,7 +6798,7 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
     kbdHint("-")
   );
   const zoomReset = createButton(
-    "\u2299",
+    "\xD71",
     false,
     () => {
       zoomTreeReset();
@@ -6898,17 +6908,15 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
   gazeGroup.appendChild(gazeRightBtn);
   const axiomGroup = makeGroup("controls-axiom");
   axiomGroup.appendChild(axiomBtn);
-  const zoomGroup = makeGroup();
+  const zoomGroup = makeGroup("controls-zoom");
   zoomGroup.appendChild(zoomOut);
   zoomGroup.appendChild(zoomReset);
   zoomGroup.appendChild(zoomIn);
   controlsEl.setAttribute("class", "controls-undo-inner");
-  const centerCell = document.createElement("div");
-  centerCell.setAttribute("class", "controls-center");
   const branchCount = branches(workspace.currentConjecture().derivation).length;
   const canSwitch = !solved && branchCount > 1;
   const prevBranchBtn = createButton(
-    "\u21B0",
+    t("prevBranch"),
     !canSwitch,
     () => {
       workspace.applyEvent(prevBranch());
@@ -6916,9 +6924,8 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
     },
     getActionHint("prevBranch")
   );
-  prevBranchBtn.classList.add("branch-btn");
   const nextBranchBtn = createButton(
-    "\u21B1",
+    t("nextBranch"),
     !canSwitch,
     () => {
       workspace.applyEvent(nextBranch());
@@ -6926,30 +6933,28 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
     },
     getActionHint("nextBranch")
   );
-  nextBranchBtn.classList.add("branch-btn");
-  const navGroup = makeGroup("controls-undo");
+  const navGroup = makeGroup("controls-nav");
   navGroup.appendChild(prevBranchBtn);
   navGroup.appendChild(controlsEl);
   navGroup.appendChild(nextBranchBtn);
-  const rightCell = document.createElement("div");
-  rightCell.setAttribute("class", "controls-right");
-  rightCell.appendChild(zoomGroup);
   const controlsBar = document.createElement("div");
   controlsBar.setAttribute("class", "controls");
   if (congrats) {
     congrats.buttons.setAttribute("class", "congrabuttons controls-group");
-    centerCell.appendChild(congrats.buttons);
+    controlsBar.appendChild(congrats.buttons);
   } else {
-    if (hideLemma !== true) centerCell.appendChild(lemmaGroup);
-    centerCell.appendChild(gazeGroup);
-    centerCell.appendChild(axiomGroup);
+    const leftWing = document.createElement("div");
+    leftWing.setAttribute("class", "controls-wing controls-wing-left");
+    leftWing.appendChild(navGroup);
+    if (hideLemma !== true) leftWing.appendChild(lemmaGroup);
+    controlsBar.appendChild(leftWing);
+    controlsBar.appendChild(gazeGroup);
+    const rightWing = document.createElement("div");
+    rightWing.setAttribute("class", "controls-wing controls-wing-right");
+    rightWing.appendChild(axiomGroup);
+    rightWing.appendChild(zoomGroup);
+    controlsBar.appendChild(rightWing);
   }
-  const leftCell = document.createElement("div");
-  leftCell.setAttribute("class", "controls-left");
-  leftCell.appendChild(navGroup);
-  controlsBar.appendChild(leftCell);
-  controlsBar.appendChild(centerCell);
-  controlsBar.appendChild(rightCell);
   panel.appendChild(controlsBar);
   if (!solved && pinned.length > 0) {
     const pinnedStrip = document.createElement("div");
