@@ -5331,8 +5331,8 @@ var en = {
   matchScore: "Score: {score} / {max}",
   matchFinalPreset: "Final preset: {preset}",
   multiplier: "Multiplier",
-  cutTitle: "Choose Cut Formula",
-  cutConfirm: "Apply Cut",
+  lemmaTitle: "Build Lemma",
+  lemmaConfirm: "Confirm",
   lemma: "Lemma",
   secret: "Secret",
   prevBranch: "Prev",
@@ -5403,8 +5403,8 @@ var fi = {
   matchScore: "Pisteet: {score} / {max}",
   matchFinalPreset: "Viimeinen esiasetus: {preset}",
   multiplier: "Kerroin",
-  cutTitle: "Valitse leikkaava kaava",
-  cutConfirm: "K\xE4yt\xE4 leikkausta",
+  lemmaTitle: "Rakenna lemma",
+  lemmaConfirm: "Vahvista",
   lemma: "Lemma",
   secret: "Salainen",
   prevBranch: "Edell.",
@@ -5475,8 +5475,8 @@ var es = {
   matchScore: "Puntuaci\xF3n: {score} / {max}",
   matchFinalPreset: "Preajuste final: {preset}",
   multiplier: "Multiplicador",
-  cutTitle: "Elige la f\xF3rmula de corte",
-  cutConfirm: "Aplicar corte",
+  lemmaTitle: "Construir lema",
+  lemmaConfirm: "Confirmar",
   lemma: "Lema",
   secret: "Secreto",
   prevBranch: "Ant.",
@@ -5547,8 +5547,8 @@ var cs = {
   matchScore: "Sk\xF3re: {score} / {max}",
   matchFinalPreset: "Posledn\xED p\u0159edvolba: {preset}",
   multiplier: "N\xE1sobitel",
-  cutTitle: "Zvolte vzorec \u0159ezu",
-  cutConfirm: "Pou\u017E\xEDt \u0159ez",
+  lemmaTitle: "Sestavit lemma",
+  lemmaConfirm: "Potvrdit",
   lemma: "Lemma",
   secret: "Tajn\xE9",
   prevBranch: "P\u0159edch.",
@@ -5619,8 +5619,8 @@ var pl = {
   matchScore: "Wynik: {score} / {max}",
   matchFinalPreset: "Ostatnie ustawienie wst\u0119pne: {preset}",
   multiplier: "Mno\u017Cnik",
-  cutTitle: "Wybierz formu\u0142\u0119 ci\u0119cia",
-  cutConfirm: "Zastosuj ci\u0119cie",
+  lemmaTitle: "Zbuduj lemat",
+  lemmaConfirm: "Zatwierd\u017A",
   lemma: "Lemat",
   secret: "Tajne",
   prevBranch: "Poprz.",
@@ -6491,8 +6491,7 @@ var createRuleCard = (key, rule, disabled, pinned, hideRules, onApply, gazeHints
     "rule " + (interactive ? "button" : "hint") + (disabled ? " disabled" : "") + (isPinned ? " pinned" : "")
   );
   pre.dataset["rule"] = key;
-  const group = key in leftStructural || key in rightStructural ? "structural" : key in leftLogical || key in rightLogical ? "logical" : "center";
-  pre.dataset["group"] = group;
+  pre.dataset["group"] = ruleCategory[key];
   if (interactive && !disabled) pre.onclick = () => onApply(key);
   const withLabel = fromDerivation(
     rule.example,
@@ -6798,7 +6797,7 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
     kbdHint("-")
   );
   const zoomReset = createButton(
-    "\xD71",
+    ":",
     false,
     () => {
       zoomTreeReset();
@@ -6879,9 +6878,9 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
   };
   const axiomBtn = createButton(
     t("axiom"),
-    inactive || !keys(center).some((k) => ls.includes(k) && isReverseId0(k)),
+    inactive || !keys(reverseAxiom0).some((k) => ls.includes(k) && isReverseId0(k)),
     () => {
-      autoRule(workspace, keys(center));
+      autoRule(workspace, keys(reverseAxiom0));
       rerender();
     },
     getActionHint("axiom")
@@ -7165,7 +7164,7 @@ var createDispatch = (getWorkspace, rerender, navigate2, onSolved, onLevel, onMe
       }
       return;
     case "axiom":
-      autoRule(workspace, keys(center));
+      autoRule(workspace, keys(reverseAxiom0));
       break;
     case "undo":
       workspace.applyEvent(undo());
@@ -7637,8 +7636,8 @@ var mountCampaign = (container, navigate2, session2) => {
       container.removeChild(modal);
     };
     const modal = createFormulaEditor(
-      t("cutTitle"),
-      t("cutConfirm"),
+      t("lemmaTitle"),
+      t("lemmaConfirm"),
       (formula) => {
         formulaEditorOpen = false;
         closeFormulaEditor = null;
@@ -7863,8 +7862,8 @@ var mountRandom = (container, navigate2, session2, onNewChallenge) => {
       container.removeChild(modal);
     };
     const modal = createFormulaEditor(
-      t("cutTitle"),
-      t("cutConfirm"),
+      t("lemmaTitle"),
+      t("lemmaConfirm"),
       (formula) => {
         formulaEditorOpen = false;
         closeFormulaEditor = null;
