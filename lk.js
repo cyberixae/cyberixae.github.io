@@ -10784,7 +10784,7 @@ var mountMatchCurated = (container, navigate2) => {
 };
 
 // src/web/system.ts
-var mountSystem = (container, _navigate) => {
+var mountSystem = (container, navigate2) => {
   const render = () => {
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
@@ -10829,6 +10829,11 @@ var mountSystem = (container, _navigate) => {
         };
         list.appendChild(link);
       }
+      const menuBtn = document.createElement("div");
+      menuBtn.setAttribute("class", "button system-item");
+      menuBtn.innerHTML = t("exitToMainMenu");
+      menuBtn.onclick = () => navigate2("menu");
+      list.appendChild(menuBtn);
       panel.appendChild(list);
     }
     container.appendChild(panel);
