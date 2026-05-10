@@ -5336,7 +5336,14 @@ var en = {
   lemma: "Lemma",
   secret: "Secret",
   prevBranch: "Prev",
-  nextBranch: "Next"
+  nextBranch: "Next",
+  versus: "Versus",
+  player1: "Player 1",
+  player2: "Player 2",
+  timeUp: "Time's Up!",
+  tie: "Tie!",
+  winsTemplate: "{player} wins!",
+  skip: "Skip"
 };
 var fi = {
   title: "LK",
@@ -5408,7 +5415,14 @@ var fi = {
   lemma: "Lemma",
   secret: "Salainen",
   prevBranch: "Edell.",
-  nextBranch: "Seur."
+  nextBranch: "Seur.",
+  versus: "Vastakkain",
+  player1: "Pelaaja 1",
+  player2: "Pelaaja 2",
+  timeUp: "Aika loppui!",
+  tie: "Tasapeli!",
+  winsTemplate: "{player} voittaa!",
+  skip: "Ohita"
 };
 var es = {
   title: "LK",
@@ -5480,7 +5494,14 @@ var es = {
   lemma: "Lema",
   secret: "Secreto",
   prevBranch: "Ant.",
-  nextBranch: "Sig."
+  nextBranch: "Sig.",
+  versus: "Versus",
+  player1: "Jugador 1",
+  player2: "Jugador 2",
+  timeUp: "\xA1Se acab\xF3 el tiempo!",
+  tie: "\xA1Empate!",
+  winsTemplate: "\xA1{player} gana!",
+  skip: "Saltar"
 };
 var cs = {
   title: "LK",
@@ -5552,7 +5573,14 @@ var cs = {
   lemma: "Lemma",
   secret: "Tajn\xE9",
   prevBranch: "P\u0159edch.",
-  nextBranch: "Dal\u0161\xED"
+  nextBranch: "Dal\u0161\xED",
+  versus: "Versus",
+  player1: "Hr\xE1\u010D 1",
+  player2: "Hr\xE1\u010D 2",
+  timeUp: "\u010Cas vypr\u0161el!",
+  tie: "Rem\xEDza!",
+  winsTemplate: "{player} vyhr\xE1v\xE1!",
+  skip: "P\u0159esko\u010Dit"
 };
 var pl = {
   title: "LK",
@@ -5624,7 +5652,14 @@ var pl = {
   lemma: "Lemat",
   secret: "Tajne",
   prevBranch: "Poprz.",
-  nextBranch: "Nast."
+  nextBranch: "Nast.",
+  versus: "Versus",
+  player1: "Gracz 1",
+  player2: "Gracz 2",
+  timeUp: "Czas min\u0105\u0142!",
+  tie: "Remis!",
+  winsTemplate: "{player} wygrywa!",
+  skip: "Pomi\u0144"
 };
 var messages = {
   cs,
@@ -6026,7 +6061,8 @@ var qwertyKeyMap = {
   ArrowRight: "gazeRight",
   ArrowUp: "gazeConnective",
   ArrowDown: "gazeWeakening",
-  KeyR: "toggleRules"
+  KeyR: "toggleRules",
+  KeyN: "skip"
 };
 var codeToLabel = (code) => {
   const special = {
@@ -6070,6 +6106,10 @@ var ps5GazeKeyMap = {
   // Cross — alias for muscle memory
   1: "undo",
   // Circle — alias
+  2: "lemma",
+  // Square
+  3: "skip",
+  // Triangle
   12: "gazeConnective",
   // D-pad up
   13: "gazeWeakening",
@@ -6175,6 +6215,7 @@ var toggleHotMode = () => {
 var getActionHint = (action) => gamepadActive ? activeActionPadHint()[action] : actionKeyHint[action];
 var kbdHint = (s) => gamepadActive ? void 0 : s;
 var dualHint = (kbd, padAction) => gamepadActive ? activeActionPadHint()[padAction] : kbd;
+var getActionHintPure = (action, isGamepad) => isGamepad ? activeActionPadHint()[action] : actionKeyHint[action];
 
 // src/web/game.ts
 var ghostToDerivation = (chain, activeSequent2) => {
@@ -6264,13 +6305,13 @@ var rulesVisible = false;
 var setDefaultRulesVisible = (visible) => {
   rulesVisible = visible;
   treeZoom = 1;
-  autoZoomedDerivation = null;
+  autoZoomedDerivations = /* @__PURE__ */ new WeakSet();
 };
 var treeZoom = 1;
 var ZOOM_MIN = 0.4;
 var ZOOM_MAX = 2;
 var ZOOM_STEP = 0.2;
-var autoZoomedDerivation = null;
+var autoZoomedDerivations = /* @__PURE__ */ new WeakSet();
 var zoomTreeOut = () => {
   treeZoom = Math.max(ZOOM_MIN, treeZoom - ZOOM_STEP);
 };
@@ -6282,6 +6323,69 @@ var zoomTreeIn = () => {
 };
 var AUTO_ZOOM_MAX = 1.2;
 var AUTO_ZOOM_PAD = 0.9;
+var createBenchCtx = (isGamepadMode = false, autoZoom = true, showPar = true, showHud = true) => {
+  let gazeModeActive2 = false;
+  let zoom = 1;
+  const autoZoomed = /* @__PURE__ */ new WeakSet();
+  let lastScrollTop2 = 0;
+  let lastScrollLeft2 = 0;
+  let rulesVis = false;
+  return {
+    isGazeModeActive: () => gazeModeActive2,
+    setGazeModeActive: (v2) => {
+      gazeModeActive2 = v2;
+    },
+    getActionHint: (action) => getActionHintPure(action, isGamepadMode),
+    kbdHint: (s) => isGamepadMode ? void 0 : s,
+    getTreeZoom: () => zoom,
+    setTreeZoom: (v2) => {
+      zoom = v2;
+    },
+    tryAutoZoom: (d) => {
+      if (!autoZoom) return false;
+      if (autoZoomed.has(d)) return false;
+      autoZoomed.add(d);
+      return true;
+    },
+    getLastScroll: () => ({ top: lastScrollTop2, left: lastScrollLeft2 }),
+    setLastScroll: (top, left4) => {
+      lastScrollTop2 = top;
+      lastScrollLeft2 = left4;
+    },
+    isRulesVisible: () => rulesVis,
+    toggleRulesVisible: () => {
+      rulesVis = !rulesVis;
+    },
+    showPar,
+    showHud
+  };
+};
+var defaultCtx = {
+  isGazeModeActive,
+  setGazeModeActive,
+  getActionHint,
+  kbdHint,
+  getTreeZoom: () => treeZoom,
+  setTreeZoom: (v2) => {
+    treeZoom = v2;
+  },
+  tryAutoZoom: (d) => {
+    if (autoZoomedDerivations.has(d)) return false;
+    autoZoomedDerivations.add(d);
+    return true;
+  },
+  getLastScroll: () => ({ top: lastScrollTop, left: lastScrollLeft }),
+  setLastScroll: (top, left4) => {
+    lastScrollTop = top;
+    lastScrollLeft = left4;
+  },
+  isRulesVisible: () => rulesVisible,
+  toggleRulesVisible: () => {
+    rulesVisible = !rulesVisible;
+  },
+  showPar: true,
+  showHud: true
+};
 var CHECK_TOTAL_MS = 3e3;
 var CHECK_STEP_MIN_MS = 80;
 var CHECK_STEP_MAX_MS = 600;
@@ -6337,21 +6441,19 @@ var runProofCheckSweep = (tree2) => {
 };
 var lastScrollTop = 0;
 var lastScrollLeft = 0;
-var createPlayArea = (workspace) => {
+var createPlayArea = (workspace, ctx) => {
   const panel = document.createElement("div");
   const solvedClass = workspace.isSolved() ? " solved" : "";
   panel.setAttribute("class", "playarea" + solvedClass);
-  panel.style.setProperty("--tree-zoom", String(treeZoom));
+  panel.style.setProperty("--tree-zoom", String(ctx.getTreeZoom()));
+  const { top: startTop, left: startLeft } = ctx.getLastScroll();
   panel.addEventListener("scroll", () => {
-    lastScrollTop = panel.scrollTop;
-    lastScrollLeft = panel.scrollLeft;
+    ctx.setLastScroll(panel.scrollTop, panel.scrollLeft);
   });
-  const startTop = lastScrollTop;
-  const startLeft = lastScrollLeft;
   const focus2 = workspace.currentConjecture();
   const solved = workspace.isSolved();
-  const gaze = isGazeModeActive() ? workspace.gaze() : null;
-  const ghostChain = isGazeModeActive() ? computeGhostChain(
+  const gaze = ctx.isGazeModeActive() ? workspace.gaze() : null;
+  const ghostChain = ctx.isGazeModeActive() ? computeGhostChain(
     activeSequent(focus2),
     workspace.gaze(),
     workspace.gazeKind(),
@@ -6389,8 +6491,7 @@ var createPlayArea = (workspace) => {
         }
       });
     }
-    if (isFresh && !solved && autoZoomedDerivation !== focus2.derivation) {
-      autoZoomedDerivation = focus2.derivation;
+    if (isFresh && !solved && ctx.tryAutoZoom(focus2.derivation)) {
       const rootSequent = tree2.querySelector(
         ":scope > .tree-sequent"
       );
@@ -6406,12 +6507,12 @@ var createPlayArea = (workspace) => {
             ZOOM_MIN,
             Math.min(
               AUTO_ZOOM_MAX,
-              treeZoom * availW * AUTO_ZOOM_PAD / sequentRect.width
+              ctx.getTreeZoom() * availW * AUTO_ZOOM_PAD / sequentRect.width
             )
           );
-          if (Math.abs(target - treeZoom) > 0.01) {
-            treeZoom = target;
-            panel.style.setProperty("--tree-zoom", String(treeZoom));
+          if (Math.abs(target - ctx.getTreeZoom()) > 0.01) {
+            ctx.setTreeZoom(target);
+            panel.style.setProperty("--tree-zoom", String(ctx.getTreeZoom()));
             layoutTree(tree2, { skipActiveScroll: true });
           }
         }
@@ -6483,7 +6584,7 @@ var gazeHintBadgeForKind = (key, hints) => {
   }
   return null;
 };
-var createRuleCard = (key, rule, disabled, pinned, hideRules, onApply, gazeHints, panelClass, interactive) => {
+var createRuleCard = (key, rule, disabled, pinned, hideRules, onApply, gazeHints, panelClass, interactive, getHint) => {
   const isPinned = pinned.includes(key);
   const pre = document.createElement("pre");
   pre.setAttribute(
@@ -6507,7 +6608,7 @@ var createRuleCard = (key, rule, disabled, pinned, hideRules, onApply, gazeHints
   );
   pre.innerHTML = '<span class="rule-label long">' + withLabel + '</span><span class="rule-label short">' + withoutLabel + "</span>";
   const action = ruleAction[key];
-  const hint = action !== void 0 ? getActionHint(action) : void 0;
+  const hint = action !== void 0 ? getHint(action) : void 0;
   const ruleHintVariant = panelClass === "main" ? "base" : "hot";
   if (hint !== void 0 && !hideRules)
     pre.appendChild(keyHintBadge(hint, ruleHintVariant));
@@ -6523,7 +6624,7 @@ var createRuleCard = (key, rule, disabled, pinned, hideRules, onApply, gazeHints
   }
   return pre;
 };
-var createPanel = (className, ruleRecord, ls, rules3, pinned, hideRules, solved, onApply, gazeHints) => {
+var createPanel = (className, ruleRecord, ls, rules3, pinned, hideRules, solved, onApply, gazeHints, getHint) => {
   const panel = document.createElement("div");
   panel.setAttribute("class", className);
   entries(ruleRecord).forEach(([key, rule]) => {
@@ -6540,7 +6641,8 @@ var createPanel = (className, ruleRecord, ls, rules3, pinned, hideRules, solved,
         onApply,
         gazeHints,
         className,
-        interactive
+        interactive,
+        getHint
       )
     );
   });
@@ -6566,7 +6668,7 @@ var formatHudCounts = (counts) => {
   const total = order.reduce((sum, cat) => sum + counts[cat], 0);
   return `<b>${total}</b>`;
 };
-var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onApplyReverse1, hideLemma) => {
+var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onApplyReverse1, hideLemma, ctx = defaultCtx, onSkip) => {
   const ls = workspace.applicableRules();
   const rules3 = workspace.availableRules();
   const solved = workspace.isSolved();
@@ -6575,7 +6677,7 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
   const branchClosed = activeDeriv?.kind === "transformation";
   const inactive = solved || branchClosed;
   const apply2 = (key) => {
-    setGazeModeActive(false);
+    ctx.setGazeModeActive(false);
     if (isReverseId0(key)) {
       workspace.applyEvent(reverse02(key));
       rerender();
@@ -6587,7 +6689,7 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
     }
   };
   const applyCenter = (key) => {
-    setGazeModeActive(false);
+    ctx.setGazeModeActive(false);
     if (isReverseId0(key)) {
       workspace.applyEvent(reverse02(key));
       rerender();
@@ -6610,14 +6712,17 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
       hintChar
     };
   };
-  const gazeHints = isGazeModeActive() ? {
+  const gazeHints = ctx.isGazeModeActive() ? {
     connective: buildKindHints(
       "connective",
-      getActionHint("gazeConnective")
+      ctx.getActionHint("gazeConnective")
     ),
-    weakening: buildKindHints("weakening", getActionHint("gazeWeakening"))
+    weakening: buildKindHints(
+      "weakening",
+      ctx.getActionHint("gazeWeakening")
+    )
   } : { connective: null, weakening: null };
-  const hideRules = !rulesVisible || solved;
+  const hideRules = !ctx.isRulesVisible() || solved;
   const pinned = workspace.pinnedRules();
   const panel = document.createElement("div");
   const hasPinned = !solved && pinned.length > 0;
@@ -6636,7 +6741,8 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
       hideRules,
       inactive,
       apply2,
-      gazeHints
+      gazeHints,
+      ctx.getActionHint
     )
   );
   const congrats = solved ? makeCongrats() : null;
@@ -6653,7 +6759,8 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
         hideRules,
         inactive,
         applyCenter,
-        gazeHints
+        gazeHints,
+        ctx.getActionHint
       )
     );
   }
@@ -6667,7 +6774,8 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
       hideRules,
       inactive,
       apply2,
-      gazeHints
+      gazeHints,
+      ctx.getActionHint
     )
   );
   const rulesBtn = document.createElement("div");
@@ -6675,13 +6783,13 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
   rulesBtn.setAttribute("aria-label", t("rules"));
   rulesBtn.textContent = "?";
   rulesBtn.onclick = () => {
-    rulesVisible = !rulesVisible;
+    ctx.toggleRulesVisible();
     rerender();
   };
   const rulesLed = document.createElement("span");
-  rulesLed.setAttribute("class", "led" + (rulesVisible ? " on" : ""));
+  rulesLed.setAttribute("class", "led" + (ctx.isRulesVisible() ? " on" : ""));
   rulesBtn.appendChild(rulesLed);
-  const rulesHint = getActionHint("toggleRules");
+  const rulesHint = ctx.getActionHint("toggleRules");
   if (rulesHint !== void 0) rulesBtn.appendChild(keyHintBadge(rulesHint));
   const topbar = document.createElement("div");
   topbar.setAttribute("class", "bench-topbar");
@@ -6693,21 +6801,33 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
     menuBtn.setAttribute("aria-label", t("menu"));
     menuBtn.textContent = "\u22EE";
     menuBtn.onclick = onMenu;
-    const menuHint = getActionHint("menu");
+    const menuHint = ctx.getActionHint("menu");
     if (menuHint !== void 0) menuBtn.appendChild(keyHintBadge(menuHint));
     topbarLeft.appendChild(menuBtn);
+  }
+  if (!solved && onSkip !== void 0) {
+    const skipBtn = document.createElement("div");
+    skipBtn.setAttribute("class", "button bench-skip-btn");
+    skipBtn.setAttribute("aria-label", t("skip"));
+    skipBtn.textContent = "\xBB";
+    skipBtn.onclick = onSkip;
+    const skipHint = ctx.getActionHint("skip");
+    if (skipHint !== void 0) skipBtn.appendChild(keyHintBadge(skipHint));
+    topbarLeft.appendChild(skipBtn);
   }
   topbar.appendChild(topbarLeft);
   const hud = document.createElement("div");
   hud.setAttribute("class", "hud" + (solved ? " solved" : ""));
-  const hudCounts = formatHudCounts(countRuleUsage(focus2.derivation));
-  hud.innerHTML = solved ? t("moves") + " " + hudCounts : hudCounts;
-  if (solved) {
-    const solution87 = workspace.currentSolution();
-    const par = document.createElement("div");
-    par.setAttribute("class", "par");
-    par.innerHTML = solution87 ? t("par") + " " + formatHudCounts(countRuleUsage(solution87)) : t("par") + " \u{1F480}";
-    hud.appendChild(par);
+  if (ctx.showHud) {
+    const hudCounts = formatHudCounts(countRuleUsage(focus2.derivation));
+    hud.innerHTML = solved ? t("moves") + " " + hudCounts : hudCounts;
+    if (solved && ctx.showPar) {
+      const solution87 = workspace.currentSolution();
+      const par = document.createElement("div");
+      par.setAttribute("class", "par");
+      par.innerHTML = solution87 ? t("par") + " " + formatHudCounts(countRuleUsage(solution87)) : t("par") + " \u{1F480}";
+      hud.appendChild(par);
+    }
   }
   topbar.appendChild(hud);
   const topbarRight = document.createElement("div");
@@ -6718,7 +6838,7 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
   topbar.appendChild(topbarRight);
   panel.appendChild(topbar);
   const rulesSheet = document.createElement("div");
-  const sheetMode = isGazeModeActive() ? "gaze" : "hot";
+  const sheetMode = ctx.isGazeModeActive() ? "gaze" : "hot";
   rulesSheet.setAttribute("class", "rules-sheet " + sheetMode);
   if (!congrats) {
     const sheetCenter = document.createElement("div");
@@ -6736,7 +6856,8 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
         applyCenter,
         gazeHints,
         "main",
-        interactive
+        interactive,
+        ctx.getActionHint
       );
       sheetCenter.appendChild(card);
     });
@@ -6759,7 +6880,8 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
       apply2,
       gazeHints,
       "left",
-      interactive
+      interactive,
+      ctx.getActionHint
     );
     leftCol.appendChild(card);
   });
@@ -6778,7 +6900,8 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
       apply2,
       gazeHints,
       "right",
-      interactive
+      interactive,
+      ctx.getActionHint
     );
     rightCol.appendChild(card);
   });
@@ -6786,43 +6909,43 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
   sheetSides.appendChild(rightCol);
   rulesSheet.appendChild(sheetSides);
   panel.appendChild(rulesSheet);
-  panel.appendChild(createPlayArea(workspace));
+  panel.appendChild(createPlayArea(workspace, ctx));
   const zoomOut = createButton(
     "\u2212",
     false,
     () => {
-      zoomTreeOut();
+      ctx.setTreeZoom(Math.max(ZOOM_MIN, ctx.getTreeZoom() - ZOOM_STEP));
       rerender();
     },
-    kbdHint("-")
+    ctx.kbdHint("-")
   );
   const zoomReset = createButton(
     ":",
     false,
     () => {
-      zoomTreeReset();
+      ctx.setTreeZoom(1);
       rerender();
     },
-    kbdHint("0")
+    ctx.kbdHint("0")
   );
   const zoomIn = createButton(
     "+",
     false,
     () => {
-      zoomTreeIn();
+      ctx.setTreeZoom(Math.min(ZOOM_MAX, ctx.getTreeZoom() + ZOOM_STEP));
       rerender();
     },
-    kbdHint("+")
+    ctx.kbdHint("+")
   );
   const gazeMovable = !inactive && seq.antecedent.length + seq.succedent.length > 1;
-  const leftDisabled = isGazeModeActive() ? !gazeMovable : inactive || seq.antecedent.length === 0;
-  const rightDisabled = isGazeModeActive() ? !gazeMovable : inactive || seq.succedent.length === 0;
+  const leftDisabled = ctx.isGazeModeActive() ? !gazeMovable : inactive || seq.antecedent.length === 0;
+  const rightDisabled = ctx.isGazeModeActive() ? !gazeMovable : inactive || seq.succedent.length === 0;
   const gazeLeftBtn = createButton(
     t("left"),
     leftDisabled,
     () => {
-      if (!isGazeModeActive()) {
-        setGazeModeActive(true);
+      if (!ctx.isGazeModeActive()) {
+        ctx.setGazeModeActive(true);
         workspace.setGaze({
           side: "left",
           index: seq.antecedent.length - 1
@@ -6832,35 +6955,35 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
       }
       rerender();
     },
-    getActionHint("gazeLeft")
+    ctx.getActionHint("gazeLeft")
   );
   const gazeRightBtn = createButton(
     t("right"),
     rightDisabled,
     () => {
-      if (!isGazeModeActive()) {
-        setGazeModeActive(true);
+      if (!ctx.isGazeModeActive()) {
+        ctx.setGazeModeActive(true);
         workspace.setGaze({ side: "right", index: 0 });
       } else {
         workspace.moveGaze(1);
       }
       rerender();
     },
-    getActionHint("gazeRight")
+    ctx.getActionHint("gazeRight")
   );
   const gazeWeakeningBtn = createButton(
     t("drop"),
-    !isGazeModeActive() || inactive,
+    !ctx.isGazeModeActive() || inactive,
     () => {
       workspace.setGazeKind("weakening");
       applyGazeRule(workspace, "weakening");
       rerender();
     },
-    getActionHint("gazeWeakening")
+    ctx.getActionHint("gazeWeakening")
   );
   const connectiveRule = gazeHints.connective?.eventualRule ?? null;
   const connectiveLabel = connectiveRule !== null ? ruleConnectiveLabel[connectiveRule] ?? "" : "";
-  const connectiveDisabled = !isGazeModeActive() || inactive || connectiveLabel === "";
+  const connectiveDisabled = !ctx.isGazeModeActive() || inactive || connectiveLabel === "";
   const gazeConnectiveBtn = createButton(
     t("destruct"),
     connectiveDisabled,
@@ -6869,7 +6992,7 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
       applyGazeRule(workspace, "connective");
       rerender();
     },
-    getActionHint("gazeConnective")
+    ctx.getActionHint("gazeConnective")
   );
   const makeGroup = (...cls) => {
     const g = document.createElement("div");
@@ -6883,7 +7006,7 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
       autoRule(workspace, keys(reverseAxiom0));
       rerender();
     },
-    getActionHint("axiom")
+    ctx.getActionHint("axiom")
   );
   const lemmaDisabled = inactive || onApplyReverse1 === void 0 || !ls.includes("cut");
   const lemmaBtn = createButton(
@@ -6896,11 +7019,11 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
         rerender();
       });
     },
-    getActionHint("lemma")
+    ctx.getActionHint("lemma")
   );
   const lemmaGroup = makeGroup("controls-lemma");
   lemmaGroup.appendChild(lemmaBtn);
-  const gazeGroup = makeGroup(isGazeModeActive() ? "gaze" : "hot");
+  const gazeGroup = makeGroup(ctx.isGazeModeActive() ? "gaze" : "hot");
   gazeGroup.appendChild(gazeLeftBtn);
   gazeGroup.appendChild(gazeWeakeningBtn);
   gazeGroup.appendChild(gazeConnectiveBtn);
@@ -6921,7 +7044,7 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
       workspace.applyEvent(prevBranch());
       rerender();
     },
-    getActionHint("prevBranch")
+    ctx.getActionHint("prevBranch")
   );
   const nextBranchBtn = createButton(
     t("nextBranch"),
@@ -6930,7 +7053,7 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
       workspace.applyEvent(nextBranch());
       rerender();
     },
-    getActionHint("nextBranch")
+    ctx.getActionHint("nextBranch")
   );
   const navGroup = makeGroup("controls-nav");
   navGroup.appendChild(prevBranchBtn);
@@ -6978,7 +7101,8 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
         onApplyPinned,
         gazeHints,
         panelClass,
-        !hideRules
+        !hideRules,
+        ctx.getActionHint
       );
       pinnedStrip.appendChild(card);
     }
@@ -7061,33 +7185,33 @@ var RULE_APPLY_ACTIONS = /* @__PURE__ */ new Set([
   "rightRotateLeft",
   "rightRotateRight"
 ]);
-var createDispatch = (getWorkspace, rerender, navigate2, onSolved, onLevel, onMenu, onApplyReverse1) => (action) => {
+var createDispatch = (getWorkspace, rerender, navigate2, onSolved, onLevel, onMenu, onApplyReverse1, ctx = defaultCtx) => (action) => {
   if (action === "gazeLeft" || action === "gazeRight") {
-    if (!isGazeModeActive()) {
+    if (!ctx.isGazeModeActive()) {
       const workspace2 = getWorkspace();
       const seq = activeSequent(workspace2.currentConjecture());
       if (action === "gazeLeft") {
         if (seq.antecedent.length === 0) return;
-        setGazeModeActive(true);
+        ctx.setGazeModeActive(true);
         workspace2.setGaze({
           side: "left",
           index: seq.antecedent.length - 1
         });
       } else {
         if (seq.succedent.length === 0) return;
-        setGazeModeActive(true);
+        ctx.setGazeModeActive(true);
         workspace2.setGaze({ side: "right", index: 0 });
       }
       rerender();
       return;
     }
   } else if (action === "gazeConnective" || action === "gazeWeakening") {
-    if (!isGazeModeActive()) return;
-  } else if (isGazeModeActive() && (RULE_APPLY_ACTIONS.has(action) || action === "reset")) {
-    setGazeModeActive(false);
-  } else if (action === "undo" && isGazeModeActive()) {
+    if (!ctx.isGazeModeActive()) return;
+  } else if (ctx.isGazeModeActive() && (RULE_APPLY_ACTIONS.has(action) || action === "reset")) {
+    ctx.setGazeModeActive(false);
+  } else if (action === "undo" && ctx.isGazeModeActive()) {
     if (activePath(getWorkspace().currentConjecture()).length === 0) {
-      setGazeModeActive(false);
+      ctx.setGazeModeActive(false);
     }
   }
   if (action === "menu") {
@@ -7100,7 +7224,7 @@ var createDispatch = (getWorkspace, rerender, navigate2, onSolved, onLevel, onMe
     return;
   }
   if (action === "toggleRules") {
-    rulesVisible = !rulesVisible;
+    ctx.toggleRulesVisible();
     rerender();
     return;
   }
@@ -10861,6 +10985,11 @@ var mountSecret = (container, navigate2) => {
     matchBtn.innerHTML = t("quiz");
     matchBtn.onclick = () => navigate2("match-curated");
     modes.appendChild(matchBtn);
+    const versusBtn = document.createElement("div");
+    versusBtn.setAttribute("class", "button menu-mode");
+    versusBtn.innerHTML = t("versus");
+    versusBtn.onclick = () => navigate2("versus");
+    modes.appendChild(versusBtn);
     const systemsBtn = document.createElement("div");
     systemsBtn.setAttribute("class", "button menu-mode");
     systemsBtn.innerHTML = t("systems");
@@ -10877,6 +11006,511 @@ var mountSecret = (container, navigate2) => {
   render();
   return { cleanup: () => {
   }, rerender: render };
+};
+
+// src/web/versus.ts
+var DURATION = 300;
+var formatTime = (s) => {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${m}:${String(sec).padStart(2, "0")}`;
+};
+var totalMoves = (ws) => {
+  const counts = countRuleUsage(ws.currentConjecture().derivation);
+  return Object.values(counts).reduce((a89, b) => a89 + b, 0);
+};
+var makeVersusFormulaEditor = (side, onFormula, onCancel) => {
+  let modal = null;
+  const close = () => {
+    modal?.remove();
+    modal = null;
+    onCancel();
+  };
+  modal = createFormulaEditor(
+    t("lemmaTitle"),
+    t("lemmaConfirm"),
+    onFormula,
+    close
+  );
+  if (side === "left") {
+    modal.style.right = "calc(50% + 2.5em)";
+  } else {
+    modal.style.left = "calc(50% + 2.5em)";
+  }
+  document.body.appendChild(modal);
+  return close;
+};
+var mountVersus = (container, navigate2, pool2) => {
+  const sharedChallenges = [];
+  const ensureChallenge = (i88) => {
+    while (sharedChallenges.length <= i88 + 2) sharedChallenges.push(pool2.take());
+  };
+  ensureChallenge(0);
+  let index1 = 0;
+  let score1 = 0;
+  const resolved1 = /* @__PURE__ */ new Map();
+  const levelPoints1 = /* @__PURE__ */ new Map();
+  const skipSynthetic1 = /* @__PURE__ */ new Map();
+  let pending1 = [];
+  let index2 = 0;
+  let score2 = 0;
+  const resolved2 = /* @__PURE__ */ new Map();
+  const levelPoints2 = /* @__PURE__ */ new Map();
+  const skipSynthetic2 = /* @__PURE__ */ new Map();
+  let pending2 = [];
+  const currentChallengeIdx1 = () => pending1[0] ?? index1;
+  const currentChallengeIdx2 = () => pending2[0] ?? index2;
+  const makeWorkspace = (i88) => {
+    ensureChallenge(i88);
+    const item = sharedChallenges[i88];
+    if (item === void 0)
+      throw new Error("no challenge at index " + String(i88));
+    return new Workspace({ challenge: item.challenge });
+  };
+  const advancePlayer1 = () => {
+    if (pending1.length > 0) {
+      pending1 = pending1.slice(1);
+    } else {
+      index1 += 1;
+    }
+    ws1 = makeWorkspace(currentChallengeIdx1());
+  };
+  const advancePlayer2 = () => {
+    if (pending2.length > 0) {
+      pending2 = pending2.slice(1);
+    } else {
+      index2 += 1;
+    }
+    ws2 = makeWorkspace(currentChallengeIdx2());
+  };
+  let ws1 = makeWorkspace(0);
+  let ws2 = makeWorkspace(0);
+  const ctx1 = createBenchCtx(false, false, false, false);
+  const ctx2 = createBenchCtx(true, false, false, false);
+  let timeLeft = DURATION;
+  let gameOver = false;
+  let timerEl = null;
+  let closeEditor1 = null;
+  let closeEditor2 = null;
+  const noCongrats = () => ({
+    hurray: document.createElement("div"),
+    buttons: document.createElement("div")
+  });
+  const makeUndoControls = (ws, ctx) => {
+    const el = document.createElement("div");
+    el.setAttribute("class", "controls");
+    const canUndo = activePath(ws.currentConjecture()).length > 0;
+    const enabled = canUndo || ctx.isGazeModeActive();
+    el.appendChild(
+      createButton(
+        t("undo"),
+        !enabled,
+        () => {
+          if (canUndo) {
+            ws.applyEvent(undo());
+          } else {
+            ctx.setGazeModeActive(false);
+          }
+          rerender();
+        },
+        ctx.getActionHint("undo")
+      )
+    );
+    return el;
+  };
+  const rerender = () => {
+    container.innerHTML = "";
+    timerEl = null;
+    const screen = document.createElement("div");
+    screen.setAttribute("class", "versus-screen");
+    const arena = document.createElement("div");
+    arena.setAttribute("class", "versus-arena");
+    const half1 = document.createElement("div");
+    half1.setAttribute("class", "versus-half");
+    half1.appendChild(
+      createBench(
+        ws1,
+        noCongrats,
+        makeUndoControls(ws1, ctx1),
+        rerender,
+        void 0,
+        onApplyReverse1,
+        void 0,
+        ctx1,
+        skipPlayer1
+      )
+    );
+    const half2 = document.createElement("div");
+    half2.setAttribute("class", "versus-half");
+    half2.appendChild(
+      createBench(
+        ws2,
+        noCongrats,
+        makeUndoControls(ws2, ctx2),
+        rerender,
+        void 0,
+        onApplyReverse2,
+        void 0,
+        ctx2,
+        skipPlayer2
+      )
+    );
+    const thermo = document.createElement("div");
+    thermo.setAttribute("class", "versus-thermo");
+    const clock = document.createElement("div");
+    clock.setAttribute("class", "versus-thermo-clock");
+    clock.textContent = formatTime(timeLeft);
+    timerEl = clock;
+    thermo.appendChild(clock);
+    const thermoRows = document.createElement("div");
+    thermoRows.setAttribute("class", "versus-thermo-rows");
+    const ci1 = currentChallengeIdx1();
+    const ci2 = currentChallengeIdx2();
+    const allKeys = [
+      ci1,
+      ci2,
+      ...Array.from(resolved1.keys()),
+      ...Array.from(resolved2.keys())
+    ];
+    const maxIdx = Math.max(...allKeys);
+    const currentMoves1 = totalMoves(ws1);
+    const currentMoves2 = totalMoves(ws2);
+    const displayEntry = (resolved, ci, i88) => i88 === ci ? "current" : resolved.get(i88);
+    const entryMoves = (e, cur, synthetic) => {
+      if (e === void 0) return "";
+      if (e === "current") return String(cur);
+      if (e === "skip")
+        return synthetic !== void 0 ? `(${String(synthetic)})` : "\u2013";
+      return String(e);
+    };
+    const entryPts = (e, pts) => {
+      if (e === void 0 || e === "current") return "";
+      if (e === "skip") return "0";
+      return `+${String(pts ?? 1)}`;
+    };
+    const makeCell = (entry, cur, pts, synthetic, playerClass) => {
+      const cell = document.createElement("div");
+      cell.setAttribute(
+        "class",
+        `versus-thermo-cell ${playerClass}${entry === "current" ? " current" : ""}`
+      );
+      const movesEl = document.createElement("div");
+      movesEl.setAttribute("class", "versus-thermo-moves");
+      movesEl.textContent = entryMoves(entry, cur, synthetic);
+      const ptsEl = document.createElement("div");
+      ptsEl.setAttribute("class", "versus-thermo-points");
+      ptsEl.textContent = entryPts(entry, pts);
+      cell.appendChild(movesEl);
+      cell.appendChild(ptsEl);
+      return cell;
+    };
+    for (let i88 = maxIdx; i88 >= 0; i88 -= 1) {
+      const row = document.createElement("div");
+      row.setAttribute("class", "versus-thermo-row");
+      row.appendChild(
+        makeCell(
+          displayEntry(resolved1, ci1, i88),
+          currentMoves1,
+          levelPoints1.get(i88),
+          skipSynthetic1.get(i88),
+          "p1"
+        )
+      );
+      row.appendChild(
+        makeCell(
+          displayEntry(resolved2, ci2, i88),
+          currentMoves2,
+          levelPoints2.get(i88),
+          skipSynthetic2.get(i88),
+          "p2"
+        )
+      );
+      thermoRows.appendChild(row);
+    }
+    thermo.appendChild(thermoRows);
+    arena.appendChild(half1);
+    arena.appendChild(thermo);
+    arena.appendChild(half2);
+    screen.appendChild(arena);
+    container.appendChild(screen);
+    if (gameOver) {
+      const resultMsg = score1 > score2 ? t("winsTemplate").replace("{player}", t("player1")) : score2 > score1 ? t("winsTemplate").replace("{player}", t("player2")) : t("tie");
+      const overlay = document.createElement("div");
+      overlay.setAttribute("class", "versus-result");
+      const msg = document.createElement("div");
+      msg.setAttribute("class", "versus-result-message");
+      msg.textContent = resultMsg;
+      const scores = document.createElement("div");
+      scores.setAttribute("class", "versus-result-scores");
+      scores.textContent = `${t("player1")}: ${String(score1)}  \u2022  ${t("player2")}: ${String(score2)}`;
+      const backBtn = createButton(t("back"), false, () => navigate2("menu"));
+      overlay.appendChild(msg);
+      overlay.appendChild(scores);
+      overlay.appendChild(backBtn);
+      container.appendChild(overlay);
+    }
+  };
+  const solvePlayer1 = () => {
+    const challengeIdx = currentChallengeIdx1();
+    const moves1 = totalMoves(ws1);
+    const isRetry = resolved1.get(challengeIdx) === "skip";
+    resolved1.set(challengeIdx, moves1);
+    score1 += 1;
+    levelPoints1.set(challengeIdx, 1);
+    if (isRetry) {
+      const p2Moves = resolved2.get(challengeIdx);
+      if (typeof p2Moves === "number") {
+        score2 -= p2Moves * p2Moves;
+        levelPoints2.set(challengeIdx, 1);
+        skipSynthetic1.delete(challengeIdx);
+        const diff = moves1 - p2Moves;
+        const bonus = diff * diff;
+        if (moves1 < p2Moves) {
+          score1 += bonus;
+          levelPoints1.set(challengeIdx, 1 + bonus);
+        } else if (p2Moves < moves1) {
+          score2 += bonus;
+          levelPoints2.set(challengeIdx, 1 + bonus);
+        }
+      }
+    } else {
+      const p2Entry = resolved2.get(challengeIdx);
+      if (typeof p2Entry === "number") {
+        const diff = moves1 - p2Entry;
+        const bonus = diff * diff;
+        if (moves1 < p2Entry) {
+          score1 += bonus;
+          levelPoints1.set(challengeIdx, 1 + bonus);
+        } else if (p2Entry < moves1) {
+          score2 += bonus;
+          levelPoints2.set(
+            challengeIdx,
+            (levelPoints2.get(challengeIdx) ?? 1) + bonus
+          );
+        }
+      } else if (p2Entry === "skip") {
+        const synthetic = 2 * moves1;
+        skipSynthetic2.set(challengeIdx, synthetic);
+        const bonus = moves1 * moves1;
+        score1 += bonus;
+        levelPoints1.set(challengeIdx, 1 + bonus);
+        pending2 = [challengeIdx, ...pending2];
+      }
+    }
+    advancePlayer1();
+    rerender();
+  };
+  const solvePlayer2 = () => {
+    const challengeIdx = currentChallengeIdx2();
+    const moves2 = totalMoves(ws2);
+    const isRetry = resolved2.get(challengeIdx) === "skip";
+    resolved2.set(challengeIdx, moves2);
+    score2 += 1;
+    levelPoints2.set(challengeIdx, 1);
+    if (isRetry) {
+      const p1Moves = resolved1.get(challengeIdx);
+      if (typeof p1Moves === "number") {
+        score1 -= p1Moves * p1Moves;
+        levelPoints1.set(challengeIdx, 1);
+        skipSynthetic2.delete(challengeIdx);
+        const diff = moves2 - p1Moves;
+        const bonus = diff * diff;
+        if (moves2 < p1Moves) {
+          score2 += bonus;
+          levelPoints2.set(challengeIdx, 1 + bonus);
+        } else if (p1Moves < moves2) {
+          score1 += bonus;
+          levelPoints1.set(challengeIdx, 1 + bonus);
+        }
+      }
+    } else {
+      const p1Entry = resolved1.get(challengeIdx);
+      if (typeof p1Entry === "number") {
+        const diff = moves2 - p1Entry;
+        const bonus = diff * diff;
+        if (moves2 < p1Entry) {
+          score2 += bonus;
+          levelPoints2.set(challengeIdx, 1 + bonus);
+        } else if (p1Entry < moves2) {
+          score1 += bonus;
+          levelPoints1.set(
+            challengeIdx,
+            (levelPoints1.get(challengeIdx) ?? 1) + bonus
+          );
+        }
+      } else if (p1Entry === "skip") {
+        const synthetic = 2 * moves2;
+        skipSynthetic1.set(challengeIdx, synthetic);
+        const bonus = moves2 * moves2;
+        score2 += bonus;
+        levelPoints2.set(challengeIdx, 1 + bonus);
+        pending1 = [challengeIdx, ...pending1];
+      }
+    }
+    advancePlayer2();
+    rerender();
+  };
+  const skipPlayer1 = () => {
+    if (gameOver) return;
+    const challengeIdx = currentChallengeIdx1();
+    const isRetry = resolved1.get(challengeIdx) === "skip";
+    resolved1.set(challengeIdx, "skip");
+    if (!isRetry) {
+      const p2Entry = resolved2.get(challengeIdx);
+      if (typeof p2Entry === "number") {
+        const synthetic = 2 * p2Entry;
+        skipSynthetic1.set(challengeIdx, synthetic);
+        const bonus = p2Entry * p2Entry;
+        score2 += bonus;
+        levelPoints2.set(
+          challengeIdx,
+          (levelPoints2.get(challengeIdx) ?? 1) + bonus
+        );
+      }
+    }
+    advancePlayer1();
+    rerender();
+  };
+  const skipPlayer2 = () => {
+    if (gameOver) return;
+    const challengeIdx = currentChallengeIdx2();
+    const isRetry = resolved2.get(challengeIdx) === "skip";
+    resolved2.set(challengeIdx, "skip");
+    if (!isRetry) {
+      const p1Entry = resolved1.get(challengeIdx);
+      if (typeof p1Entry === "number") {
+        const synthetic = 2 * p1Entry;
+        skipSynthetic2.set(challengeIdx, synthetic);
+        const bonus = p1Entry * p1Entry;
+        score1 += bonus;
+        levelPoints1.set(
+          challengeIdx,
+          (levelPoints1.get(challengeIdx) ?? 1) + bonus
+        );
+      }
+    }
+    advancePlayer2();
+    rerender();
+  };
+  const onSolved1 = (action) => {
+    if (gameOver) return;
+    if (action === "menu") {
+      navigate2("menu");
+      return;
+    }
+    solvePlayer1();
+  };
+  const onSolved2 = (action) => {
+    if (gameOver) return;
+    if (action === "menu") {
+      navigate2("menu");
+      return;
+    }
+    solvePlayer2();
+  };
+  const onApplyReverse1 = (_key, onFormula) => {
+    if (closeEditor1 !== null) return;
+    closeEditor1 = makeVersusFormulaEditor(
+      "left",
+      (formula) => {
+        closeEditor1 = null;
+        onFormula(formula);
+      },
+      () => {
+        closeEditor1 = null;
+      }
+    );
+  };
+  const onApplyReverse2 = (_key, onFormula) => {
+    if (closeEditor2 !== null) return;
+    closeEditor2 = makeVersusFormulaEditor(
+      "right",
+      (formula) => {
+        closeEditor2 = null;
+        onFormula(formula);
+      },
+      () => {
+        closeEditor2 = null;
+      }
+    );
+  };
+  const dispatch1 = createDispatch(
+    () => ws1,
+    rerender,
+    navigate2,
+    onSolved1,
+    void 0,
+    void 0,
+    onApplyReverse1,
+    ctx1
+  );
+  const dispatch2 = createDispatch(
+    () => ws2,
+    rerender,
+    navigate2,
+    onSolved2,
+    void 0,
+    void 0,
+    onApplyReverse2,
+    ctx2
+  );
+  const ticker = setInterval(() => {
+    if (gameOver) return;
+    timeLeft -= 1;
+    if (timeLeft <= 0) {
+      timeLeft = 0;
+      gameOver = true;
+      clearInterval(ticker);
+      closeEditor1?.();
+      closeEditor2?.();
+      rerender();
+      return;
+    }
+    if (timerEl !== null) {
+      timerEl.textContent = formatTime(timeLeft);
+    }
+  }, 1e3);
+  const handleKey = (ev) => {
+    if (ev.ctrlKey || ev.metaKey || ev.altKey || gameOver) return;
+    markKeyboardInput();
+    const action = qwertyKeyMap[ev.code];
+    if (action === void 0) return;
+    if (closeEditor1 !== null) {
+      if (action === "menu" || action === "undo") closeEditor1();
+      return;
+    }
+    if (action === "skip") {
+      skipPlayer1();
+      return;
+    }
+    dispatch1(action);
+  };
+  document.addEventListener("keydown", handleKey);
+  const cleanupGamepad = setupGamepad((action) => {
+    if (gameOver) return;
+    if (closeEditor2 !== null) {
+      if (action === "menu" || action === "undo") closeEditor2();
+      return;
+    }
+    if (action === "skip") {
+      skipPlayer2();
+      return;
+    }
+    dispatch2(action);
+  });
+  const unsubGamepad = subscribeGamepad(rerender);
+  rerender();
+  return {
+    cleanup: () => {
+      clearInterval(ticker);
+      document.removeEventListener("keydown", handleKey);
+      cleanupGamepad();
+      unsubGamepad();
+      closeEditor1?.();
+      closeEditor2?.();
+    },
+    rerender
+  };
 };
 
 // src/random/config.ts
@@ -11519,7 +12153,7 @@ var navigate = (screen) => {
     setGazeModeActive(false);
     session.returnToMenu();
   }
-  if (screen === "random") {
+  if (screen === "random" || screen === "versus") {
     pool.configure(defaultRandomConfig());
   }
   if (includes(gameModes, screen) && screen !== "match") {
@@ -11612,6 +12246,9 @@ var mount = (screen) => {
     case "match-curated":
       current = mountMatchCurated(body, navigate);
       break;
+    case "versus":
+      current = mountVersus(body, navigate, pool);
+      break;
     case "random-config":
       current = mountRandomConfig(body, navigate, (config) => {
         pool.configure(config);
@@ -11685,6 +12322,9 @@ var init3 = () => {
   } else if (mode === "match-curated") {
     currentScreen = "match-curated";
     mount("match-curated");
+  } else if (mode === "versus") {
+    currentScreen = "versus";
+    mount("versus");
   } else if (params.get("level") !== null) {
     enterMode("campaign");
     currentScreen = "campaign";
