@@ -5309,6 +5309,7 @@ var en = {
   filter: "Parameters",
   bypassPercent: "Chaoticity (\u{1F480}%)",
   targetNonStructural: "Solution Size",
+  continue: "Continue",
   start: "Start",
   back: "Back",
   preview: "Preview",
@@ -5343,7 +5344,14 @@ var en = {
   timeUp: "Time's Up!",
   tie: "Tie!",
   winsTemplate: "{player} wins!",
-  skip: "Skip"
+  skip: "Skip",
+  inputMethod: "Input",
+  players: "Players",
+  matchLength: "Match Length (min)",
+  mouse: "Mouse",
+  keyboard: "Keyboard",
+  gamepad1: "Gamepad 1",
+  gamepad2: "Gamepad 2"
 };
 var fi = {
   title: "LK",
@@ -5388,6 +5396,7 @@ var fi = {
   filter: "Parametrit",
   bypassPercent: "Kaoottisuus (\u{1F480}%)",
   targetNonStructural: "Ratkaisun koko",
+  continue: "Jatka",
   start: "Aloita",
   back: "Takaisin",
   preview: "Esikatselu",
@@ -5422,7 +5431,14 @@ var fi = {
   timeUp: "Aika loppui!",
   tie: "Tasapeli!",
   winsTemplate: "{player} voittaa!",
-  skip: "Ohita"
+  skip: "Ohita",
+  inputMethod: "Ohjain",
+  players: "Pelaajat",
+  matchLength: "Ottelun kesto (min)",
+  mouse: "Hiiri",
+  keyboard: "N\xE4pp\xE4imist\xF6",
+  gamepad1: "Ohjain 1",
+  gamepad2: "Ohjain 2"
 };
 var es = {
   title: "LK",
@@ -5467,6 +5483,7 @@ var es = {
   filter: "Par\xE1metros",
   bypassPercent: "Caoticidad (\u{1F480}%)",
   targetNonStructural: "Tama\xF1o de soluci\xF3n",
+  continue: "Continuar",
   start: "Comenzar",
   back: "Atr\xE1s",
   preview: "Vista previa",
@@ -5501,7 +5518,14 @@ var es = {
   timeUp: "\xA1Se acab\xF3 el tiempo!",
   tie: "\xA1Empate!",
   winsTemplate: "\xA1{player} gana!",
-  skip: "Saltar"
+  skip: "Saltar",
+  inputMethod: "Control",
+  players: "Jugadores",
+  matchLength: "Duraci\xF3n (min)",
+  mouse: "Rat\xF3n",
+  keyboard: "Teclado",
+  gamepad1: "Mando 1",
+  gamepad2: "Mando 2"
 };
 var cs = {
   title: "LK",
@@ -5546,6 +5570,7 @@ var cs = {
   filter: "Parametry",
   bypassPercent: "Chaos (\u{1F480}%)",
   targetNonStructural: "Velikost \u0159e\u0161en\xED",
+  continue: "Pokra\u010Dovat",
   start: "Start",
   back: "Zp\u011Bt",
   preview: "N\xE1hled",
@@ -5580,7 +5605,14 @@ var cs = {
   timeUp: "\u010Cas vypr\u0161el!",
   tie: "Rem\xEDza!",
   winsTemplate: "{player} vyhr\xE1v\xE1!",
-  skip: "P\u0159esko\u010Dit"
+  skip: "P\u0159esko\u010Dit",
+  inputMethod: "Ovl\xE1d\xE1n\xED",
+  players: "Hr\xE1\u010Di",
+  matchLength: "D\xE9lka z\xE1pasu (min)",
+  mouse: "My\u0161",
+  keyboard: "Kl\xE1vesnice",
+  gamepad1: "Ovlada\u010D 1",
+  gamepad2: "Ovlada\u010D 2"
 };
 var pl = {
   title: "LK",
@@ -5625,6 +5657,7 @@ var pl = {
   filter: "Parametry",
   bypassPercent: "Chaos (\u{1F480}%)",
   targetNonStructural: "Rozmiar rozwi\u0105zania",
+  continue: "Kontynuuj",
   start: "Start",
   back: "Powr\xF3t",
   preview: "Podgl\u0105d",
@@ -5659,7 +5692,14 @@ var pl = {
   timeUp: "Czas min\u0105\u0142!",
   tie: "Remis!",
   winsTemplate: "{player} wygrywa!",
-  skip: "Pomi\u0144"
+  skip: "Pomi\u0144",
+  inputMethod: "Sterowanie",
+  players: "Gracze",
+  matchLength: "Czas meczu (min)",
+  mouse: "Mysz",
+  keyboard: "Klawiatura",
+  gamepad1: "Pad 1",
+  gamepad2: "Pad 2"
 };
 var messages = {
   cs,
@@ -5821,6 +5861,11 @@ var mountMenu = (container, navigate2) => {
     panel.appendChild(title);
     const modes = document.createElement("div");
     modes.setAttribute("class", "menu-modes");
+    const versusBtn = document.createElement("div");
+    versusBtn.setAttribute("class", "button menu-mode");
+    versusBtn.textContent = t("versus");
+    versusBtn.onclick = () => navigate2("versus-config");
+    modes.appendChild(versusBtn);
     for (const mode of gameModes) {
       if (mode === "match") continue;
       const btn = document.createElement("div");
@@ -6575,7 +6620,7 @@ var ruleConnectiveLabel = {
   fdl: "\u2228"
 };
 var gazeHintBadgeForKind = (key, hints) => {
-  if (!hints) return null;
+  if (!hints || hints.hintChar === void 0) return null;
   if (key === hints.immediateRule) {
     return keyHintBadge(hints.hintChar, "cold");
   }
@@ -6703,7 +6748,6 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
   const seq = activeSequent(workspace.currentConjecture());
   const available = workspace.availableRules();
   const buildKindHints = (kind, hintChar) => {
-    if (hintChar === void 0) return null;
     const chain = computeGhostChain(seq, workspace.gaze(), kind, available);
     if (!chain || chain.length === 0) return null;
     return {
@@ -7354,13 +7398,13 @@ var applyGazeRule = (workspace, kind) => {
     });
   }
 };
-var setupGamepad = (dispatch) => {
+var setupGamepad = (dispatch, gamepadIndex = 0) => {
   const oldPresses = [];
   let active2 = false;
   let chordFired = false;
   const loop = () => {
     if (!active2) return;
-    const gp = navigator.getGamepads()[0];
+    const gp = navigator.getGamepads()[gamepadIndex];
     if (gp) {
       for (const [button, action] of Object.entries(activePadKeyMap())) {
         const index = Number(button);
@@ -7392,19 +7436,13 @@ var setupGamepad = (dispatch) => {
     loop();
   };
   const onDisconnected = () => {
-    const stillConnected = Array.from(navigator.getGamepads()).some(
-      (p) => p !== null
-    );
-    if (!stillConnected) {
-      active2 = false;
-      onGamepadDisconnected();
-    }
+    if (navigator.getGamepads()[gamepadIndex] !== null) return;
+    active2 = false;
+    onGamepadDisconnected();
   };
   window.addEventListener("gamepadconnected", onConnected);
   window.addEventListener("gamepaddisconnected", onDisconnected);
-  const preExisting = Array.from(navigator.getGamepads()).some(
-    (p) => p !== null
-  );
+  const preExisting = navigator.getGamepads()[gamepadIndex] !== null;
   if (preExisting) onConnected();
   return () => {
     active2 = false;
@@ -11009,7 +11047,6 @@ var mountSecret = (container, navigate2) => {
 };
 
 // src/web/versus.ts
-var DURATION = 300;
 var formatTime = (s) => {
   const m = Math.floor(s / 60);
   const sec = s % 60;
@@ -11040,7 +11077,7 @@ var makeVersusFormulaEditor = (side, onFormula, onCancel) => {
   document.body.appendChild(modal);
   return close;
 };
-var mountVersus = (container, navigate2, pool2) => {
+var mountVersus = (container, navigate2, pool2, versusConfig) => {
   const sharedChallenges = [];
   const ensureChallenge = (i88) => {
     while (sharedChallenges.length <= i88 + 2) sharedChallenges.push(pool2.take());
@@ -11085,17 +11122,18 @@ var mountVersus = (container, navigate2, pool2) => {
   };
   let ws1 = makeWorkspace(0);
   let ws2 = makeWorkspace(0);
-  const ctx1 = createBenchCtx(false, false, false, false);
-  const ctx2 = createBenchCtx(true, false, false, false);
-  let timeLeft = DURATION;
+  const makeCtx = (input) => {
+    const base = createBenchCtx(input !== "keyboard", false, false, false);
+    if (input !== "mouse") return base;
+    return { ...base, getActionHint: () => void 0, kbdHint: () => void 0 };
+  };
+  const ctx1 = makeCtx(versusConfig.p1Input);
+  const ctx2 = makeCtx(versusConfig.p2Input);
+  let timeLeft = versusConfig.gameDurationSeconds;
   let gameOver = false;
   let timerEl = null;
   let closeEditor1 = null;
   let closeEditor2 = null;
-  const noCongrats = () => ({
-    hurray: document.createElement("div"),
-    buttons: document.createElement("div")
-  });
   const makeUndoControls = (ws, ctx) => {
     const el = document.createElement("div");
     el.setAttribute("class", "controls");
@@ -11130,7 +11168,7 @@ var mountVersus = (container, navigate2, pool2) => {
     half1.appendChild(
       createBench(
         ws1,
-        noCongrats,
+        makeCongratsP1,
         makeUndoControls(ws1, ctx1),
         rerender,
         void 0,
@@ -11145,7 +11183,7 @@ var mountVersus = (container, navigate2, pool2) => {
     half2.appendChild(
       createBench(
         ws2,
-        noCongrats,
+        makeCongratsP2,
         makeUndoControls(ws2, ctx2),
         rerender,
         void 0,
@@ -11454,6 +11492,32 @@ var mountVersus = (container, navigate2, pool2) => {
     onApplyReverse2,
     ctx2
   );
+  const makeCongratsP1 = () => {
+    const hurray = document.createElement("div");
+    const buttons = document.createElement("div");
+    buttons.appendChild(
+      createButton(
+        t("continue"),
+        false,
+        () => dispatch1("axiom"),
+        ctx1.getActionHint("axiom")
+      )
+    );
+    return { hurray, buttons };
+  };
+  const makeCongratsP2 = () => {
+    const hurray = document.createElement("div");
+    const buttons = document.createElement("div");
+    buttons.appendChild(
+      createButton(
+        t("continue"),
+        false,
+        () => dispatch2("axiom"),
+        ctx2.getActionHint("axiom")
+      )
+    );
+    return { hurray, buttons };
+  };
   const ticker = setInterval(() => {
     if (gameOver) return;
     timeLeft -= 1;
@@ -11470,6 +11534,7 @@ var mountVersus = (container, navigate2, pool2) => {
       timerEl.textContent = formatTime(timeLeft);
     }
   }, 1e3);
+  const gpIndex = (input) => input === "gamepad2" ? 1 : 0;
   const handleKey = (ev) => {
     if (ev.ctrlKey || ev.metaKey || ev.altKey || gameOver) return;
     markKeyboardInput();
@@ -11485,9 +11550,11 @@ var mountVersus = (container, navigate2, pool2) => {
     }
     dispatch1(action);
   };
-  document.addEventListener("keydown", handleKey);
-  const cleanupGamepad = setupGamepad((action) => {
-    if (gameOver) return;
+  const handleKey2 = (ev) => {
+    if (ev.ctrlKey || ev.metaKey || ev.altKey || gameOver) return;
+    markKeyboardInput();
+    const action = qwertyKeyMap[ev.code];
+    if (action === void 0) return;
     if (closeEditor2 !== null) {
       if (action === "menu" || action === "undo") closeEditor2();
       return;
@@ -11497,14 +11564,56 @@ var mountVersus = (container, navigate2, pool2) => {
       return;
     }
     dispatch2(action);
-  });
+  };
+  let cleanupP1;
+  if (versusConfig.p1Input === "keyboard") {
+    document.addEventListener("keydown", handleKey);
+    cleanupP1 = () => document.removeEventListener("keydown", handleKey);
+  } else if (versusConfig.p1Input === "mouse") {
+    cleanupP1 = () => {
+    };
+  } else {
+    cleanupP1 = setupGamepad((action) => {
+      if (gameOver) return;
+      if (closeEditor1 !== null) {
+        if (action === "menu" || action === "undo") closeEditor1();
+        return;
+      }
+      if (action === "skip") {
+        skipPlayer1();
+        return;
+      }
+      dispatch1(action);
+    }, gpIndex(versusConfig.p1Input));
+  }
+  let cleanupP2;
+  if (versusConfig.p2Input === "keyboard") {
+    document.addEventListener("keydown", handleKey2);
+    cleanupP2 = () => document.removeEventListener("keydown", handleKey2);
+  } else if (versusConfig.p2Input === "mouse") {
+    cleanupP2 = () => {
+    };
+  } else {
+    cleanupP2 = setupGamepad((action) => {
+      if (gameOver) return;
+      if (closeEditor2 !== null) {
+        if (action === "menu" || action === "undo") closeEditor2();
+        return;
+      }
+      if (action === "skip") {
+        skipPlayer2();
+        return;
+      }
+      dispatch2(action);
+    }, gpIndex(versusConfig.p2Input));
+  }
   const unsubGamepad = subscribeGamepad(rerender);
   rerender();
   return {
     cleanup: () => {
       clearInterval(ticker);
-      document.removeEventListener("keydown", handleKey);
-      cleanupGamepad();
+      cleanupP1();
+      cleanupP2();
       unsubGamepad();
       closeEditor1?.();
       closeEditor2?.();
@@ -11727,6 +11836,143 @@ var createSection2 = (title) => {
   section.appendChild(heading);
   return section;
 };
+var buildFormulaSettingsSection = (config, onChange, prependFilterRows = []) => {
+  const createToggle2 = (content, useHtml, title, isActive, onToggle) => {
+    const btn = document.createElement("pre");
+    btn.className = "button toggle";
+    if (useHtml) {
+      btn.innerHTML = content;
+    } else {
+      btn.textContent = content;
+    }
+    btn.title = title;
+    const led = document.createElement("span");
+    led.className = "led" + (isActive() ? " on" : "");
+    btn.appendChild(led);
+    btn.onclick = () => {
+      onToggle();
+      led.className = "led" + (isActive() ? " on" : "");
+      onChange();
+    };
+    return btn;
+  };
+  const shapeSection = createSection2(t("formulaShape"));
+  const filterHeading = document.createElement("div");
+  filterHeading.className = "config-subsection-title";
+  filterHeading.textContent = t("filter");
+  shapeSection.appendChild(filterHeading);
+  for (const row of prependFilterRows) {
+    shapeSection.appendChild(row);
+  }
+  shapeSection.appendChild(
+    createRow2(
+      t("bypassPercent"),
+      createNumberInput2(
+        config.bypassPercent,
+        (v2) => {
+          config.bypassPercent = v2;
+          onChange();
+        },
+        0,
+        100
+      )
+    )
+  );
+  shapeSection.appendChild(
+    createRow2(
+      t("targetNonStructural"),
+      createNumberInput2(
+        config.targetNonStructural,
+        (v2) => {
+          config.targetNonStructural = v2;
+          onChange();
+        },
+        1
+      )
+    )
+  );
+  shapeSection.appendChild(
+    createRow2(
+      t("size"),
+      createNumberInput2(
+        config.size,
+        (v2) => {
+          config.size = v2;
+          onChange();
+        },
+        1,
+        30
+      )
+    )
+  );
+  const defaultConnectives = defaultRandomConfig().connectives;
+  const connectiveKeys = [
+    { key: "implication", label: t("implicationWeight"), symbol: "\u2192" },
+    { key: "conjunction", label: t("conjunctionWeight"), symbol: "\u2227" },
+    { key: "disjunction", label: t("disjunctionWeight"), symbol: "\u2228" },
+    { key: "negation", label: t("negationWeight"), symbol: "\xAC" }
+  ];
+  const connectiveHeading = document.createElement("div");
+  connectiveHeading.className = "config-subsection-title";
+  connectiveHeading.textContent = t("connectives");
+  shapeSection.appendChild(connectiveHeading);
+  const connectiveToggles = document.createElement("div");
+  connectiveToggles.className = "config-toggles";
+  for (const { key, label, symbol } of connectiveKeys) {
+    connectiveToggles.appendChild(
+      createToggle2(
+        symbol,
+        false,
+        label,
+        () => config.connectives[key] > 0,
+        () => {
+          config.connectives[key] = config.connectives[key] > 0 ? 0 : defaultConnectives[key];
+        }
+      )
+    );
+  }
+  const defaultSymbols = defaultRandomConfig().symbols;
+  const constantKeys = [
+    { key: "falsum", symbol: "\u22A5" },
+    { key: "verum", symbol: "\u22A4" }
+  ];
+  for (const { key, symbol } of constantKeys) {
+    connectiveToggles.appendChild(
+      createToggle2(
+        symbol,
+        false,
+        symbol,
+        () => config.symbols[key] > 0,
+        () => {
+          config.symbols[key] = config.symbols[key] > 0 ? 0 : defaultSymbols[key];
+        }
+      )
+    );
+  }
+  shapeSection.appendChild(connectiveToggles);
+  const symbolHeading = document.createElement("div");
+  symbolHeading.className = "config-subsection-title";
+  symbolHeading.textContent = t("symbols");
+  shapeSection.appendChild(symbolHeading);
+  const symbolKeys = ["p", "q", "r", "s", "u", "v"];
+  const symbolToggles = document.createElement("div");
+  symbolToggles.className = "config-toggles";
+  for (const key of symbolKeys) {
+    symbolToggles.appendChild(
+      createToggle2(
+        renderAtom2(key),
+        true,
+        key,
+        () => config.symbols[key] > 0,
+        () => {
+          config.symbols[key] = config.symbols[key] > 0 ? 0 : defaultSymbols[key];
+        }
+      )
+    );
+  }
+  shapeSection.appendChild(symbolToggles);
+  return shapeSection;
+};
 var mountRandomConfig = (container, _navigate, onStart) => {
   const config = parseConfigFromParams(
     new URLSearchParams(window.location.search)
@@ -11817,10 +12063,6 @@ var mountRandomConfig = (container, _navigate, onStart) => {
     renderPreviewList(entries2);
     startClock();
   };
-  const onInputChange = (setter) => (v2) => {
-    setter(v2);
-    restartSearch();
-  };
   const rerender = () => {
     container.innerHTML = "";
     const layout = document.createElement("div");
@@ -11834,142 +12076,7 @@ var mountRandomConfig = (container, _navigate, onStart) => {
     columns.className = "config-columns";
     const settings = document.createElement("div");
     settings.className = "config-settings";
-    const shapeSection = createSection2(t("formulaShape"));
-    const connectiveHeading = document.createElement("div");
-    connectiveHeading.className = "config-subsection-title";
-    connectiveHeading.textContent = t("connectives");
-    shapeSection.appendChild(connectiveHeading);
-    const defaultConnectives = defaultRandomConfig().connectives;
-    const connectiveKeys = [
-      { key: "implication", label: t("implicationWeight"), symbol: "\u2192" },
-      { key: "conjunction", label: t("conjunctionWeight"), symbol: "\u2227" },
-      { key: "disjunction", label: t("disjunctionWeight"), symbol: "\u2228" },
-      { key: "negation", label: t("negationWeight"), symbol: "\xAC" }
-    ];
-    const createToggle2 = (content, useHtml, title2, isActive, onToggle) => {
-      const btn = document.createElement("pre");
-      btn.className = "button toggle";
-      if (useHtml) {
-        btn.innerHTML = content;
-      } else {
-        btn.textContent = content;
-      }
-      btn.title = title2;
-      const led = document.createElement("span");
-      led.className = "led" + (isActive() ? " on" : "");
-      btn.appendChild(led);
-      btn.onclick = () => {
-        onToggle();
-        led.className = "led" + (isActive() ? " on" : "");
-        restartSearch();
-      };
-      return btn;
-    };
-    const connectiveToggles = document.createElement("div");
-    connectiveToggles.className = "config-toggles";
-    for (const { key, label, symbol } of connectiveKeys) {
-      connectiveToggles.appendChild(
-        createToggle2(
-          symbol,
-          false,
-          label,
-          () => config.connectives[key] > 0,
-          () => {
-            config.connectives[key] = config.connectives[key] > 0 ? 0 : defaultConnectives[key];
-          }
-        )
-      );
-    }
-    const defaultSymbols = defaultRandomConfig().symbols;
-    const constantKeys = [
-      { key: "falsum", symbol: "\u22A5" },
-      { key: "verum", symbol: "\u22A4" }
-    ];
-    for (const { key, symbol } of constantKeys) {
-      connectiveToggles.appendChild(
-        createToggle2(
-          symbol,
-          false,
-          symbol,
-          () => config.symbols[key] > 0,
-          () => {
-            config.symbols[key] = config.symbols[key] > 0 ? 0 : defaultSymbols[key];
-          }
-        )
-      );
-    }
-    shapeSection.appendChild(connectiveToggles);
-    const symbolHeading = document.createElement("div");
-    symbolHeading.className = "config-subsection-title";
-    symbolHeading.textContent = t("symbols");
-    shapeSection.appendChild(symbolHeading);
-    const symbolKeys = [
-      "p",
-      "q",
-      "r",
-      "s",
-      "u",
-      "v"
-    ];
-    const symbolToggles = document.createElement("div");
-    symbolToggles.className = "config-toggles";
-    for (const key of symbolKeys) {
-      symbolToggles.appendChild(
-        createToggle2(
-          renderAtom2(key),
-          true,
-          key,
-          () => config.symbols[key] > 0,
-          () => {
-            config.symbols[key] = config.symbols[key] > 0 ? 0 : defaultSymbols[key];
-          }
-        )
-      );
-    }
-    shapeSection.appendChild(symbolToggles);
-    settings.appendChild(shapeSection);
-    const filterHeading = document.createElement("div");
-    filterHeading.className = "config-subsection-title";
-    filterHeading.textContent = t("filter");
-    shapeSection.appendChild(filterHeading);
-    shapeSection.appendChild(
-      createRow2(
-        t("size"),
-        createNumberInput2(
-          config.size,
-          onInputChange((v2) => {
-            config.size = v2;
-          }),
-          1,
-          30
-        )
-      )
-    );
-    shapeSection.appendChild(
-      createRow2(
-        t("targetNonStructural"),
-        createNumberInput2(
-          config.targetNonStructural,
-          onInputChange((v2) => {
-            config.targetNonStructural = v2;
-          }),
-          1
-        )
-      )
-    );
-    shapeSection.appendChild(
-      createRow2(
-        t("bypassPercent"),
-        createNumberInput2(
-          config.bypassPercent,
-          onInputChange((v2) => {
-            config.bypassPercent = v2;
-          }),
-          0,
-          100
-        )
-      )
-    );
+    settings.appendChild(buildFormulaSettingsSection(config, restartSearch));
     const buttons = document.createElement("div");
     buttons.className = "config-buttons";
     const backBtn = document.createElement("div");
@@ -12010,6 +12117,300 @@ var mountRandomConfig = (container, _navigate, onStart) => {
     }
   };
   return { cleanup, rerender };
+};
+
+// src/web/versus-config.ts
+var defaultVersusConfig = () => ({
+  randomConfig: defaultRandomConfig(),
+  gameDurationSeconds: 300,
+  p1Input: "keyboard",
+  p2Input: "mouse"
+});
+var INPUT_OPTIONS = [
+  "mouse",
+  "keyboard",
+  "gamepad1",
+  "gamepad2"
+];
+var pickNumber2 = (params, key, fallback) => {
+  const raw2 = params.get(key);
+  if (raw2 === null || raw2 === "") return fallback;
+  const value = parseInt(raw2, 10);
+  return Number.isFinite(value) ? value : fallback;
+};
+var pickInput = (params, key, fallback) => {
+  const raw2 = params.get(key);
+  if (raw2 === "mouse" || raw2 === "keyboard" || raw2 === "gamepad1" || raw2 === "gamepad2")
+    return raw2;
+  return fallback;
+};
+var parseVersusConfigFromParams = (params) => {
+  const defaults = defaultVersusConfig();
+  return {
+    randomConfig: parseConfigFromParams(params),
+    gameDurationSeconds: pickNumber2(
+      params,
+      "versus_time",
+      defaults.gameDurationSeconds
+    ),
+    p1Input: pickInput(params, "versus_p1", defaults.p1Input),
+    p2Input: pickInput(params, "versus_p2", defaults.p2Input)
+  };
+};
+var setVersusConfigParams = (config, params) => {
+  setConfigParams(config.randomConfig, params);
+  params.set("versus_time", String(config.gameDurationSeconds));
+  params.set("versus_p1", config.p1Input);
+  params.set("versus_p2", config.p2Input);
+};
+var inputLabel = (input) => {
+  if (input === "mouse") return t("mouse");
+  if (input === "keyboard") return t("keyboard");
+  if (input === "gamepad1") return t("gamepad1");
+  return t("gamepad2");
+};
+var inputEmoji = (input) => {
+  if (input === "mouse") return "\u{1F5B1}\uFE0F";
+  if (input === "keyboard") return "\u2328\uFE0F";
+  if (input === "gamepad1") return "\u{1F3AE}\u2081";
+  return "\u{1F3AE}\u2082";
+};
+var isInputAvailable = (input) => {
+  if (input === "mouse" || input === "keyboard") return true;
+  const index = input === "gamepad1" ? 0 : 1;
+  return navigator.getGamepads()[index] !== null;
+};
+var mountVersusConfig = (container, _navigate, onStart) => {
+  const config = parseVersusConfigFromParams(
+    new URLSearchParams(window.location.search)
+  );
+  const syncUrl2 = () => {
+    const params = new URLSearchParams(window.location.search);
+    setVersusConfigParams(config, params);
+    history.replaceState(history.state, "", `?${params.toString()}`);
+  };
+  let entries2 = [];
+  let totalFormulasTried = 0;
+  let totalTautologiesFound = 0;
+  let totalSolved = 0;
+  let searchStartTime = Date.now();
+  let lastWorkerUpdate = Date.now();
+  let clockInterval;
+  const updateStats = () => {
+    const el = document.querySelector(".config-stats");
+    if (!el) return;
+    const now = Date.now();
+    const elapsed = (now - searchStartTime) / 1e3;
+    const rate = elapsed > 0 ? totalFormulasTried / elapsed : 0;
+    const sinceUpdate = ((now - lastWorkerUpdate) / 1e3).toFixed(1);
+    el.textContent = formatStats({
+      formulas: totalFormulasTried,
+      rate: rate.toFixed(1),
+      tautologies: totalTautologiesFound,
+      solved: totalSolved,
+      sinceUpdate
+    });
+  };
+  const startClock = () => {
+    stopClock();
+    clockInterval = setInterval(updateStats, 200);
+  };
+  const stopClock = () => {
+    if (clockInterval !== void 0) {
+      clearInterval(clockInterval);
+      clockInterval = void 0;
+    }
+  };
+  const handleResult = (msg) => {
+    lastWorkerUpdate = Date.now();
+    if (msg.type === "stats") {
+      totalFormulasTried += msg.formulasTried;
+      totalTautologiesFound += msg.tautologiesFound;
+      totalSolved += msg.solved;
+      updateStats();
+      return;
+    }
+    if (msg.type === "challenge") {
+      totalFormulasTried += msg.result.formulasTried;
+      updateStats();
+      if (isDone(entries2)) return;
+      const { challenge: challenge2, nonStructuralCount } = msg.result;
+      const formula = challenge2.goal.succedent[0];
+      if (formula === void 0) return;
+      const distance = entryDistance(nonStructuralCount, config.randomConfig);
+      const entry = {
+        formula,
+        nonStructural: nonStructuralCount,
+        distance
+      };
+      entries2 = insertSorted(entries2, entry);
+      renderPreviewList(entries2);
+      previewWorker?.updateTimeout(entries2.length);
+      if (isDone(entries2) && previewWorker) {
+        previewWorker.terminate();
+        previewWorker = void 0;
+        stopClock();
+      }
+    }
+  };
+  let previewWorker = createPreviewWorker(
+    config.randomConfig,
+    handleResult
+  );
+  const restartSearch = () => {
+    syncUrl2();
+    entries2 = [];
+    totalFormulasTried = 0;
+    totalTautologiesFound = 0;
+    totalSolved = 0;
+    searchStartTime = Date.now();
+    lastWorkerUpdate = Date.now();
+    if (previewWorker) previewWorker.terminate();
+    previewWorker = createPreviewWorker(config.randomConfig, handleResult);
+    renderPreviewList(entries2);
+    startClock();
+  };
+  const canStart = () => isInputAvailable(config.p1Input) && isInputAvailable(config.p2Input);
+  const createRadioGroup = (options, getActive, getLabel, getContent, isDisabled, onChange) => {
+    const group = document.createElement("div");
+    group.className = "config-toggles";
+    for (const option of options) {
+      const btn = document.createElement("div");
+      const active2 = getActive() === option;
+      const disabled = isDisabled(option);
+      btn.className = "button" + (active2 ? " active" : "") + (disabled ? " disabled" : "");
+      btn.textContent = getContent(option);
+      btn.title = getLabel(option);
+      btn.setAttribute("aria-label", getLabel(option));
+      if (!disabled) {
+        btn.onclick = () => {
+          onChange(option);
+          rerender();
+        };
+      }
+      group.appendChild(btn);
+    }
+    return group;
+  };
+  const rerender = () => {
+    container.innerHTML = "";
+    const layout = document.createElement("div");
+    layout.className = "random-config versus-config";
+    layout.appendChild(createLangSwitcher());
+    const title = document.createElement("div");
+    title.className = "config-title";
+    title.textContent = t("versus");
+    layout.appendChild(title);
+    const columns = document.createElement("div");
+    columns.className = "config-columns";
+    const settings = document.createElement("div");
+    settings.className = "config-settings";
+    const inputSection = document.createElement("div");
+    inputSection.className = "config-section";
+    const inputSectionTitle = document.createElement("div");
+    inputSectionTitle.className = "config-section-title";
+    inputSectionTitle.textContent = t("players");
+    inputSection.appendChild(inputSectionTitle);
+    const p1Label = document.createElement("div");
+    p1Label.className = "config-subsection-title";
+    p1Label.textContent = t("player1");
+    inputSection.appendChild(p1Label);
+    inputSection.appendChild(
+      createRadioGroup(
+        INPUT_OPTIONS,
+        () => config.p1Input,
+        inputLabel,
+        inputEmoji,
+        (v2) => !isInputAvailable(v2),
+        (v2) => {
+          config.p1Input = v2;
+          syncUrl2();
+        }
+      )
+    );
+    const p2Label = document.createElement("div");
+    p2Label.className = "config-subsection-title";
+    p2Label.textContent = t("player2");
+    inputSection.appendChild(p2Label);
+    inputSection.appendChild(
+      createRadioGroup(
+        INPUT_OPTIONS,
+        () => config.p2Input,
+        inputLabel,
+        inputEmoji,
+        (v2) => !isInputAvailable(v2),
+        (v2) => {
+          config.p2Input = v2;
+          syncUrl2();
+        }
+      )
+    );
+    settings.appendChild(inputSection);
+    const buttons = document.createElement("div");
+    buttons.className = "config-buttons";
+    const backBtn = document.createElement("div");
+    backBtn.className = "button";
+    backBtn.textContent = t("back");
+    backBtn.onclick = () => history.back();
+    buttons.appendChild(backBtn);
+    const startBtn = document.createElement("div");
+    startBtn.className = "button" + (canStart() ? "" : " disabled");
+    startBtn.textContent = t("start");
+    if (canStart()) {
+      startBtn.onclick = () => onStart(config);
+    }
+    buttons.appendChild(startBtn);
+    settings.appendChild(buttons);
+    settings.appendChild(
+      buildFormulaSettingsSection(config.randomConfig, restartSearch, [
+        createRow2(
+          t("matchLength"),
+          createNumberInput2(
+            config.gameDurationSeconds / 60,
+            (v2) => {
+              config.gameDurationSeconds = v2 * 60;
+              syncUrl2();
+            },
+            1,
+            99
+          )
+        )
+      ])
+    );
+    columns.appendChild(settings);
+    const preview = document.createElement("div");
+    preview.className = "config-preview";
+    const previewTitle = document.createElement("div");
+    previewTitle.className = "config-section-title";
+    previewTitle.textContent = t("preview");
+    preview.appendChild(previewTitle);
+    const stats = document.createElement("div");
+    stats.className = "config-stats";
+    preview.appendChild(stats);
+    const list = document.createElement("div");
+    list.className = "config-preview-list";
+    preview.appendChild(list);
+    columns.appendChild(preview);
+    layout.appendChild(columns);
+    container.appendChild(layout);
+    restartSearch();
+  };
+  const onGamepadChange = () => rerender();
+  window.addEventListener("gamepadconnected", onGamepadChange);
+  window.addEventListener("gamepaddisconnected", onGamepadChange);
+  rerender();
+  return {
+    cleanup: () => {
+      window.removeEventListener("gamepadconnected", onGamepadChange);
+      window.removeEventListener("gamepaddisconnected", onGamepadChange);
+      stopClock();
+      if (previewWorker) {
+        previewWorker.terminate();
+        previewWorker = void 0;
+      }
+    },
+    rerender
+  };
 };
 
 // src/web/challenge-pool.ts
@@ -12153,7 +12554,7 @@ var navigate = (screen) => {
     setGazeModeActive(false);
     session.returnToMenu();
   }
-  if (screen === "random" || screen === "versus") {
+  if (screen === "random") {
     pool.configure(defaultRandomConfig());
   }
   if (includes(gameModes, screen) && screen !== "match") {
@@ -12177,6 +12578,21 @@ var navigate = (screen) => {
         "formula_size",
         "proof_size",
         "chaoticity"
+      ]) {
+        const val = currentParams.get(key);
+        if (val !== null) nextParams.set(key, val);
+      }
+    }
+    if (screen === "versus-config" || screen === "versus") {
+      for (const key of [
+        "symbols",
+        "connectives",
+        "formula_size",
+        "proof_size",
+        "chaoticity",
+        "versus_time",
+        "versus_p1",
+        "versus_p2"
       ]) {
         const val = currentParams.get(key);
         if (val !== null) nextParams.set(key, val);
@@ -12246,8 +12662,27 @@ var mount = (screen) => {
     case "match-curated":
       current = mountMatchCurated(body, navigate);
       break;
-    case "versus":
-      current = mountVersus(body, navigate, pool);
+    case "versus": {
+      const vConfig = parseVersusConfigFromParams(
+        new URLSearchParams(window.location.search)
+      );
+      pool.configure(vConfig.randomConfig);
+      current = mountVersus(body, navigate, pool, vConfig);
+      break;
+    }
+    case "versus-config":
+      current = mountVersusConfig(body, navigate, (versusConfig) => {
+        current.cleanup();
+        currentScreen = "versus";
+        pool.configure(versusConfig.randomConfig);
+        const params = new URLSearchParams();
+        const lang = new URLSearchParams(window.location.search).get("lang");
+        if (lang !== null) params.set("lang", lang);
+        params.set("mode", "versus");
+        setVersusConfigParams(versusConfig, params);
+        history.pushState({ screen: "versus" }, "", `?${params.toString()}`);
+        mount("versus");
+      });
       break;
     case "random-config":
       current = mountRandomConfig(body, navigate, (config) => {
@@ -12325,6 +12760,9 @@ var init3 = () => {
   } else if (mode === "versus") {
     currentScreen = "versus";
     mount("versus");
+  } else if (mode === "versus-config") {
+    currentScreen = "versus-config";
+    mount("versus-config");
   } else if (params.get("level") !== null) {
     enterMode("campaign");
     currentScreen = "campaign";
