@@ -11534,7 +11534,13 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
       timerEl.textContent = formatTime(timeLeft);
     }
   }, 1e3);
-  const gpIndex = (input) => input === "gamepad2" ? 1 : 0;
+  const connectedGamepadIndices = () => Array.from(navigator.getGamepads()).flatMap(
+    (gp, i88) => gp !== null ? [i88] : []
+  );
+  const gpIndex = (input) => {
+    const indices = connectedGamepadIndices();
+    return input === "gamepad2" ? indices[1] ?? 1 : indices[0] ?? 0;
+  };
   const handleKey = (ev) => {
     if (ev.ctrlKey || ev.metaKey || ev.altKey || gameOver) return;
     markKeyboardInput();
@@ -12175,10 +12181,11 @@ var inputEmoji = (input) => {
   if (input === "gamepad1") return "\u{1F3AE}\u2081";
   return "\u{1F3AE}\u2082";
 };
+var connectedGamepadCount = () => Array.from(navigator.getGamepads()).filter((gp) => gp !== null).length;
 var isInputAvailable = (input) => {
   if (input === "mouse" || input === "keyboard") return true;
-  const index = input === "gamepad1" ? 0 : 1;
-  return navigator.getGamepads()[index] !== null;
+  const needed = input === "gamepad1" ? 1 : 2;
+  return connectedGamepadCount() >= needed;
 };
 var mountVersusConfig = (container, _navigate, onStart) => {
   const config = parseVersusConfigFromParams(
