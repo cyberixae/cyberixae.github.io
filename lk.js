@@ -5423,14 +5423,14 @@ var fi = {
   lemmaConfirm: "Vahvista",
   lemma: "Lemma",
   secret: "Salainen",
-  prevBranch: "Edell.",
-  nextBranch: "Seur.",
+  prevBranch: "Edellinen",
+  nextBranch: "Seuraava",
   versus: "Vastakkain",
   player1: "Pelaaja 1",
   player2: "Pelaaja 2",
   timeUp: "Aika loppui!",
   tie: "Tasapeli!",
-  winsTemplate: "{player} voittaa!",
+  winsTemplate: "{player} voitti!",
   skip: "Ohita",
   inputMethod: "Ohjain",
   players: "Pelaajat",
@@ -5510,8 +5510,8 @@ var es = {
   lemmaConfirm: "Confirmar",
   lemma: "Lema",
   secret: "Secreto",
-  prevBranch: "Ant.",
-  nextBranch: "Sig.",
+  prevBranch: "Anterior",
+  nextBranch: "Siguiente",
   versus: "Versus",
   player1: "Jugador 1",
   player2: "Jugador 2",
@@ -5597,7 +5597,7 @@ var cs = {
   lemmaConfirm: "Potvrdit",
   lemma: "Lemma",
   secret: "Tajn\xE9",
-  prevBranch: "P\u0159edch.",
+  prevBranch: "P\u0159edchoz\xED",
   nextBranch: "Dal\u0161\xED",
   versus: "Versus",
   player1: "Hr\xE1\u010D 1",
@@ -5684,8 +5684,8 @@ var pl = {
   lemmaConfirm: "Zatwierd\u017A",
   lemma: "Lemat",
   secret: "Tajne",
-  prevBranch: "Poprz.",
-  nextBranch: "Nast.",
+  prevBranch: "Poprzedni",
+  nextBranch: "Nast\u0119pny",
   versus: "Versus",
   player1: "Gracz 1",
   player2: "Gracz 2",
@@ -6972,6 +6972,7 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
     },
     ctx.kbdHint("0")
   );
+  zoomReset.classList.add("zoom-reset");
   const zoomIn = createButton(
     "+",
     false,
@@ -7229,7 +7230,7 @@ var RULE_APPLY_ACTIONS = /* @__PURE__ */ new Set([
   "rightRotateLeft",
   "rightRotateRight"
 ]);
-var createDispatch = (getWorkspace, rerender, navigate2, onSolved, onLevel, onMenu, onApplyReverse1, ctx = defaultCtx) => (action) => {
+var createDispatch = (getWorkspace, rerender, navigate2, onSolved, onLevel, onMenu, onApplyReverse1, ctx = defaultCtx, onJustSolved) => (action) => {
   if (action === "gazeLeft" || action === "gazeRight") {
     if (!ctx.isGazeModeActive()) {
       const workspace2 = getWorkspace();
@@ -7352,6 +7353,9 @@ var createDispatch = (getWorkspace, rerender, navigate2, onSolved, onLevel, onMe
       applyGazeRule(workspace, "weakening");
       break;
   }
+  if (workspace.isSolved()) {
+    onJustSolved?.();
+  }
   rerender();
 };
 var applyGazeRule = (workspace, kind) => {
@@ -7463,7 +7467,13 @@ var setDisabled = (btn, disabled, handler) => {
   btn.setAttribute("class", disabled ? "button disabled" : "button");
   btn.onclick = disabled ? null : handler;
 };
-var createFormulaEditor = (title, confirmLabel, onConfirm, onCancel) => {
+var makeHintBadge = (text) => {
+  const badge = document.createElement("span");
+  badge.setAttribute("class", text.length > 1 ? "key-hint wide" : "key-hint");
+  badge.textContent = text;
+  return badge;
+};
+var createFormulaEditor = (title, confirmLabel, onConfirm, onCancel, undoHint) => {
   let stack = [];
   let history2 = [];
   const saveAndSet = (next2) => {
@@ -7573,6 +7583,7 @@ var createFormulaEditor = (title, confirmLabel, onConfirm, onCancel) => {
   controls.appendChild(confirmBtn);
   popup.appendChild(controls);
   shroud.appendChild(popup);
+  const hintBadge = undoHint !== void 0 ? makeHintBadge(undoHint) : null;
   const renderState = () => {
     stackDisplay.innerHTML = stack.length === 0 ? "\u2014" : stack.map((p) => html(fromProp(p)(basic))).join(" ");
     setDisabled(negBtn, stack.length === 0, () => {
@@ -7590,6 +7601,14 @@ var createFormulaEditor = (title, confirmLabel, onConfirm, onCancel) => {
     setDisabled(undoBtn, history2.length === 0, () => {
       doUndo();
     });
+    if (hintBadge !== null) {
+      hintBadge.remove();
+      if (history2.length > 0) {
+        undoBtn.appendChild(hintBadge);
+      } else {
+        cancelBtn.appendChild(hintBadge);
+      }
+    }
     const formula = stack.length === 1 ? stack[0] : void 0;
     confirmBtn.setAttribute(
       "class",
@@ -7605,7 +7624,14 @@ var createFormulaEditor = (title, confirmLabel, onConfirm, onCancel) => {
     }
   };
   renderState();
-  return shroud;
+  return {
+    el: shroud,
+    tryUndo: () => {
+      if (history2.length === 0) return false;
+      doUndo();
+      return true;
+    }
+  };
 };
 
 // src/web/campaign.ts
@@ -7789,26 +7815,31 @@ var mountCampaign = (container, navigate2, session2) => {
   };
   let formulaEditorOpen = false;
   let closeFormulaEditor = null;
+  let tryUndoInEditor = null;
   const onApplyReverse1 = (_key, onFormula) => {
     if (formulaEditorOpen) return;
     formulaEditorOpen = true;
     const cancel = () => {
       formulaEditorOpen = false;
       closeFormulaEditor = null;
+      tryUndoInEditor = null;
       container.removeChild(modal);
     };
-    const modal = createFormulaEditor(
+    const { el: modal, tryUndo } = createFormulaEditor(
       t("lemmaTitle"),
       t("lemmaConfirm"),
       (formula) => {
         formulaEditorOpen = false;
         closeFormulaEditor = null;
+        tryUndoInEditor = null;
         container.removeChild(modal);
         onFormula(formula);
       },
-      cancel
+      cancel,
+      "\u232B"
     );
     closeFormulaEditor = cancel;
+    tryUndoInEditor = tryUndo;
     container.appendChild(modal);
   };
   const rerender = () => {
@@ -7874,7 +7905,9 @@ var mountCampaign = (container, navigate2, session2) => {
   );
   const dispatch = (action) => {
     if (formulaEditorOpen) {
-      if (action === "menu" || action === "exit" || action === "undo") {
+      if (action === "undo") {
+        if (!(tryUndoInEditor?.() ?? false)) closeFormulaEditor?.();
+      } else if (action === "menu" || action === "exit") {
         closeFormulaEditor?.();
       }
       return;
@@ -8015,26 +8048,31 @@ var mountRandom = (container, navigate2, session2, onNewChallenge) => {
   };
   let formulaEditorOpen = false;
   let closeFormulaEditor = null;
+  let tryUndoInEditor = null;
   const onApplyReverse1 = (_key, onFormula) => {
     if (formulaEditorOpen) return;
     formulaEditorOpen = true;
     const cancel = () => {
       formulaEditorOpen = false;
       closeFormulaEditor = null;
+      tryUndoInEditor = null;
       container.removeChild(modal);
     };
-    const modal = createFormulaEditor(
+    const { el: modal, tryUndo } = createFormulaEditor(
       t("lemmaTitle"),
       t("lemmaConfirm"),
       (formula) => {
         formulaEditorOpen = false;
         closeFormulaEditor = null;
+        tryUndoInEditor = null;
         container.removeChild(modal);
         onFormula(formula);
       },
-      cancel
+      cancel,
+      "\u232B"
     );
     closeFormulaEditor = cancel;
+    tryUndoInEditor = tryUndo;
     container.appendChild(modal);
   };
   const rerender = () => {
@@ -8092,7 +8130,9 @@ var mountRandom = (container, navigate2, session2, onNewChallenge) => {
   );
   const dispatch = (action) => {
     if (formulaEditorOpen) {
-      if (action === "menu" || action === "exit" || action === "undo") {
+      if (action === "undo") {
+        if (!(tryUndoInEditor?.() ?? false)) closeFormulaEditor?.();
+      } else if (action === "menu" || action === "exit") {
         closeFormulaEditor?.();
       }
       return;
@@ -9546,7 +9586,7 @@ var mountQuiz = (container, navigate2, config) => {
     };
     zoomRow.appendChild(zoomOut);
     const zoomReset = document.createElement("div");
-    zoomReset.setAttribute("class", "button");
+    zoomReset.setAttribute("class", "button zoom-reset");
     zoomReset.textContent = "\u2299";
     zoomReset.onclick = () => {
       zoom = 1;
@@ -11023,11 +11063,6 @@ var mountSecret = (container, navigate2) => {
     matchBtn.innerHTML = t("quiz");
     matchBtn.onclick = () => navigate2("match-curated");
     modes.appendChild(matchBtn);
-    const versusBtn = document.createElement("div");
-    versusBtn.setAttribute("class", "button menu-mode");
-    versusBtn.innerHTML = t("versus");
-    versusBtn.onclick = () => navigate2("versus");
-    modes.appendChild(versusBtn);
     const systemsBtn = document.createElement("div");
     systemsBtn.setAttribute("class", "button menu-mode");
     systemsBtn.innerHTML = t("systems");
@@ -11050,32 +11085,34 @@ var mountSecret = (container, navigate2) => {
 var formatTime = (s) => {
   const m = Math.floor(s / 60);
   const sec = s % 60;
-  return `${m}:${String(sec).padStart(2, "0")}`;
+  return `${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
 };
 var totalMoves = (ws) => {
   const counts = countRuleUsage(ws.currentConjecture().derivation);
   return Object.values(counts).reduce((a89, b) => a89 + b, 0);
 };
-var makeVersusFormulaEditor = (side, onFormula, onCancel) => {
-  let modal = null;
+var makeVersusFormulaEditor = (side, onFormula, onCancel, undoHint) => {
+  let modalEl = null;
   const close = () => {
-    modal?.remove();
-    modal = null;
+    modalEl?.remove();
+    modalEl = null;
     onCancel();
   };
-  modal = createFormulaEditor(
+  const { el, tryUndo } = createFormulaEditor(
     t("lemmaTitle"),
     t("lemmaConfirm"),
     onFormula,
-    close
+    close,
+    undoHint
   );
+  modalEl = el;
   if (side === "left") {
-    modal.style.right = "calc(50% + 2.5em)";
+    el.style.right = "calc(50% + 2.5em)";
   } else {
-    modal.style.left = "calc(50% + 2.5em)";
+    el.style.left = "calc(50% + 2.5em)";
   }
-  document.body.appendChild(modal);
-  return close;
+  document.body.appendChild(el);
+  return { close, tryUndo };
 };
 var mountVersus = (container, navigate2, pool2, versusConfig) => {
   const sharedChallenges = [];
@@ -11083,20 +11120,24 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     while (sharedChallenges.length <= i88 + 2) sharedChallenges.push(pool2.take());
   };
   ensureChallenge(0);
-  let index1 = 0;
+  let wsIdx1 = 0;
+  let index1 = 1;
   let score1 = 0;
   const resolved1 = /* @__PURE__ */ new Map();
   const levelPoints1 = /* @__PURE__ */ new Map();
   const skipSynthetic1 = /* @__PURE__ */ new Map();
   let pending1 = [];
-  let index2 = 0;
+  let scoreCommitted1 = false;
+  let wsIdx2 = 0;
+  let index2 = 1;
   let score2 = 0;
   const resolved2 = /* @__PURE__ */ new Map();
   const levelPoints2 = /* @__PURE__ */ new Map();
   const skipSynthetic2 = /* @__PURE__ */ new Map();
   let pending2 = [];
-  const currentChallengeIdx1 = () => pending1[0] ?? index1;
-  const currentChallengeIdx2 = () => pending2[0] ?? index2;
+  let scoreCommitted2 = false;
+  const currentChallengeIdx1 = () => wsIdx1;
+  const currentChallengeIdx2 = () => wsIdx2;
   const makeWorkspace = (i88) => {
     ensureChallenge(i88);
     const item = sharedChallenges[i88];
@@ -11105,20 +11146,28 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     return new Workspace({ challenge: item.challenge });
   };
   const advancePlayer1 = () => {
-    if (pending1.length > 0) {
-      pending1 = pending1.slice(1);
+    scoreCommitted1 = false;
+    const [next1, ...rest1] = pending1;
+    if (next1 !== void 0) {
+      wsIdx1 = next1;
+      pending1 = rest1;
     } else {
+      wsIdx1 = index1;
       index1 += 1;
     }
-    ws1 = makeWorkspace(currentChallengeIdx1());
+    ws1 = makeWorkspace(wsIdx1);
   };
   const advancePlayer2 = () => {
-    if (pending2.length > 0) {
-      pending2 = pending2.slice(1);
+    scoreCommitted2 = false;
+    const [next2, ...rest2] = pending2;
+    if (next2 !== void 0) {
+      wsIdx2 = next2;
+      pending2 = rest2;
     } else {
+      wsIdx2 = index2;
       index2 += 1;
     }
-    ws2 = makeWorkspace(currentChallengeIdx2());
+    ws2 = makeWorkspace(wsIdx2);
   };
   let ws1 = makeWorkspace(0);
   let ws2 = makeWorkspace(0);
@@ -11133,7 +11182,9 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
   let gameOver = false;
   let timerEl = null;
   let closeEditor1 = null;
+  let tryUndoEditor1 = null;
   let closeEditor2 = null;
+  let tryUndoEditor2 = null;
   const makeUndoControls = (ws, ctx) => {
     const el = document.createElement("div");
     el.setAttribute("class", "controls");
@@ -11157,6 +11208,8 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     return el;
   };
   const rerender = () => {
+    if (ws1.isSolved()) commitScore1();
+    if (ws2.isSolved()) commitScore2();
     container.innerHTML = "";
     timerEl = null;
     const screen = document.createElement("div");
@@ -11213,7 +11266,11 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     const maxIdx = Math.max(...allKeys);
     const currentMoves1 = totalMoves(ws1);
     const currentMoves2 = totalMoves(ws2);
-    const displayEntry = (resolved, ci, i88) => i88 === ci ? "current" : resolved.get(i88);
+    const displayEntry = (resolved, ci, i88) => {
+      if (i88 !== ci) return resolved.get(i88);
+      const entry = resolved.get(ci);
+      return typeof entry === "number" ? entry : "current";
+    };
     const entryMoves = (e, cur, synthetic) => {
       if (e === void 0) return "";
       if (e === "current") return String(cur);
@@ -11265,6 +11322,17 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
       );
       thermoRows.appendChild(row);
     }
+    const thermoTotal = document.createElement("div");
+    thermoTotal.setAttribute("class", "versus-thermo-total");
+    const totalCell1 = document.createElement("div");
+    totalCell1.setAttribute("class", "versus-thermo-cell p1 total");
+    totalCell1.textContent = String(score1);
+    const totalCell2 = document.createElement("div");
+    totalCell2.setAttribute("class", "versus-thermo-cell p2 total");
+    totalCell2.textContent = String(score2);
+    thermoTotal.appendChild(totalCell1);
+    thermoTotal.appendChild(totalCell2);
+    thermo.appendChild(thermoTotal);
     thermo.appendChild(thermoRows);
     arena.appendChild(half1);
     arena.appendChild(thermo);
@@ -11288,7 +11356,9 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
       container.appendChild(overlay);
     }
   };
-  const solvePlayer1 = () => {
+  const commitScore1 = () => {
+    if (scoreCommitted1) return;
+    scoreCommitted1 = true;
     const challengeIdx = currentChallengeIdx1();
     const moves1 = totalMoves(ws1);
     const isRetry = resolved1.get(challengeIdx) === "skip";
@@ -11298,24 +11368,25 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     if (isRetry) {
       const p2Moves = resolved2.get(challengeIdx);
       if (typeof p2Moves === "number") {
-        score2 -= p2Moves * p2Moves;
-        levelPoints2.set(challengeIdx, 1);
         skipSynthetic1.delete(challengeIdx);
         const diff = moves1 - p2Moves;
-        const bonus = diff * diff;
+        const bonus = Math.abs(diff);
         if (moves1 < p2Moves) {
           score1 += bonus;
           levelPoints1.set(challengeIdx, 1 + bonus);
         } else if (p2Moves < moves1) {
           score2 += bonus;
-          levelPoints2.set(challengeIdx, 1 + bonus);
+          levelPoints2.set(
+            challengeIdx,
+            (levelPoints2.get(challengeIdx) ?? 1) + bonus
+          );
         }
       }
     } else {
       const p2Entry = resolved2.get(challengeIdx);
       if (typeof p2Entry === "number") {
         const diff = moves1 - p2Entry;
-        const bonus = diff * diff;
+        const bonus = Math.abs(diff);
         if (moves1 < p2Entry) {
           score1 += bonus;
           levelPoints1.set(challengeIdx, 1 + bonus);
@@ -11327,18 +11398,18 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
           );
         }
       } else if (p2Entry === "skip") {
-        const synthetic = 2 * moves1;
-        skipSynthetic2.set(challengeIdx, synthetic);
-        const bonus = moves1 * moves1;
-        score1 += bonus;
-        levelPoints1.set(challengeIdx, 1 + bonus);
-        pending2 = [challengeIdx, ...pending2];
+        pending2 = [...pending2, challengeIdx];
       }
     }
+  };
+  const solvePlayer1 = () => {
+    commitScore1();
     advancePlayer1();
     rerender();
   };
-  const solvePlayer2 = () => {
+  const commitScore2 = () => {
+    if (scoreCommitted2) return;
+    scoreCommitted2 = true;
     const challengeIdx = currentChallengeIdx2();
     const moves2 = totalMoves(ws2);
     const isRetry = resolved2.get(challengeIdx) === "skip";
@@ -11348,24 +11419,25 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     if (isRetry) {
       const p1Moves = resolved1.get(challengeIdx);
       if (typeof p1Moves === "number") {
-        score1 -= p1Moves * p1Moves;
-        levelPoints1.set(challengeIdx, 1);
         skipSynthetic2.delete(challengeIdx);
         const diff = moves2 - p1Moves;
-        const bonus = diff * diff;
+        const bonus = Math.abs(diff);
         if (moves2 < p1Moves) {
           score2 += bonus;
           levelPoints2.set(challengeIdx, 1 + bonus);
         } else if (p1Moves < moves2) {
           score1 += bonus;
-          levelPoints1.set(challengeIdx, 1 + bonus);
+          levelPoints1.set(
+            challengeIdx,
+            (levelPoints1.get(challengeIdx) ?? 1) + bonus
+          );
         }
       }
     } else {
       const p1Entry = resolved1.get(challengeIdx);
       if (typeof p1Entry === "number") {
         const diff = moves2 - p1Entry;
-        const bonus = diff * diff;
+        const bonus = Math.abs(diff);
         if (moves2 < p1Entry) {
           score2 += bonus;
           levelPoints2.set(challengeIdx, 1 + bonus);
@@ -11377,55 +11449,47 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
           );
         }
       } else if (p1Entry === "skip") {
-        const synthetic = 2 * moves2;
-        skipSynthetic1.set(challengeIdx, synthetic);
-        const bonus = moves2 * moves2;
-        score2 += bonus;
-        levelPoints2.set(challengeIdx, 1 + bonus);
-        pending1 = [challengeIdx, ...pending1];
+        pending1 = [...pending1, challengeIdx];
       }
     }
+  };
+  const solvePlayer2 = () => {
+    commitScore2();
     advancePlayer2();
     rerender();
   };
   const skipPlayer1 = () => {
     if (gameOver) return;
-    const challengeIdx = currentChallengeIdx1();
-    const isRetry = resolved1.get(challengeIdx) === "skip";
+    const challengeIdx = wsIdx1;
     resolved1.set(challengeIdx, "skip");
-    if (!isRetry) {
-      const p2Entry = resolved2.get(challengeIdx);
-      if (typeof p2Entry === "number") {
-        const synthetic = 2 * p2Entry;
-        skipSynthetic1.set(challengeIdx, synthetic);
-        const bonus = p2Entry * p2Entry;
-        score2 += bonus;
-        levelPoints2.set(
-          challengeIdx,
-          (levelPoints2.get(challengeIdx) ?? 1) + bonus
-        );
-      }
+    const p2Entry = resolved2.get(challengeIdx);
+    if (typeof p2Entry === "number") {
+      const synthetic = 2 * p2Entry;
+      skipSynthetic1.set(challengeIdx, synthetic);
+      const bonus = p2Entry;
+      score2 += bonus;
+      levelPoints2.set(
+        challengeIdx,
+        (levelPoints2.get(challengeIdx) ?? 1) + bonus
+      );
     }
     advancePlayer1();
     rerender();
   };
   const skipPlayer2 = () => {
     if (gameOver) return;
-    const challengeIdx = currentChallengeIdx2();
-    const isRetry = resolved2.get(challengeIdx) === "skip";
+    const challengeIdx = wsIdx2;
     resolved2.set(challengeIdx, "skip");
-    if (!isRetry) {
-      const p1Entry = resolved1.get(challengeIdx);
-      if (typeof p1Entry === "number") {
-        const synthetic = 2 * p1Entry;
-        skipSynthetic2.set(challengeIdx, synthetic);
-        const bonus = p1Entry * p1Entry;
-        score1 += bonus;
-        levelPoints1.set(
-          challengeIdx,
-          (levelPoints1.get(challengeIdx) ?? 1) + bonus
-        );
-      }
+    const p1Entry = resolved1.get(challengeIdx);
+    if (typeof p1Entry === "number") {
+      const synthetic = 2 * p1Entry;
+      skipSynthetic2.set(challengeIdx, synthetic);
+      const bonus = p1Entry;
+      score1 += bonus;
+      levelPoints1.set(
+        challengeIdx,
+        (levelPoints1.get(challengeIdx) ?? 1) + bonus
+      );
     }
     advancePlayer2();
     rerender();
@@ -11448,29 +11512,39 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
   };
   const onApplyReverse1 = (_key, onFormula) => {
     if (closeEditor1 !== null) return;
-    closeEditor1 = makeVersusFormulaEditor(
+    const ed1 = makeVersusFormulaEditor(
       "left",
       (formula) => {
         closeEditor1 = null;
+        tryUndoEditor1 = null;
         onFormula(formula);
       },
       () => {
         closeEditor1 = null;
-      }
+        tryUndoEditor1 = null;
+      },
+      versusConfig.p1Input === "keyboard" ? "\u232B" : versusConfig.p1Input === "mouse" ? void 0 : "\u25CB"
     );
+    closeEditor1 = ed1.close;
+    tryUndoEditor1 = ed1.tryUndo;
   };
   const onApplyReverse2 = (_key, onFormula) => {
     if (closeEditor2 !== null) return;
-    closeEditor2 = makeVersusFormulaEditor(
+    const ed2 = makeVersusFormulaEditor(
       "right",
       (formula) => {
         closeEditor2 = null;
+        tryUndoEditor2 = null;
         onFormula(formula);
       },
       () => {
         closeEditor2 = null;
-      }
+        tryUndoEditor2 = null;
+      },
+      versusConfig.p2Input === "keyboard" ? "\u232B" : versusConfig.p2Input === "mouse" ? void 0 : "\u25CB"
     );
+    closeEditor2 = ed2.close;
+    tryUndoEditor2 = ed2.tryUndo;
   };
   const dispatch1 = createDispatch(
     () => ws1,
@@ -11541,15 +11615,30 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     const indices = connectedGamepadIndices();
     return input === "gamepad2" ? indices[1] ?? 1 : indices[0] ?? 0;
   };
+  const handleEditorInput1 = (action) => {
+    if (closeEditor1 === null) return false;
+    if (action === "undo") {
+      if (!(tryUndoEditor1?.() ?? false)) closeEditor1();
+    } else if (action === "menu") {
+      closeEditor1();
+    }
+    return true;
+  };
+  const handleEditorInput2 = (action) => {
+    if (closeEditor2 === null) return false;
+    if (action === "undo") {
+      if (!(tryUndoEditor2?.() ?? false)) closeEditor2();
+    } else if (action === "menu") {
+      closeEditor2();
+    }
+    return true;
+  };
   const handleKey = (ev) => {
     if (ev.ctrlKey || ev.metaKey || ev.altKey || gameOver) return;
     markKeyboardInput();
     const action = qwertyKeyMap[ev.code];
     if (action === void 0) return;
-    if (closeEditor1 !== null) {
-      if (action === "menu" || action === "undo") closeEditor1();
-      return;
-    }
+    if (handleEditorInput1(action)) return;
     if (action === "skip") {
       skipPlayer1();
       return;
@@ -11561,10 +11650,7 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     markKeyboardInput();
     const action = qwertyKeyMap[ev.code];
     if (action === void 0) return;
-    if (closeEditor2 !== null) {
-      if (action === "menu" || action === "undo") closeEditor2();
-      return;
-    }
+    if (handleEditorInput2(action)) return;
     if (action === "skip") {
       skipPlayer2();
       return;
@@ -11581,10 +11667,7 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
   } else {
     cleanupP1 = setupGamepad((action) => {
       if (gameOver) return;
-      if (closeEditor1 !== null) {
-        if (action === "menu" || action === "undo") closeEditor1();
-        return;
-      }
+      if (handleEditorInput1(action)) return;
       if (action === "skip") {
         skipPlayer1();
         return;
@@ -11602,10 +11685,7 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
   } else {
     cleanupP2 = setupGamepad((action) => {
       if (gameOver) return;
-      if (closeEditor2 !== null) {
-        if (action === "menu" || action === "undo") closeEditor2();
-        return;
-      }
+      if (handleEditorInput2(action)) return;
       if (action === "skip") {
         skipPlayer2();
         return;
