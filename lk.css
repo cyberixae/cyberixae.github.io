@@ -1706,6 +1706,17 @@ html.loading body {
   width: 100%;
   height: 100%;
 }
+.versus-half-npc .bench {
+  pointer-events: none;
+}
+.versus-half-npc .bench > .left,
+.versus-half-npc .bench > .main,
+.versus-half-npc .bench > .right,
+.versus-half-npc .bench-topbar,
+.versus-half-npc .rules-sheet,
+.versus-half-npc .controls {
+  visibility: hidden;
+}
 .versus-half .playarea {
   padding-left: 3em;
   padding-right: 3em;
@@ -1735,6 +1746,10 @@ html.loading body {
   flex: 1;
   overflow-y: auto;
   padding: 0.3em 0;
+  scrollbar-width: none;
+}
+.versus-thermo-rows::-webkit-scrollbar {
+  display: none;
 }
 .versus-thermo-row {
   display: flex;

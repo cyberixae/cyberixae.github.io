@@ -5351,7 +5351,8 @@ var en = {
   mouse: "Mouse",
   keyboard: "Keyboard",
   gamepad1: "Gamepad 1",
-  gamepad2: "Gamepad 2"
+  gamepad2: "Gamepad 2",
+  npc: "NPC"
 };
 var fi = {
   title: "LK",
@@ -5438,7 +5439,8 @@ var fi = {
   mouse: "Hiiri",
   keyboard: "N\xE4pp\xE4imist\xF6",
   gamepad1: "Ohjain 1",
-  gamepad2: "Ohjain 2"
+  gamepad2: "Ohjain 2",
+  npc: "NPC"
 };
 var es = {
   title: "LK",
@@ -5525,7 +5527,8 @@ var es = {
   mouse: "Rat\xF3n",
   keyboard: "Teclado",
   gamepad1: "Mando 1",
-  gamepad2: "Mando 2"
+  gamepad2: "Mando 2",
+  npc: "NPC"
 };
 var cs = {
   title: "LK",
@@ -5612,7 +5615,8 @@ var cs = {
   mouse: "My\u0161",
   keyboard: "Kl\xE1vesnice",
   gamepad1: "Ovlada\u010D 1",
-  gamepad2: "Ovlada\u010D 2"
+  gamepad2: "Ovlada\u010D 2",
+  npc: "NPC"
 };
 var pl = {
   title: "LK",
@@ -5699,7 +5703,8 @@ var pl = {
   mouse: "Mysz",
   keyboard: "Klawiatura",
   gamepad1: "Pad 1",
-  gamepad2: "Pad 2"
+  gamepad2: "Pad 2",
+  npc: "NPC"
 };
 var messages = {
   cs,
@@ -6700,12 +6705,12 @@ var countRuleUsage = (d) => {
     logical: 0,
     meta: 0
   };
-  const walk = (node) => {
+  const walk2 = (node) => {
     if (node.kind === "premise") return;
     counts[ruleCategory[node.rule]] += 1;
-    node.deps.forEach(walk);
+    node.deps.forEach(walk2);
   };
-  walk(d);
+  walk2(d);
   return counts;
 };
 var formatHudCounts = (counts) => {
@@ -11081,6 +11086,239 @@ var mountSecret = (container, navigate2) => {
   }, rerender: render };
 };
 
+// src/npc/proof-walker.ts
+var extractAuxFormula = (rule, deps) => {
+  const dep0 = deps[0];
+  const dep1 = deps[1];
+  if (dep0 === void 0 || dep1 === void 0) return null;
+  if (rule === "cut" || rule === "fcut") {
+    const succ2 = dep0.result.succedent;
+    return isNonEmptyArray(succ2) ? last(succ2) : null;
+  }
+  const succ = dep1.result.succedent;
+  return isNonEmptyArray(succ) ? succ[0] : null;
+};
+var tryInflate = (sequent2, allowedRules, out) => {
+  if (sequent2.antecedent.length > 1 && allowedRules.includes("sRotLF") && allowedRules.includes("sRotLB")) {
+    out.push(reverse02("sRotLF"));
+    out.push(reverse02("sRotLB"));
+    return;
+  }
+  if (sequent2.succedent.length > 1 && allowedRules.includes("sRotRF") && allowedRules.includes("sRotRB")) {
+    out.push(reverse02("sRotRF"));
+    out.push(reverse02("sRotRB"));
+  }
+};
+var walk = (node, out, shuffle2, inflateProb, allowedRules) => {
+  if (inflateProb > 0 && Math.random() < inflateProb) {
+    tryInflate(node.result, allowedRules, out);
+  }
+  const rule = node.rule;
+  if (isReverseId1(rule)) {
+    const aux = extractAuxFormula(rule, node.deps);
+    if (aux !== null) out.push(reverse12(rule, aux));
+  } else if (isReverseId0(rule)) {
+    out.push(reverse02(rule));
+  }
+  if (shuffle2 && node.deps.length === 2 && Math.random() < 0.5) {
+    const dep0 = node.deps[0];
+    const dep1 = node.deps[1];
+    if (dep0 !== void 0 && dep1 !== void 0) {
+      out.push(nextBranch());
+      walk(dep1, out, shuffle2, inflateProb, allowedRules);
+      walk(dep0, out, shuffle2, inflateProb, allowedRules);
+      return;
+    }
+  }
+  for (const dep of node.deps) {
+    walk(dep, out, shuffle2, inflateProb, allowedRules);
+  }
+};
+var linearize = (proof, opts = {}) => {
+  const events = [];
+  const shuffle2 = opts.shuffle ?? true;
+  const inflateProb = opts.inflateProb ?? 0;
+  const allowedRules = opts.allowedRules ?? [];
+  walk(proof, events, shuffle2, inflateProb, allowedRules);
+  return events;
+};
+
+// src/npc/solver-runner.ts
+var scheduleIdle = (cb) => {
+  if (typeof window.requestIdleCallback === "function") {
+    window.requestIdleCallback(() => cb());
+  } else {
+    setTimeout(cb, 50);
+  }
+};
+var solveChunked = (config, onProof) => {
+  let cancelled = false;
+  const gen2 = bruteSearch(config);
+  const step = () => {
+    if (cancelled) return;
+    const result = gen2.next();
+    if (result.done === true) {
+      const [proof] = result.value;
+      onProof(proof);
+      return;
+    }
+    scheduleIdle(step);
+  };
+  scheduleIdle(step);
+  return {
+    cancel: () => {
+      cancelled = true;
+    }
+  };
+};
+
+// src/npc/driver.ts
+var PLANNING_POLL_MS = 300;
+var createNpcDriver = (opts) => {
+  let state = { kind: "idle" };
+  let pendingTimeout = null;
+  let cleanedUp = false;
+  const nextThinkDelay = () => {
+    const base = opts.knobs.baseThinkMs;
+    const jit = opts.knobs.jitterMs;
+    if (jit <= 0) return Math.max(50, base);
+    const offset = (Math.random() * 2 - 1) * jit;
+    return Math.max(50, base + offset);
+  };
+  const schedule = (delayMs) => {
+    if (cleanedUp) return;
+    if (pendingTimeout !== null) clearTimeout(pendingTimeout);
+    pendingTimeout = setTimeout(tick, delayMs);
+  };
+  const cancelSolverIfPlanning = () => {
+    if (state.kind === "planning") state.handle.cancel();
+  };
+  const startObserving = () => {
+    state = { kind: "observing" };
+    schedule(50);
+  };
+  const startPlanning = (idx) => {
+    const ws = opts.getWorkspace();
+    const goal87 = ws.currentConjecture().derivation.result;
+    const rules3 = ws.availableRules();
+    if (!isTautology2(goal87)) {
+      startObserving();
+      opts.skip();
+      return;
+    }
+    const proofRef = { value: null };
+    const handle = solveChunked({ goal: goal87, rules: rules3 }, (p) => {
+      proofRef.value = p;
+    });
+    state = {
+      kind: "planning",
+      observedIdx: idx,
+      startedAt: Date.now(),
+      handle,
+      proofRef
+    };
+    schedule(PLANNING_POLL_MS);
+  };
+  const startExecuting = (idx, plan, challengeStartedAt) => {
+    state = {
+      kind: "executing",
+      observedIdx: idx,
+      plan,
+      cursor: 0,
+      challengeStartedAt,
+      stuckAccumMs: 0
+    };
+    schedule(nextThinkDelay());
+  };
+  const tick = () => {
+    pendingTimeout = null;
+    if (cleanedUp || opts.isGameOver()) return;
+    const idx = opts.getChallengeIdx();
+    if ((state.kind === "planning" || state.kind === "executing") && state.observedIdx !== idx) {
+      cancelSolverIfPlanning();
+      startObserving();
+      return;
+    }
+    const linearizeOpts = {
+      shuffle: true,
+      inflateProb: opts.knobs.inflateProb,
+      allowedRules: opts.getWorkspace().availableRules()
+    };
+    if (state.kind === "idle" || state.kind === "observing") {
+      const solution87 = opts.getChallengeSolution();
+      if (solution87 !== void 0) {
+        startExecuting(idx, linearize(solution87, linearizeOpts), Date.now());
+      } else {
+        startPlanning(idx);
+      }
+      return;
+    }
+    if (state.kind === "planning") {
+      const proof = state.proofRef.value;
+      if (proof !== null) {
+        state.handle.cancel();
+        startExecuting(idx, linearize(proof, linearizeOpts), state.startedAt);
+        return;
+      }
+      if (Date.now() - state.startedAt > opts.knobs.skipAfterMs) {
+        state.handle.cancel();
+        startObserving();
+        opts.skip();
+        return;
+      }
+      schedule(PLANNING_POLL_MS);
+      return;
+    }
+    if (Date.now() - state.challengeStartedAt > opts.knobs.skipAfterMs) {
+      startObserving();
+      opts.skip();
+      return;
+    }
+    if (state.cursor >= state.plan.length) {
+      startObserving();
+      opts.skip();
+      return;
+    }
+    const ev = state.plan[state.cursor];
+    if (ev === void 0) {
+      startObserving();
+      opts.skip();
+      return;
+    }
+    const before = opts.getTotalMoves();
+    opts.applyEvent(ev);
+    const after = opts.getTotalMoves();
+    if (opts.getChallengeIdx() !== state.observedIdx) {
+      startObserving();
+      return;
+    }
+    const advanced = after !== before;
+    const nextStuck = advanced ? 0 : state.stuckAccumMs + opts.knobs.baseThinkMs;
+    if (nextStuck > opts.knobs.skipStuckMs) {
+      startObserving();
+      opts.skip();
+      return;
+    }
+    state = {
+      ...state,
+      cursor: state.cursor + 1,
+      stuckAccumMs: nextStuck
+    };
+    schedule(nextThinkDelay());
+  };
+  schedule(opts.knobs.baseThinkMs);
+  return {
+    cleanup: () => {
+      cleanedUp = true;
+      if (pendingTimeout !== null) {
+        clearTimeout(pendingTimeout);
+        pendingTimeout = null;
+      }
+      cancelSolverIfPlanning();
+    }
+  };
+};
+
 // src/web/versus.ts
 var formatTime = (s) => {
   const m = Math.floor(s / 60);
@@ -11101,7 +11339,11 @@ var makeVersusFormulaEditor = (side, onFormula, onCancel, undoHint) => {
   const { el, tryUndo } = createFormulaEditor(
     t("lemmaTitle"),
     t("lemmaConfirm"),
-    onFormula,
+    (formula) => {
+      modalEl?.remove();
+      modalEl = null;
+      onFormula(formula);
+    },
     close,
     undoHint
   );
@@ -11115,6 +11357,9 @@ var makeVersusFormulaEditor = (side, onFormula, onCancel, undoHint) => {
   return { close, tryUndo };
 };
 var mountVersus = (container, navigate2, pool2, versusConfig) => {
+  container.innerHTML = "";
+  const root = document.createElement("div");
+  container.appendChild(root);
   const sharedChallenges = [];
   const ensureChallenge = (i88) => {
     while (sharedChallenges.length <= i88 + 2) sharedChallenges.push(pool2.take());
@@ -11210,40 +11455,48 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
   const rerender = () => {
     if (ws1.isSolved()) commitScore1();
     if (ws2.isSolved()) commitScore2();
-    container.innerHTML = "";
+    root.innerHTML = "";
     timerEl = null;
     const screen = document.createElement("div");
     screen.setAttribute("class", "versus-screen");
     const arena = document.createElement("div");
     arena.setAttribute("class", "versus-arena");
+    const isNpc1 = versusConfig.p1Input === "npc";
+    const isNpc2 = versusConfig.p2Input === "npc";
     const half1 = document.createElement("div");
-    half1.setAttribute("class", "versus-half");
+    half1.setAttribute(
+      "class",
+      "versus-half" + (isNpc1 ? " versus-half-npc" : "")
+    );
     half1.appendChild(
       createBench(
         ws1,
         makeCongratsP1,
-        makeUndoControls(ws1, ctx1),
+        isNpc1 ? document.createElement("div") : makeUndoControls(ws1, ctx1),
         rerender,
         void 0,
         onApplyReverse1,
         void 0,
         ctx1,
-        skipPlayer1
+        isNpc1 ? void 0 : skipPlayer1
       )
     );
     const half2 = document.createElement("div");
-    half2.setAttribute("class", "versus-half");
+    half2.setAttribute(
+      "class",
+      "versus-half" + (isNpc2 ? " versus-half-npc" : "")
+    );
     half2.appendChild(
       createBench(
         ws2,
         makeCongratsP2,
-        makeUndoControls(ws2, ctx2),
+        isNpc2 ? document.createElement("div") : makeUndoControls(ws2, ctx2),
         rerender,
         void 0,
         onApplyReverse2,
         void 0,
         ctx2,
-        skipPlayer2
+        isNpc2 ? void 0 : skipPlayer2
       )
     );
     const thermo = document.createElement("div");
@@ -11338,7 +11591,7 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     arena.appendChild(thermo);
     arena.appendChild(half2);
     screen.appendChild(arena);
-    container.appendChild(screen);
+    root.appendChild(screen);
     if (gameOver) {
       const resultMsg = score1 > score2 ? t("winsTemplate").replace("{player}", t("player1")) : score2 > score1 ? t("winsTemplate").replace("{player}", t("player2")) : t("tie");
       const overlay = document.createElement("div");
@@ -11353,7 +11606,7 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
       overlay.appendChild(msg);
       overlay.appendChild(scores);
       overlay.appendChild(backBtn);
-      container.appendChild(overlay);
+      root.appendChild(overlay);
     }
   };
   const commitScore1 = () => {
@@ -11664,6 +11917,25 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
   } else if (versusConfig.p1Input === "mouse") {
     cleanupP1 = () => {
     };
+  } else if (versusConfig.p1Input === "npc") {
+    const driver = createNpcDriver({
+      getWorkspace: () => ws1,
+      getChallengeIdx: () => wsIdx1,
+      getChallengeSolution: () => sharedChallenges[wsIdx1]?.challenge.solution,
+      getTotalMoves: () => totalMoves(ws1),
+      applyEvent: (ev) => {
+        ws1.applyEvent(ev);
+        if (ws1.isSolved()) {
+          solvePlayer1();
+        } else {
+          rerender();
+        }
+      },
+      skip: skipPlayer1,
+      knobs: versusConfig.npc1Knobs,
+      isGameOver: () => gameOver
+    });
+    cleanupP1 = driver.cleanup;
   } else {
     cleanupP1 = setupGamepad((action) => {
       if (gameOver) return;
@@ -11682,6 +11954,25 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
   } else if (versusConfig.p2Input === "mouse") {
     cleanupP2 = () => {
     };
+  } else if (versusConfig.p2Input === "npc") {
+    const driver = createNpcDriver({
+      getWorkspace: () => ws2,
+      getChallengeIdx: () => wsIdx2,
+      getChallengeSolution: () => sharedChallenges[wsIdx2]?.challenge.solution,
+      getTotalMoves: () => totalMoves(ws2),
+      applyEvent: (ev) => {
+        ws2.applyEvent(ev);
+        if (ws2.isSolved()) {
+          solvePlayer2();
+        } else {
+          rerender();
+        }
+      },
+      skip: skipPlayer2,
+      knobs: versusConfig.npc2Knobs,
+      isGameOver: () => gameOver
+    });
+    cleanupP2 = driver.cleanup;
   } else {
     cleanupP2 = setupGamepad((action) => {
       if (gameOver) return;
@@ -12205,20 +12496,59 @@ var mountRandomConfig = (container, _navigate, onStart) => {
   return { cleanup, rerender };
 };
 
+// src/npc/knobs.ts
+var defaultNpcKnobs = () => ({
+  baseThinkMs: 800,
+  jitterMs: 400,
+  skipAfterMs: 3e4,
+  skipStuckMs: 8e3,
+  inflateProb: 0
+});
+var pickNumber2 = (params, key, fallback) => {
+  const raw2 = params.get(key);
+  if (raw2 === null || raw2 === "") return fallback;
+  const value = parseFloat(raw2);
+  return Number.isFinite(value) ? value : fallback;
+};
+var parseNpcKnobsFromParams = (params, prefix) => {
+  const defaults = defaultNpcKnobs();
+  return {
+    baseThinkMs: pickNumber2(params, prefix + "think", defaults.baseThinkMs),
+    jitterMs: pickNumber2(params, prefix + "jitter", defaults.jitterMs),
+    skipAfterMs: pickNumber2(params, prefix + "skip_time", defaults.skipAfterMs),
+    skipStuckMs: pickNumber2(
+      params,
+      prefix + "skip_stuck",
+      defaults.skipStuckMs
+    ),
+    inflateProb: pickNumber2(params, prefix + "inflate", defaults.inflateProb)
+  };
+};
+var setNpcKnobsParams = (knobs, params, prefix) => {
+  params.set(prefix + "think", String(knobs.baseThinkMs));
+  params.set(prefix + "jitter", String(knobs.jitterMs));
+  params.set(prefix + "skip_time", String(knobs.skipAfterMs));
+  params.set(prefix + "skip_stuck", String(knobs.skipStuckMs));
+  params.set(prefix + "inflate", String(knobs.inflateProb));
+};
+
 // src/web/versus-config.ts
 var defaultVersusConfig = () => ({
   randomConfig: defaultRandomConfig(),
   gameDurationSeconds: 300,
   p1Input: "keyboard",
-  p2Input: "mouse"
+  p2Input: "npc",
+  npc1Knobs: defaultNpcKnobs(),
+  npc2Knobs: defaultNpcKnobs()
 });
 var INPUT_OPTIONS = [
   "mouse",
   "keyboard",
   "gamepad1",
-  "gamepad2"
+  "gamepad2",
+  "npc"
 ];
-var pickNumber2 = (params, key, fallback) => {
+var pickNumber3 = (params, key, fallback) => {
   const raw2 = params.get(key);
   if (raw2 === null || raw2 === "") return fallback;
   const value = parseInt(raw2, 10);
@@ -12226,7 +12556,7 @@ var pickNumber2 = (params, key, fallback) => {
 };
 var pickInput = (params, key, fallback) => {
   const raw2 = params.get(key);
-  if (raw2 === "mouse" || raw2 === "keyboard" || raw2 === "gamepad1" || raw2 === "gamepad2")
+  if (raw2 === "mouse" || raw2 === "keyboard" || raw2 === "gamepad1" || raw2 === "gamepad2" || raw2 === "npc")
     return raw2;
   return fallback;
 };
@@ -12234,13 +12564,15 @@ var parseVersusConfigFromParams = (params) => {
   const defaults = defaultVersusConfig();
   return {
     randomConfig: parseConfigFromParams(params),
-    gameDurationSeconds: pickNumber2(
+    gameDurationSeconds: pickNumber3(
       params,
       "versus_time",
       defaults.gameDurationSeconds
     ),
     p1Input: pickInput(params, "versus_p1", defaults.p1Input),
-    p2Input: pickInput(params, "versus_p2", defaults.p2Input)
+    p2Input: pickInput(params, "versus_p2", defaults.p2Input),
+    npc1Knobs: parseNpcKnobsFromParams(params, "npc1_"),
+    npc2Knobs: parseNpcKnobsFromParams(params, "npc2_")
   };
 };
 var setVersusConfigParams = (config, params) => {
@@ -12248,22 +12580,26 @@ var setVersusConfigParams = (config, params) => {
   params.set("versus_time", String(config.gameDurationSeconds));
   params.set("versus_p1", config.p1Input);
   params.set("versus_p2", config.p2Input);
+  setNpcKnobsParams(config.npc1Knobs, params, "npc1_");
+  setNpcKnobsParams(config.npc2Knobs, params, "npc2_");
 };
 var inputLabel = (input) => {
   if (input === "mouse") return t("mouse");
   if (input === "keyboard") return t("keyboard");
   if (input === "gamepad1") return t("gamepad1");
-  return t("gamepad2");
+  if (input === "gamepad2") return t("gamepad2");
+  return t("npc");
 };
 var inputEmoji = (input) => {
   if (input === "mouse") return "\u{1F5B1}\uFE0F";
   if (input === "keyboard") return "\u2328\uFE0F";
   if (input === "gamepad1") return "\u{1F3AE}\u2081";
-  return "\u{1F3AE}\u2082";
+  if (input === "gamepad2") return "\u{1F3AE}\u2082";
+  return "\u{1F916}";
 };
 var connectedGamepadCount = () => Array.from(navigator.getGamepads()).filter((gp) => gp !== null).length;
 var isInputAvailable = (input) => {
-  if (input === "mouse" || input === "keyboard") return true;
+  if (input === "mouse" || input === "keyboard" || input === "npc") return true;
   const needed = input === "gamepad1" ? 1 : 2;
   return connectedGamepadCount() >= needed;
 };
