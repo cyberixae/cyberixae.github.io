@@ -11430,7 +11430,12 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
   let tryUndoEditor1 = null;
   let closeEditor2 = null;
   let tryUndoEditor2 = null;
-  const makeUndoControls = (ws, ctx) => {
+  const isNpc1 = versusConfig.p1Input === "npc";
+  const isNpc2 = versusConfig.p2Input === "npc";
+  let half1El = null;
+  let half2El = null;
+  let thermoEl = null;
+  const makeUndoControls = (ws, ctx, refresh) => {
     const el = document.createElement("div");
     el.setAttribute("class", "controls");
     const canUndo = activePath(ws.currentConjecture()).length > 0;
@@ -11445,35 +11450,25 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
           } else {
             ctx.setGazeModeActive(false);
           }
-          rerender();
+          refresh();
         },
         ctx.getActionHint("undo")
       )
     );
     return el;
   };
-  const rerender = () => {
-    if (ws1.isSolved()) commitScore1();
-    if (ws2.isSolved()) commitScore2();
-    root.innerHTML = "";
-    timerEl = null;
-    const screen = document.createElement("div");
-    screen.setAttribute("class", "versus-screen");
-    const arena = document.createElement("div");
-    arena.setAttribute("class", "versus-arena");
-    const isNpc1 = versusConfig.p1Input === "npc";
-    const isNpc2 = versusConfig.p2Input === "npc";
-    const half1 = document.createElement("div");
-    half1.setAttribute(
+  const buildHalf1 = () => {
+    const half2 = document.createElement("div");
+    half2.setAttribute(
       "class",
       "versus-half" + (isNpc1 ? " versus-half-npc" : "")
     );
-    half1.appendChild(
+    half2.appendChild(
       createBench(
         ws1,
         makeCongratsP1,
-        isNpc1 ? document.createElement("div") : makeUndoControls(ws1, ctx1),
-        rerender,
+        isNpc1 ? document.createElement("div") : makeUndoControls(ws1, ctx1, refreshP1),
+        refreshP1,
         void 0,
         onApplyReverse1,
         void 0,
@@ -11481,6 +11476,9 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
         isNpc1 ? void 0 : skipPlayer1
       )
     );
+    return half2;
+  };
+  const buildHalf2 = () => {
     const half2 = document.createElement("div");
     half2.setAttribute(
       "class",
@@ -11490,8 +11488,8 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
       createBench(
         ws2,
         makeCongratsP2,
-        isNpc2 ? document.createElement("div") : makeUndoControls(ws2, ctx2),
-        rerender,
+        isNpc2 ? document.createElement("div") : makeUndoControls(ws2, ctx2, refreshP2),
+        refreshP2,
         void 0,
         onApplyReverse2,
         void 0,
@@ -11499,6 +11497,9 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
         isNpc2 ? void 0 : skipPlayer2
       )
     );
+    return half2;
+  };
+  const buildThermo = () => {
     const thermo = document.createElement("div");
     thermo.setAttribute("class", "versus-thermo");
     const clock = document.createElement("div");
@@ -11532,9 +11533,9 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
       return String(e);
     };
     const entryPts = (e, pts) => {
-      if (e === void 0 || e === "current") return "";
-      if (e === "skip") return "0";
-      return `+${String(pts ?? 1)}`;
+      if (e === void 0 || e === "current" || e === "skip") return "";
+      const bonus = (pts ?? 1) - 1;
+      return bonus > 0 ? `+${String(bonus)}` : "";
     };
     const makeCell = (entry, cur, pts, synthetic, playerClass) => {
       const cell = document.createElement("div");
@@ -11587,9 +11588,23 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     thermoTotal.appendChild(totalCell2);
     thermo.appendChild(thermoTotal);
     thermo.appendChild(thermoRows);
-    arena.appendChild(half1);
-    arena.appendChild(thermo);
-    arena.appendChild(half2);
+    return thermo;
+  };
+  const rerender = () => {
+    if (ws1.isSolved()) commitScore1();
+    if (ws2.isSolved()) commitScore2();
+    root.innerHTML = "";
+    timerEl = null;
+    const screen = document.createElement("div");
+    screen.setAttribute("class", "versus-screen");
+    const arena = document.createElement("div");
+    arena.setAttribute("class", "versus-arena");
+    half1El = buildHalf1();
+    half2El = buildHalf2();
+    thermoEl = buildThermo();
+    arena.appendChild(half1El);
+    arena.appendChild(thermoEl);
+    arena.appendChild(half2El);
     screen.appendChild(arena);
     root.appendChild(screen);
     if (gameOver) {
@@ -11658,7 +11673,8 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
   const solvePlayer1 = () => {
     commitScore1();
     advancePlayer1();
-    rerender();
+    rerenderHalf1();
+    rebuildThermo();
   };
   const commitScore2 = () => {
     if (scoreCommitted2) return;
@@ -11709,7 +11725,8 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
   const solvePlayer2 = () => {
     commitScore2();
     advancePlayer2();
-    rerender();
+    rerenderHalf2();
+    rebuildThermo();
   };
   const skipPlayer1 = () => {
     if (gameOver) return;
@@ -11727,7 +11744,8 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
       );
     }
     advancePlayer1();
-    rerender();
+    rerenderHalf1();
+    rebuildThermo();
   };
   const skipPlayer2 = () => {
     if (gameOver) return;
@@ -11745,7 +11763,36 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
       );
     }
     advancePlayer2();
-    rerender();
+    rerenderHalf2();
+    rebuildThermo();
+  };
+  const rerenderHalf1 = () => {
+    if (half1El === null) return;
+    const fresh = buildHalf1();
+    half1El.replaceWith(fresh);
+    half1El = fresh;
+  };
+  const rerenderHalf2 = () => {
+    if (half2El === null) return;
+    const fresh = buildHalf2();
+    half2El.replaceWith(fresh);
+    half2El = fresh;
+  };
+  const rebuildThermo = () => {
+    if (thermoEl === null) return;
+    const fresh = buildThermo();
+    thermoEl.replaceWith(fresh);
+    thermoEl = fresh;
+  };
+  const refreshP1 = () => {
+    if (ws1.isSolved()) commitScore1();
+    rerenderHalf1();
+    rebuildThermo();
+  };
+  const refreshP2 = () => {
+    if (ws2.isSolved()) commitScore2();
+    rerenderHalf2();
+    rebuildThermo();
   };
   const onSolved1 = (action) => {
     if (gameOver) return;
@@ -11753,7 +11800,11 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
       navigate2("menu");
       return;
     }
-    solvePlayer1();
+    if (action === "axiom") {
+      solvePlayer1();
+      return;
+    }
+    rerenderHalf1();
   };
   const onSolved2 = (action) => {
     if (gameOver) return;
@@ -11761,7 +11812,11 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
       navigate2("menu");
       return;
     }
-    solvePlayer2();
+    if (action === "axiom") {
+      solvePlayer2();
+      return;
+    }
+    rerenderHalf2();
   };
   const onApplyReverse1 = (_key, onFormula) => {
     if (closeEditor1 !== null) return;
@@ -11801,7 +11856,7 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
   };
   const dispatch1 = createDispatch(
     () => ws1,
-    rerender,
+    refreshP1,
     navigate2,
     onSolved1,
     void 0,
@@ -11811,7 +11866,7 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
   );
   const dispatch2 = createDispatch(
     () => ws2,
-    rerender,
+    refreshP2,
     navigate2,
     onSolved2,
     void 0,
@@ -11928,7 +11983,7 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
         if (ws1.isSolved()) {
           solvePlayer1();
         } else {
-          rerender();
+          refreshP1();
         }
       },
       skip: skipPlayer1,
@@ -11965,7 +12020,7 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
         if (ws2.isSolved()) {
           solvePlayer2();
         } else {
-          rerender();
+          refreshP2();
         }
       },
       skip: skipPlayer2,
