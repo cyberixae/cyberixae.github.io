@@ -11144,30 +11144,60 @@ var linearize = (proof, opts = {}) => {
 };
 
 // src/npc/solver-runner.ts
-var scheduleIdle = (cb) => {
-  if (typeof window.requestIdleCallback === "function") {
-    window.requestIdleCallback(() => cb());
-  } else {
-    setTimeout(cb, 50);
-  }
-};
-var solveChunked = (config, onProof) => {
-  let cancelled = false;
-  const gen2 = bruteSearch(config);
-  const step = () => {
-    if (cancelled) return;
-    const result = gen2.next();
-    if (result.done === true) {
-      const [proof] = result.value;
-      onProof(proof);
-      return;
-    }
-    scheduleIdle(step);
+var createSolver = () => {
+  let worker = null;
+  let nextRequestId = 0;
+  let current2 = null;
+  const ensureWorker = () => {
+    if (worker !== null) return worker;
+    const w = new Worker("lk.npc.w.js");
+    w.onmessage = (e) => {
+      if (e.data.type !== "proof") return;
+      if (current2 === null || e.data.requestId !== current2.requestId) return;
+      const onProof = current2.onProof;
+      current2 = null;
+      onProof(e.data.proof);
+    };
+    w.onerror = (e) => {
+      console.error("NPC worker error:", e.message);
+    };
+    worker = w;
+    return w;
   };
-  scheduleIdle(step);
+  const post = (msg) => {
+    ensureWorker().postMessage(msg);
+  };
   return {
-    cancel: () => {
-      cancelled = true;
+    solveChunked: (config, onProof) => {
+      const requestId = nextRequestId;
+      nextRequestId += 1;
+      current2 = { requestId, onProof };
+      post({
+        type: "solve",
+        requestId,
+        goal: config.goal,
+        rules: config.rules
+      });
+      return {
+        cancel: () => {
+          if (current2 !== null && current2.requestId === requestId) {
+            current2 = null;
+          }
+          if (worker !== null) {
+            worker.postMessage({
+              type: "cancel",
+              requestId
+            });
+          }
+        }
+      };
+    },
+    cleanup: () => {
+      current2 = null;
+      if (worker !== null) {
+        worker.terminate();
+        worker = null;
+      }
     }
   };
 };
@@ -11178,6 +11208,7 @@ var createNpcDriver = (opts) => {
   let state = { kind: "idle" };
   let pendingTimeout = null;
   let cleanedUp = false;
+  const solver = createSolver();
   const nextThinkDelay = () => {
     const base = opts.knobs.baseThinkMs;
     const jit = opts.knobs.jitterMs;
@@ -11207,7 +11238,7 @@ var createNpcDriver = (opts) => {
       return;
     }
     const proofRef = { value: null };
-    const handle = solveChunked({ goal: goal87, rules: rules3 }, (p) => {
+    const handle = solver.solveChunked({ goal: goal87, rules: rules3 }, (p) => {
       proofRef.value = p;
     });
     state = {
@@ -11315,6 +11346,7 @@ var createNpcDriver = (opts) => {
         pendingTimeout = null;
       }
       cancelSolverIfPlanning();
+      solver.cleanup();
     }
   };
 };
