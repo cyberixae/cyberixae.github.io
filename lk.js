@@ -7478,9 +7478,13 @@ var makeHintBadge = (text) => {
   badge.textContent = text;
   return badge;
 };
-var createFormulaEditor = (title, confirmLabel, onConfirm, onCancel, undoHint) => {
+var clamp = (v2, lo, hi) => Math.max(lo, Math.min(hi, v2));
+var createFormulaEditor = (title, confirmLabel, onConfirm, onCancel, undoHint, activateHint) => {
   let stack = [];
   let history2 = [];
+  let cursorRow = 0;
+  let cursorCol = 0;
+  let cursorVisible = false;
   const saveAndSet = (next2) => {
     history2 = [...history2, stack];
     stack = next2;
@@ -7508,6 +7512,10 @@ var createFormulaEditor = (title, confirmLabel, onConfirm, onCancel, undoHint) =
     history2 = history2.slice(0, -1);
     renderState();
   };
+  const confirmCurrent = () => {
+    const formula = stack.length === 1 ? stack[0] : void 0;
+    if (formula !== void 0) onConfirm(formula);
+  };
   const shroud = document.createElement("div");
   shroud.setAttribute("class", "shroud pause-shroud");
   shroud.onclick = (ev) => {
@@ -7531,15 +7539,18 @@ var createFormulaEditor = (title, confirmLabel, onConfirm, onCancel, undoHint) =
   const atomRow = document.createElement("div");
   atomRow.setAttribute("class", "config-toggles");
   const atomNames = ["p", "q", "r", "s", "u", "v"];
+  const atomCells = [];
   for (const name4 of atomNames) {
     const a89 = atom(name4);
     const btn = document.createElement("pre");
     btn.setAttribute("class", "button");
     btn.innerHTML = html(fromAtom(a89)(basic));
-    btn.onclick = () => {
+    const activate = () => {
       pushProp(a89);
     };
+    btn.onclick = activate;
     atomRow.appendChild(btn);
+    atomCells.push({ btn, activate, isEnabled: () => true });
   }
   popup.appendChild(atomRow);
   const connRow = document.createElement("div");
@@ -7556,21 +7567,39 @@ var createFormulaEditor = (title, confirmLabel, onConfirm, onCancel, undoHint) =
   const negBtn = makeBtn("\xAC", () => {
     applyNeg();
   });
+  const falsumBtn = makeBtn("\u22A5", () => {
+    pushProp(falsum);
+  });
+  const verumBtn = makeBtn("\u22A4", () => {
+    pushProp(verum);
+  });
   connRow.appendChild(implBtn);
   connRow.appendChild(conjBtn);
   connRow.appendChild(disjBtn);
   connRow.appendChild(negBtn);
-  connRow.appendChild(
-    makeBtn("\u22A5", () => {
-      pushProp(falsum);
-    })
-  );
-  connRow.appendChild(
-    makeBtn("\u22A4", () => {
-      pushProp(verum);
-    })
-  );
+  connRow.appendChild(falsumBtn);
+  connRow.appendChild(verumBtn);
   popup.appendChild(connRow);
+  const connCells = [
+    {
+      btn: implBtn,
+      activate: () => applyBin("implication"),
+      isEnabled: () => stack.length >= 2
+    },
+    {
+      btn: conjBtn,
+      activate: () => applyBin("conjunction"),
+      isEnabled: () => stack.length >= 2
+    },
+    {
+      btn: disjBtn,
+      activate: () => applyBin("disjunction"),
+      isEnabled: () => stack.length >= 2
+    },
+    { btn: negBtn, activate: applyNeg, isEnabled: () => stack.length >= 1 },
+    { btn: falsumBtn, activate: () => pushProp(falsum), isEnabled: () => true },
+    { btn: verumBtn, activate: () => pushProp(verum), isEnabled: () => true }
+  ];
   const controls = document.createElement("div");
   controls.setAttribute("class", "formula-editor-controls");
   const cancelBtn = document.createElement("pre");
@@ -7588,9 +7617,25 @@ var createFormulaEditor = (title, confirmLabel, onConfirm, onCancel, undoHint) =
   controls.appendChild(confirmBtn);
   popup.appendChild(controls);
   shroud.appendChild(popup);
+  const controlCells = [
+    { btn: cancelBtn, activate: onCancel, isEnabled: () => true },
+    { btn: undoBtn, activate: doUndo, isEnabled: () => history2.length > 0 },
+    {
+      btn: confirmBtn,
+      activate: confirmCurrent,
+      isEnabled: () => stack.length === 1
+    }
+  ];
+  const rows = [
+    atomCells,
+    connCells,
+    controlCells
+  ];
   const hintBadge = undoHint !== void 0 ? makeHintBadge(undoHint) : null;
+  const cursorBadge = activateHint !== void 0 ? makeHintBadge(activateHint) : null;
+  if (cursorBadge !== null) cursorBadge.classList.add("cursor-hint");
   const renderState = () => {
-    stackDisplay.innerHTML = stack.length === 0 ? "\u2014" : stack.map((p) => html(fromProp(p)(basic))).join(" ");
+    stackDisplay.innerHTML = stack.length === 0 ? "" : stack.map((p) => html(fromProp(p)(basic))).join(" ");
     setDisabled(negBtn, stack.length === 0, () => {
       applyNeg();
     });
@@ -7619,13 +7664,65 @@ var createFormulaEditor = (title, confirmLabel, onConfirm, onCancel, undoHint) =
       "class",
       formula !== void 0 ? "button" : "button disabled"
     );
-    if (formula !== void 0) {
-      const f2 = formula;
-      confirmBtn.onclick = () => {
-        onConfirm(f2);
-      };
-    } else {
-      confirmBtn.onclick = null;
+    confirmBtn.onclick = formula !== void 0 ? confirmCurrent : null;
+    for (const row of rows) {
+      for (const cell of row) cell.btn.classList.remove("cursor");
+    }
+    const focused = cursorVisible ? rows[cursorRow]?.[cursorCol] : void 0;
+    if (focused !== void 0) focused.btn.classList.add("cursor");
+    if (cursorBadge !== null) {
+      cursorBadge.remove();
+      if (focused !== void 0 && focused.isEnabled()) {
+        focused.btn.appendChild(cursorBadge);
+      }
+    }
+  };
+  const moveCursor = (dRow, dCol) => {
+    if (!cursorVisible) {
+      cursorVisible = true;
+      cursorRow = 0;
+      cursorCol = 0;
+      renderState();
+      return;
+    }
+    cursorRow = clamp(cursorRow + dRow, 0, rows.length - 1);
+    const row = rows[cursorRow];
+    if (row !== void 0)
+      cursorCol = clamp(cursorCol + dCol, 0, row.length - 1);
+    renderState();
+  };
+  const activateFocused = () => {
+    if (!cursorVisible) {
+      cursorVisible = true;
+      cursorRow = 0;
+      cursorCol = 0;
+      renderState();
+      return;
+    }
+    const cell = rows[cursorRow]?.[cursorCol];
+    if (cell !== void 0 && cell.isEnabled()) cell.activate();
+  };
+  const onAction = (action) => {
+    switch (action) {
+      case "gazeLeft":
+      case "leftRotateLeft":
+        moveCursor(0, -1);
+        break;
+      case "gazeRight":
+      case "leftRotateRight":
+        moveCursor(0, 1);
+        break;
+      case "gazeConnective":
+      case "leftConnective":
+        moveCursor(-1, 0);
+        break;
+      case "gazeWeakening":
+      case "leftWeakening":
+        moveCursor(1, 0);
+        break;
+      case "axiom":
+        activateFocused();
+        break;
     }
   };
   renderState();
@@ -7635,7 +7732,8 @@ var createFormulaEditor = (title, confirmLabel, onConfirm, onCancel, undoHint) =
       if (history2.length === 0) return false;
       doUndo();
       return true;
-    }
+    },
+    onAction
   };
 };
 
@@ -7821,6 +7919,7 @@ var mountCampaign = (container, navigate2, session2) => {
   let formulaEditorOpen = false;
   let closeFormulaEditor = null;
   let tryUndoInEditor = null;
+  let editorOnAction = null;
   const onApplyReverse1 = (_key, onFormula) => {
     if (formulaEditorOpen) return;
     formulaEditorOpen = true;
@@ -7828,23 +7927,31 @@ var mountCampaign = (container, navigate2, session2) => {
       formulaEditorOpen = false;
       closeFormulaEditor = null;
       tryUndoInEditor = null;
+      editorOnAction = null;
       container.removeChild(modal);
     };
-    const { el: modal, tryUndo } = createFormulaEditor(
+    const {
+      el: modal,
+      tryUndo,
+      onAction
+    } = createFormulaEditor(
       t("lemmaTitle"),
       t("lemmaConfirm"),
       (formula) => {
         formulaEditorOpen = false;
         closeFormulaEditor = null;
         tryUndoInEditor = null;
+        editorOnAction = null;
         container.removeChild(modal);
         onFormula(formula);
       },
       cancel,
-      "\u232B"
+      "\u232B",
+      getActionHint("axiom")
     );
     closeFormulaEditor = cancel;
     tryUndoInEditor = tryUndo;
+    editorOnAction = onAction;
     container.appendChild(modal);
   };
   const rerender = () => {
@@ -7914,6 +8021,8 @@ var mountCampaign = (container, navigate2, session2) => {
         if (!(tryUndoInEditor?.() ?? false)) closeFormulaEditor?.();
       } else if (action === "menu" || action === "exit") {
         closeFormulaEditor?.();
+      } else {
+        editorOnAction?.(action);
       }
       return;
     }
@@ -8054,6 +8163,7 @@ var mountRandom = (container, navigate2, session2, onNewChallenge) => {
   let formulaEditorOpen = false;
   let closeFormulaEditor = null;
   let tryUndoInEditor = null;
+  let editorOnAction = null;
   const onApplyReverse1 = (_key, onFormula) => {
     if (formulaEditorOpen) return;
     formulaEditorOpen = true;
@@ -8061,23 +8171,31 @@ var mountRandom = (container, navigate2, session2, onNewChallenge) => {
       formulaEditorOpen = false;
       closeFormulaEditor = null;
       tryUndoInEditor = null;
+      editorOnAction = null;
       container.removeChild(modal);
     };
-    const { el: modal, tryUndo } = createFormulaEditor(
+    const {
+      el: modal,
+      tryUndo,
+      onAction
+    } = createFormulaEditor(
       t("lemmaTitle"),
       t("lemmaConfirm"),
       (formula) => {
         formulaEditorOpen = false;
         closeFormulaEditor = null;
         tryUndoInEditor = null;
+        editorOnAction = null;
         container.removeChild(modal);
         onFormula(formula);
       },
       cancel,
-      "\u232B"
+      "\u232B",
+      getActionHint("axiom")
     );
     closeFormulaEditor = cancel;
     tryUndoInEditor = tryUndo;
+    editorOnAction = onAction;
     container.appendChild(modal);
   };
   const rerender = () => {
@@ -8139,6 +8257,8 @@ var mountRandom = (container, navigate2, session2, onNewChallenge) => {
         if (!(tryUndoInEditor?.() ?? false)) closeFormulaEditor?.();
       } else if (action === "menu" || action === "exit") {
         closeFormulaEditor?.();
+      } else {
+        editorOnAction?.(action);
       }
       return;
     }
@@ -11361,14 +11481,14 @@ var totalMoves = (ws) => {
   const counts = countRuleUsage(ws.currentConjecture().derivation);
   return Object.values(counts).reduce((a89, b) => a89 + b, 0);
 };
-var makeVersusFormulaEditor = (side, onFormula, onCancel, undoHint) => {
+var makeVersusFormulaEditor = (side, onFormula, onCancel, undoHint, activateHint) => {
   let modalEl = null;
   const close = () => {
     modalEl?.remove();
     modalEl = null;
     onCancel();
   };
-  const { el, tryUndo } = createFormulaEditor(
+  const { el, tryUndo, onAction } = createFormulaEditor(
     t("lemmaTitle"),
     t("lemmaConfirm"),
     (formula) => {
@@ -11377,7 +11497,8 @@ var makeVersusFormulaEditor = (side, onFormula, onCancel, undoHint) => {
       onFormula(formula);
     },
     close,
-    undoHint
+    undoHint,
+    activateHint
   );
   modalEl = el;
   if (side === "left") {
@@ -11386,7 +11507,7 @@ var makeVersusFormulaEditor = (side, onFormula, onCancel, undoHint) => {
     el.style.left = "calc(50% + 2.5em)";
   }
   document.body.appendChild(el);
-  return { close, tryUndo };
+  return { close, tryUndo, onAction };
 };
 var mountVersus = (container, navigate2, pool2, versusConfig) => {
   container.innerHTML = "";
@@ -11460,8 +11581,10 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
   let timerEl = null;
   let closeEditor1 = null;
   let tryUndoEditor1 = null;
+  let onActionEditor1 = null;
   let closeEditor2 = null;
   let tryUndoEditor2 = null;
+  let onActionEditor2 = null;
   const isNpc1 = versusConfig.p1Input === "npc";
   const isNpc2 = versusConfig.p2Input === "npc";
   let half1El = null;
@@ -11857,16 +11980,20 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
       (formula) => {
         closeEditor1 = null;
         tryUndoEditor1 = null;
+        onActionEditor1 = null;
         onFormula(formula);
       },
       () => {
         closeEditor1 = null;
         tryUndoEditor1 = null;
+        onActionEditor1 = null;
       },
-      versusConfig.p1Input === "keyboard" ? "\u232B" : versusConfig.p1Input === "mouse" ? void 0 : "\u25CB"
+      versusConfig.p1Input === "keyboard" ? "\u232B" : versusConfig.p1Input === "mouse" ? void 0 : "\u25CB",
+      ctx1.getActionHint("axiom")
     );
     closeEditor1 = ed1.close;
     tryUndoEditor1 = ed1.tryUndo;
+    onActionEditor1 = ed1.onAction;
   };
   const onApplyReverse2 = (_key, onFormula) => {
     if (closeEditor2 !== null) return;
@@ -11875,16 +12002,20 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
       (formula) => {
         closeEditor2 = null;
         tryUndoEditor2 = null;
+        onActionEditor2 = null;
         onFormula(formula);
       },
       () => {
         closeEditor2 = null;
         tryUndoEditor2 = null;
+        onActionEditor2 = null;
       },
-      versusConfig.p2Input === "keyboard" ? "\u232B" : versusConfig.p2Input === "mouse" ? void 0 : "\u25CB"
+      versusConfig.p2Input === "keyboard" ? "\u232B" : versusConfig.p2Input === "mouse" ? void 0 : "\u25CB",
+      ctx2.getActionHint("axiom")
     );
     closeEditor2 = ed2.close;
     tryUndoEditor2 = ed2.tryUndo;
+    onActionEditor2 = ed2.onAction;
   };
   const dispatch1 = createDispatch(
     () => ws1,
@@ -11961,6 +12092,8 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
       if (!(tryUndoEditor1?.() ?? false)) closeEditor1();
     } else if (action === "menu") {
       closeEditor1();
+    } else {
+      onActionEditor1?.(action);
     }
     return true;
   };
@@ -11970,6 +12103,8 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
       if (!(tryUndoEditor2?.() ?? false)) closeEditor2();
     } else if (action === "menu") {
       closeEditor2();
+    } else {
+      onActionEditor2?.(action);
     }
     return true;
   };
