@@ -5317,6 +5317,10 @@ var en = {
   moves: "Moves",
   round: "Round",
   par: "Par",
+  points: "Points",
+  bonus: "Bonus",
+  done: "Done",
+  goal: "Goal",
   variables: "Variables",
   sequences: "Sequences",
   premises: "Premises",
@@ -5405,6 +5409,10 @@ var fi = {
   moves: "Siirrot",
   round: "Kierros",
   par: "Par",
+  points: "Pisteet",
+  bonus: "Bonus",
+  done: "Valmis",
+  goal: "Tavoite",
   variables: "Muuttujat",
   sequences: "Jonot",
   premises: "Premissit",
@@ -5493,6 +5501,10 @@ var es = {
   moves: "Movimientos",
   round: "Ronda",
   par: "Par",
+  points: "Puntos",
+  bonus: "Bonus",
+  done: "Hecho",
+  goal: "Objetivo",
   variables: "Variables",
   sequences: "Secuencias",
   premises: "Premisas",
@@ -5581,6 +5593,10 @@ var cs = {
   moves: "Tahy",
   round: "Kolo",
   par: "Par",
+  points: "Body",
+  bonus: "Bonus",
+  done: "Hotovo",
+  goal: "C\xEDl",
   variables: "Prom\u011Bnn\xE9",
   sequences: "Sekvence",
   premises: "Premisy",
@@ -5669,6 +5685,10 @@ var pl = {
   moves: "Ruchy",
   round: "Runda",
   par: "Par",
+  points: "Punkty",
+  bonus: "Bonus",
+  done: "Gotowe",
+  goal: "Cel",
   variables: "Zmienne",
   sequences: "Sekwencje",
   premises: "Przes\u0142anki",
@@ -11693,8 +11713,8 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
       return bonus > 0 ? `+${String(bonus)}` : "";
     };
     const makeCell = (entry, cur, pts, synthetic, playerClass) => {
-      const cell = document.createElement("div");
-      cell.setAttribute(
+      const cell2 = document.createElement("div");
+      cell2.setAttribute(
         "class",
         `versus-thermo-cell ${playerClass}${entry === "current" ? " current" : ""}`
       );
@@ -11704,9 +11724,9 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
       const ptsEl = document.createElement("div");
       ptsEl.setAttribute("class", "versus-thermo-points");
       ptsEl.textContent = entryPts(entry, pts);
-      cell.appendChild(movesEl);
-      cell.appendChild(ptsEl);
-      return cell;
+      cell2.appendChild(movesEl);
+      cell2.appendChild(ptsEl);
+      return cell2;
     };
     for (let i88 = maxIdx; i88 >= 0; i88 -= 1) {
       const row = document.createElement("div");
@@ -11762,22 +11782,165 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     arena.appendChild(half2El);
     screen.appendChild(arena);
     root.appendChild(screen);
-    if (gameOver) {
-      const resultMsg = score1 > score2 ? t("winsTemplate").replace("{player}", t("player1")) : score2 > score1 ? t("winsTemplate").replace("{player}", t("player2")) : t("tie");
-      const overlay = document.createElement("div");
-      overlay.setAttribute("class", "versus-result");
-      const msg = document.createElement("div");
-      msg.setAttribute("class", "versus-result-message");
-      msg.textContent = resultMsg;
-      const scores = document.createElement("div");
-      scores.setAttribute("class", "versus-result-scores");
-      scores.textContent = `${t("player1")}: ${String(score1)}  \u2022  ${t("player2")}: ${String(score2)}`;
-      const backBtn = createButton(t("back"), false, () => navigate2("menu"));
-      overlay.appendChild(msg);
-      overlay.appendChild(scores);
-      overlay.appendChild(backBtn);
-      root.appendChild(overlay);
+    if (gameOver) root.appendChild(buildResultScreen());
+  };
+  const breakdownEntry = (resolved, ci, i88) => {
+    if (i88 !== ci) return resolved.get(i88);
+    const entry = resolved.get(ci);
+    return typeof entry === "number" ? entry : "current";
+  };
+  const sideCells = (entry, currentMoves, levelPoints, synthetic) => {
+    if (entry === void 0)
+      return { moves: "", done: "", bonus: "", points: "" };
+    if (entry === "current")
+      return { moves: String(currentMoves), done: "\u2026", bonus: "", points: "" };
+    if (entry === "skip")
+      return {
+        moves: synthetic !== void 0 ? String(synthetic) : "",
+        done: "\u2298",
+        bonus: "\u2014",
+        points: "0"
+      };
+    const pts = levelPoints ?? 1;
+    const bonus = pts - 1;
+    return {
+      moves: String(entry),
+      done: "\u2713",
+      bonus: bonus > 0 ? `+${String(bonus)}` : "\u2014",
+      points: String(pts)
+    };
+  };
+  const cell = (cls, label, value) => {
+    const el = document.createElement("div");
+    el.setAttribute("class", `vb-cell ${cls}`);
+    const lab = document.createElement("div");
+    lab.setAttribute("class", "vb-cell-label");
+    lab.textContent = label;
+    const val = document.createElement("div");
+    val.setAttribute("class", "vb-cell-value");
+    val.textContent = value;
+    el.appendChild(lab);
+    el.appendChild(val);
+    return el;
+  };
+  const par = (i88) => {
+    const solution87 = sharedChallenges[i88]?.challenge.solution;
+    if (solution87 === void 0) return "\u{1F480}";
+    const counts = countRuleUsage(solution87);
+    return String(Object.values(counts).reduce((a89, b) => a89 + b, 0));
+  };
+  const buildResultScreen = () => {
+    const ci1 = currentChallengeIdx1();
+    const ci2 = currentChallengeIdx2();
+    const maxIdx = Math.max(
+      ci1,
+      ci2,
+      ...Array.from(resolved1.keys()),
+      ...Array.from(resolved2.keys())
+    );
+    const moves1 = totalMoves(ws1);
+    const moves2 = totalMoves(ws2);
+    const overlay = document.createElement("div");
+    overlay.setAttribute("class", "versus-result");
+    const title = document.createElement("div");
+    title.setAttribute("class", "versus-breakdown-title");
+    title.textContent = score1 > score2 ? t("winsTemplate").replace("{player}", t("player1")) : score2 > score1 ? t("winsTemplate").replace("{player}", t("player2")) : t("tie");
+    overlay.appendChild(title);
+    const grid = document.createElement("div");
+    grid.setAttribute("class", "versus-breakdown-grid");
+    const header = document.createElement("div");
+    header.setAttribute("class", "vb-level vb-header");
+    const p1Name = document.createElement("div");
+    p1Name.setAttribute("class", "vb-title-name p1");
+    p1Name.textContent = t("player1");
+    const p1Score = document.createElement("div");
+    p1Score.setAttribute("class", "vb-title-score-cell p1");
+    p1Score.innerHTML = `<span class="vb-title-score">${String(score1)}</span>`;
+    const spacer = document.createElement("div");
+    spacer.setAttribute("class", "vb-title-spacer");
+    const p2Score = document.createElement("div");
+    p2Score.setAttribute("class", "vb-title-score-cell p2");
+    p2Score.innerHTML = `<span class="vb-title-score">${String(score2)}</span>`;
+    const p2Name = document.createElement("div");
+    p2Name.setAttribute("class", "vb-title-name p2");
+    p2Name.textContent = t("player2");
+    header.appendChild(p1Name);
+    header.appendChild(p1Score);
+    header.appendChild(spacer);
+    header.appendChild(p2Score);
+    header.appendChild(p2Name);
+    grid.appendChild(header);
+    const sub = document.createElement("div");
+    sub.setAttribute("class", "vb-level vb-subhead");
+    const subCols = [
+      t("moves"),
+      t("done"),
+      t("bonus"),
+      t("points"),
+      t("par"),
+      t("goal"),
+      t("points"),
+      t("bonus"),
+      t("done"),
+      t("moves")
+    ];
+    subCols.forEach((label, idx) => {
+      const c = document.createElement("div");
+      c.setAttribute(
+        "class",
+        "vb-cell vb-subcell" + (idx === 4 || idx === 6 ? " vb-sec-start" : "")
+      );
+      c.textContent = label;
+      sub.appendChild(c);
+    });
+    grid.appendChild(sub);
+    for (let i88 = 0; i88 <= maxIdx; i88 += 1) {
+      const e1 = breakdownEntry(resolved1, ci1, i88);
+      const e2 = breakdownEntry(resolved2, ci2, i88);
+      const s1 = sideCells(
+        e1,
+        moves1,
+        levelPoints1.get(i88),
+        skipSynthetic1.get(i88)
+      );
+      const s2 = sideCells(
+        e2,
+        moves2,
+        levelPoints2.get(i88),
+        skipSynthetic2.get(i88)
+      );
+      const row = document.createElement("div");
+      row.setAttribute("class", "vb-level");
+      row.appendChild(cell("p1 num", t("moves"), s1.moves));
+      row.appendChild(cell("p1 num", t("done"), s1.done));
+      row.appendChild(cell("p1 num", t("bonus"), s1.bonus));
+      row.appendChild(cell("p1 num pts", t("points"), s1.points));
+      const parCell = cell("vb-sec-start num", t("par"), par(i88));
+      row.appendChild(parCell);
+      const goalCell = document.createElement("div");
+      goalCell.setAttribute("class", "vb-cell vb-goal");
+      const goalLab = document.createElement("div");
+      goalLab.setAttribute("class", "vb-cell-label");
+      goalLab.textContent = t("goal");
+      const goalVal = document.createElement("div");
+      goalVal.setAttribute("class", "vb-cell-value");
+      const seq = sharedChallenges[i88]?.challenge.goal;
+      if (seq !== void 0) goalVal.innerHTML = html(fromSequent(seq)(basic));
+      goalCell.appendChild(goalLab);
+      goalCell.appendChild(goalVal);
+      row.appendChild(goalCell);
+      row.appendChild(cell("p2 num pts vb-sec-start", t("points"), s2.points));
+      row.appendChild(cell("p2 num", t("bonus"), s2.bonus));
+      row.appendChild(cell("p2 num", t("done"), s2.done));
+      row.appendChild(cell("p2 num", t("moves"), s2.moves));
+      grid.appendChild(row);
     }
+    overlay.appendChild(grid);
+    const actions = document.createElement("div");
+    actions.setAttribute("class", "versus-breakdown-actions");
+    actions.appendChild(createButton(t("back"), false, () => navigate2("menu")));
+    overlay.appendChild(actions);
+    return overlay;
   };
   const commitScore1 = () => {
     if (scoreCommitted1) return;
