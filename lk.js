@@ -5287,6 +5287,7 @@ var en = {
   axiom: "Axiom",
   playAgain: "Play Again",
   playAgainShort: "Again",
+  settings: "Settings",
   newChallenge: "New Challenge",
   prevLevel: "Prev Level",
   prevLevelShort: "Prev",
@@ -5379,6 +5380,7 @@ var fi = {
   axiom: "Aksiooma",
   playAgain: "Pelaa uudestaan",
   playAgainShort: "Uudestaan",
+  settings: "Asetukset",
   newChallenge: "Uusi haaste",
   prevLevel: "Edellinen",
   prevLevelShort: "Edellinen",
@@ -5471,6 +5473,7 @@ var es = {
   axiom: "Axioma",
   playAgain: "Jugar de nuevo",
   playAgainShort: "De nuevo",
+  settings: "Ajustes",
   newChallenge: "Nuevo desaf\xEDo",
   prevLevel: "Nivel anterior",
   prevLevelShort: "Anterior",
@@ -5563,6 +5566,7 @@ var cs = {
   axiom: "Axiom",
   playAgain: "Hr\xE1t znovu",
   playAgainShort: "Znovu",
+  settings: "Nastaven\xED",
   newChallenge: "Nov\xE1 v\xFDzva",
   prevLevel: "P\u0159edchoz\xED \xFArove\u0148",
   prevLevelShort: "P\u0159edchoz\xED",
@@ -5655,6 +5659,7 @@ var pl = {
   axiom: "Aksjomat",
   playAgain: "Zagraj ponownie",
   playAgainShort: "Ponownie",
+  settings: "Ustawienia",
   newChallenge: "Nowe wyzwanie",
   prevLevel: "Poprzedni poziom",
   prevLevelShort: "Poprz.",
@@ -6393,7 +6398,7 @@ var zoomTreeIn = () => {
 };
 var AUTO_ZOOM_MAX = 1.2;
 var AUTO_ZOOM_PAD = 0.9;
-var createBenchCtx = (isGamepadMode = false, autoZoom = true, showPar = true, showHud = true) => {
+var createBenchCtx = (isGamepadMode = false, autoZoom = true, showPar = true, showHud = true, autoZoomMax = AUTO_ZOOM_MAX) => {
   let gazeModeActive2 = false;
   let zoom = 1;
   const autoZoomed = /* @__PURE__ */ new WeakSet();
@@ -6427,7 +6432,8 @@ var createBenchCtx = (isGamepadMode = false, autoZoom = true, showPar = true, sh
       rulesVis = !rulesVis;
     },
     showPar,
-    showHud
+    showHud,
+    autoZoomMax
   };
 };
 var defaultCtx = {
@@ -6454,7 +6460,8 @@ var defaultCtx = {
     rulesVisible = !rulesVisible;
   },
   showPar: true,
-  showHud: true
+  showHud: true,
+  autoZoomMax: AUTO_ZOOM_MAX
 };
 var CHECK_TOTAL_MS = 3e3;
 var CHECK_STEP_MIN_MS = 80;
@@ -6576,7 +6583,7 @@ var createPlayArea = (workspace, ctx) => {
           const target = Math.max(
             ZOOM_MIN,
             Math.min(
-              AUTO_ZOOM_MAX,
+              ctx.autoZoomMax,
               ctx.getTreeZoom() * availW * AUTO_ZOOM_PAD / sequentRect.width
             )
           );
@@ -11344,10 +11351,12 @@ var createSolver = () => {
 
 // src/npc/driver.ts
 var PLANNING_POLL_MS = 300;
+var PAUSE_POLL_MS = 200;
 var createNpcDriver = (opts) => {
   let state = { kind: "idle" };
   let pendingTimeout = null;
   let cleanedUp = false;
+  let pausedAt = null;
   const solver = createSolver();
   const nextThinkDelay = () => {
     const base = opts.knobs.baseThinkMs;
@@ -11404,6 +11413,23 @@ var createNpcDriver = (opts) => {
   const tick = () => {
     pendingTimeout = null;
     if (cleanedUp || opts.isGameOver()) return;
+    if (opts.isPaused?.() ?? false) {
+      if (pausedAt === null) pausedAt = Date.now();
+      schedule(PAUSE_POLL_MS);
+      return;
+    }
+    if (pausedAt !== null) {
+      const delta = Date.now() - pausedAt;
+      pausedAt = null;
+      if (state.kind === "planning") {
+        state = { ...state, startedAt: state.startedAt + delta };
+      } else if (state.kind === "executing") {
+        state = {
+          ...state,
+          challengeStartedAt: state.challengeStartedAt + delta
+        };
+      }
+    }
     const idx = opts.getChallengeIdx();
     if ((state.kind === "planning" || state.kind === "executing") && state.observedIdx !== idx) {
       cancelSolverIfPlanning();
@@ -11590,7 +11616,7 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
   let ws1 = makeWorkspace(0);
   let ws2 = makeWorkspace(0);
   const makeCtx = (input) => {
-    const base = createBenchCtx(input !== "keyboard", false, false, false);
+    const base = createBenchCtx(input !== "keyboard", true, false, false, 1);
     if (input !== "mouse") return base;
     return { ...base, getActionHint: () => void 0, kbdHint: () => void 0 };
   };
@@ -11598,6 +11624,7 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
   const ctx2 = makeCtx(versusConfig.p2Input);
   let timeLeft = versusConfig.gameDurationSeconds;
   let gameOver = false;
+  let paused = false;
   let timerEl = null;
   let closeEditor1 = null;
   let tryUndoEditor1 = null;
@@ -11763,7 +11790,72 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     thermoTotal.appendChild(totalCell2);
     thermo.appendChild(thermoTotal);
     thermo.appendChild(thermoRows);
+    const menuBtn = createButton(
+      "\u22EE",
+      false,
+      () => setPaused(true),
+      getActionHintPure("menu", false)
+    );
+    menuBtn.classList.add("versus-menu-btn");
+    menuBtn.setAttribute("aria-label", t("menu"));
+    thermo.appendChild(menuBtn);
     return thermo;
+  };
+  const setPaused = (v2) => {
+    paused = v2;
+    rerender();
+  };
+  const buildPauseMenu = () => {
+    const shroud = document.createElement("div");
+    shroud.setAttribute("class", "shroud pause-shroud");
+    shroud.onclick = (ev) => {
+      if (ev.target === shroud) {
+        ev.preventDefault();
+        setPaused(false);
+      }
+    };
+    const panel = document.createElement("div");
+    panel.setAttribute("class", "pause-popup");
+    panel.onclick = (ev) => {
+      ev.stopPropagation();
+    };
+    const title = document.createElement("div");
+    title.setAttribute("class", "pause-title");
+    title.textContent = t("paused");
+    panel.appendChild(title);
+    const buttons = document.createElement("div");
+    buttons.setAttribute("class", "pause-buttons");
+    buttons.appendChild(
+      createButton(
+        t("resumeGame"),
+        false,
+        () => setPaused(false),
+        getActionHintPure("menu", false)
+      )
+    );
+    buttons.appendChild(
+      createButton(
+        t("playAgain"),
+        false,
+        () => navigate2("versus"),
+        getActionHintPure("skip", false)
+      )
+    );
+    buttons.appendChild(
+      createButton(t("settings"), false, () => navigate2("versus-config"))
+    );
+    buttons.appendChild(
+      createButton(
+        t("exitToMainMenu"),
+        false,
+        () => navigate2("menu"),
+        getActionHintPure("exit", false)
+      )
+    );
+    panel.appendChild(buttons);
+    shroud.appendChild(panel);
+    shroud.appendChild(createLangSwitcher());
+    return shroud;
   };
   const rerender = () => {
     if (ws1.isSolved()) commitScore1();
@@ -11783,6 +11875,7 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     screen.appendChild(arena);
     root.appendChild(screen);
     if (gameOver) root.appendChild(buildResultScreen());
+    else if (paused) root.appendChild(buildPauseMenu());
   };
   const breakdownEntry = (resolved, ci, i88) => {
     if (i88 !== ci) return resolved.get(i88);
@@ -11938,7 +12031,22 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     overlay.appendChild(grid);
     const actions = document.createElement("div");
     actions.setAttribute("class", "versus-breakdown-actions");
-    actions.appendChild(createButton(t("back"), false, () => navigate2("menu")));
+    actions.appendChild(
+      createButton(
+        t("settings"),
+        false,
+        () => navigate2("versus-config"),
+        getActionHintPure("lemma", false)
+      )
+    );
+    actions.appendChild(
+      createButton(
+        t("playAgain"),
+        false,
+        () => navigate2("versus"),
+        getActionHintPure("skip", false)
+      )
+    );
     overlay.appendChild(actions);
     return overlay;
   };
@@ -12227,7 +12335,7 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     return { hurray, buttons };
   };
   const ticker = setInterval(() => {
-    if (gameOver) return;
+    if (gameOver || paused) return;
     timeLeft -= 1;
     if (timeLeft <= 0) {
       timeLeft = 0;
@@ -12271,11 +12379,34 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     }
     return true;
   };
+  const handleResultAction = (action) => {
+    if (action === "lemma") navigate2("versus-config");
+    else if (action === "skip") navigate2("versus");
+  };
+  const handleControlAction = (action) => {
+    if (gameOver) {
+      handleResultAction(action);
+      return;
+    }
+    if (paused) {
+      if (action === "menu" || action === "undo") setPaused(false);
+      else if (action === "skip") navigate2("versus");
+      else if (action === "exit") navigate2("menu");
+      return;
+    }
+    if (action !== "menu") return;
+    if (closeEditor1 !== null || closeEditor2 !== null) {
+      closeEditor1?.();
+      closeEditor2?.();
+    } else {
+      setPaused(true);
+    }
+  };
   const handleKey = (ev) => {
-    if (ev.ctrlKey || ev.metaKey || ev.altKey || gameOver) return;
-    markKeyboardInput();
+    if (ev.ctrlKey || ev.metaKey || ev.altKey || gameOver || paused) return;
     const action = qwertyKeyMap[ev.code];
-    if (action === void 0) return;
+    if (action === void 0 || action === "menu") return;
+    markKeyboardInput();
     if (handleEditorInput1(action)) return;
     if (action === "skip") {
       skipPlayer1();
@@ -12284,10 +12415,10 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     dispatch1(action);
   };
   const handleKey2 = (ev) => {
-    if (ev.ctrlKey || ev.metaKey || ev.altKey || gameOver) return;
-    markKeyboardInput();
+    if (ev.ctrlKey || ev.metaKey || ev.altKey || gameOver || paused) return;
     const action = qwertyKeyMap[ev.code];
-    if (action === void 0) return;
+    if (action === void 0 || action === "menu") return;
+    markKeyboardInput();
     if (handleEditorInput2(action)) return;
     if (action === "skip") {
       skipPlayer2();
@@ -12318,12 +12449,13 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
       },
       skip: skipPlayer1,
       knobs: versusConfig.npc1Knobs,
-      isGameOver: () => gameOver
+      isGameOver: () => gameOver,
+      isPaused: () => paused
     });
     cleanupP1 = driver.cleanup;
   } else {
     cleanupP1 = setupGamepad((action) => {
-      if (gameOver) return;
+      if (gameOver || paused || action === "menu") return;
       if (handleEditorInput1(action)) return;
       if (action === "skip") {
         skipPlayer1();
@@ -12355,12 +12487,13 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
       },
       skip: skipPlayer2,
       knobs: versusConfig.npc2Knobs,
-      isGameOver: () => gameOver
+      isGameOver: () => gameOver,
+      isPaused: () => paused
     });
     cleanupP2 = driver.cleanup;
   } else {
     cleanupP2 = setupGamepad((action) => {
-      if (gameOver) return;
+      if (gameOver || paused || action === "menu") return;
       if (handleEditorInput2(action)) return;
       if (action === "skip") {
         skipPlayer2();
@@ -12369,6 +12502,16 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
       dispatch2(action);
     }, gpIndex(versusConfig.p2Input));
   }
+  const handleControlKey = (ev) => {
+    if (ev.ctrlKey || ev.metaKey || ev.altKey) return;
+    const action = qwertyKeyMap[ev.code];
+    if (action !== void 0) handleControlAction(action);
+  };
+  document.addEventListener("keydown", handleControlKey);
+  const controlPadIndices = [.../* @__PURE__ */ new Set([0, ...connectedGamepadIndices()])];
+  const cleanupControlPads = controlPadIndices.map(
+    (idx) => setupGamepad((action) => handleControlAction(action), idx)
+  );
   const unsubGamepad = subscribeGamepad(rerender);
   rerender();
   return {
@@ -12376,6 +12519,8 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
       clearInterval(ticker);
       cleanupP1();
       cleanupP2();
+      document.removeEventListener("keydown", handleControlKey);
+      cleanupControlPads.forEach((c) => c());
       unsubGamepad();
       closeEditor1?.();
       closeEditor2?.();
