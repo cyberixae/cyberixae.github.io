@@ -2247,9 +2247,7 @@
     nr: ruleNR.apply,
     swl: ruleSWL.apply,
     swr: ruleSWR.apply,
-    sRotLF: ruleSRotLF.apply,
     sRotLB: ruleSRotLB.apply,
-    sRotRF: ruleSRotRF.apply,
     sRotRB: ruleSRotRB.apply
   };
   var rules = [
@@ -2258,8 +2256,6 @@
     "v",
     "swl",
     "swr",
-    "sRotLF",
-    "sRotRF",
     "sRotLB",
     "sRotRB",
     "nl",

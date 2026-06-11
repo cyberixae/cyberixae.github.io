@@ -2893,9 +2893,7 @@ var zeta = {
   nr: ruleNR.apply,
   swl: ruleSWL.apply,
   swr: ruleSWR.apply,
-  sRotLF: ruleSRotLF.apply,
   sRotLB: ruleSRotLB.apply,
-  sRotRF: ruleSRotRF.apply,
   sRotRB: ruleSRotRB.apply
 };
 var rules2 = [
@@ -2904,8 +2902,6 @@ var rules2 = [
   "v",
   "swl",
   "swr",
-  "sRotLF",
-  "sRotRF",
   "sRotLB",
   "sRotRB",
   "nl",
@@ -3664,12 +3660,11 @@ var ch2permutation1 = challenge({ rules: rules2, goal: goal11, solution: solutio
 // src/challenges/ch2-permutation-2.ts
 var { a: a14, z: z10, i: i13 } = rk;
 var goal12 = sequent([a14("q")], [a14("p"), a14("p"), a14("p"), a14("q"), a14("p"), a14("p")]);
-var solution12 = z10.sRotRF(
-  z10.sRotRF(
-    z10.swr(
-      a14("p"),
-      z10.swr(a14("p"), z10.swr(a14("p"), z10.swr(a14("p"), z10.swr(a14("p"), i13.i(a14("q"))))))
-    )
+var solution12 = z10.swr(
+  a14("p"),
+  z10.swr(
+    a14("p"),
+    z10.swr(a14("p"), z10.sRotRB(z10.swr(a14("p"), z10.swr(a14("p"), i13.i(a14("q"))))))
   )
 );
 var ch2permutation2 = challenge({ rules: rules2, goal: goal12, solution: solution12 });
@@ -3727,7 +3722,7 @@ var goal15 = sequent(
   [o4.p2.conjunction(a17("p"), a17("q")), o4.p2.conjunction(a17("p"), a17("q"))],
   [o4.p2.conjunction(a17("p"), a17("q")), o4.p2.disjunction(a17("p"), a17("q"))]
 );
-var solution15 = z13.sRotRF(
+var solution15 = z13.sRotRB(
   z13.swl(
     o4.p2.conjunction(a17("p"), a17("q")),
     z13.swr(
@@ -3783,16 +3778,16 @@ var goal17 = sequent(
     o6.p2.implication(a19("s"), a19("q"))
   ]
 );
-var solution17 = z15.sRotLF(
-  z15.sRotRF(
-    z15.swl(
-      o6.p2.implication(a19("q"), a19("p")),
-      z15.swl(
-        o6.p2.implication(a19("s"), a19("r")),
-        z15.swr(
-          o6.p2.implication(a19("s"), a19("q")),
+var solution17 = z15.swl(
+  o6.p2.implication(a19("s"), a19("r")),
+  z15.swr(
+    o6.p2.implication(a19("r"), a19("p")),
+    z15.sRotLB(
+      z15.sRotRB(
+        z15.swl(
+          o6.p2.implication(a19("q"), a19("p")),
           z15.swr(
-            o6.p2.implication(a19("r"), a19("p")),
+            o6.p2.implication(a19("s"), a19("q")),
             i18.i(o6.p2.implication(a19("p"), a19("s")))
           )
         )
@@ -3818,20 +3813,20 @@ var goal18 = sequent(
     o7.p2.disjunction(a20("q"), a20("p"))
   ]
 );
-var solution18 = z16.sRotLB(
-  z16.sRotRF(
-    z16.swl(
-      o7.p2.implication(a20("q"), a20("p")),
-      z16.swl(
-        a20("r"),
+var solution18 = z16.swr(
+  o7.p1.negation(a20("p")),
+  z16.swr(
+    o7.p2.implication(a20("s"), a20("q")),
+    z16.sRotLB(
+      z16.sRotRB(
         z16.swl(
-          o7.p2.conjunction(a20("s"), a20("q")),
-          z16.swr(
-            o7.p2.disjunction(a20("q"), a20("p")),
-            z16.swr(
-              o7.p1.negation(a20("p")),
+          o7.p2.implication(a20("q"), a20("p")),
+          z16.swl(
+            a20("r"),
+            z16.swl(
+              o7.p2.conjunction(a20("s"), a20("q")),
               z16.swr(
-                o7.p2.implication(a20("s"), a20("q")),
+                o7.p2.disjunction(a20("q"), a20("p")),
                 i19.i(o7.p1.negation(a20("r")))
               )
             )
@@ -3849,16 +3844,16 @@ var goal19 = sequent(
   [a21("p"), o8.p1.negation(a21("p")), a21("q"), a21("r")],
   [o8.p1.negation(a21("q")), o8.p1.negation(a21("p")), a21("s"), o8.p1.negation(a21("r"))]
 );
-var solution19 = z17.swr(
-  o8.p1.negation(a21("q")),
-  z17.sRotLF(
-    z17.sRotRB(
-      z17.swl(
-        a21("p"),
-        z17.swl(
-          a21("r"),
+var solution19 = z17.swl(
+  a21("r"),
+  z17.swl(
+    a21("q"),
+    z17.swr(
+      o8.p1.negation(a21("q")),
+      z17.sRotLB(
+        z17.sRotRB(
           z17.swl(
-            a21("q"),
+            a21("p"),
             z17.swr(
               a21("s"),
               z17.swr(o8.p1.negation(a21("r")), i20.i(o8.p1.negation(a21("p"))))
@@ -3927,7 +3922,7 @@ var goal25 = sequent(
     o14.p1.negation(o14.p1.negation(o14.p1.negation(a27("p"))))
   ]
 );
-var solution25 = z23.sRotLF(
+var solution25 = z23.sRotLB(
   z23.swl(
     o14.p1.negation(o14.p1.negation(a27("p"))),
     z23.swr(
@@ -3952,16 +3947,16 @@ var goal26 = sequent(
     o15.p1.negation(o15.p1.negation(a28("q")))
   ]
 );
-var solution26 = z24.sRotLF(
-  z24.sRotRF(
-    z24.swl(
-      o15.p1.negation(o15.p1.negation(a28("p"))),
-      z24.swl(
-        o15.p1.negation(o15.p1.negation(o15.p1.negation(a28("q")))),
-        z24.swr(
-          o15.p1.negation(o15.p1.negation(a28("q"))),
+var solution26 = z24.swl(
+  o15.p1.negation(o15.p1.negation(o15.p1.negation(a28("q")))),
+  z24.swr(
+    o15.p1.negation(o15.p1.negation(o15.p1.negation(a28("p")))),
+    z24.sRotLB(
+      z24.sRotRB(
+        z24.swl(
+          o15.p1.negation(o15.p1.negation(a28("p"))),
           z24.swr(
-            o15.p1.negation(o15.p1.negation(o15.p1.negation(a28("p")))),
+            o15.p1.negation(o15.p1.negation(a28("q"))),
             i27.i(o15.p2.conjunction(o15.p1.negation(a28("p")), o15.p1.negation(a28("q"))))
           )
         )
@@ -4061,7 +4056,7 @@ var { a: a36, o: o23, z: z31, i: i35 } = rk;
 var goal34 = conclusion(
   o23.p2.implication(a36("r"), o23.p2.implication(a36("q"), a36("q")))
 );
-var solution34 = z31.ir(z31.ir(z31.sRotLF(z31.swl(a36("r"), i35.i(a36("q"))))));
+var solution34 = z31.ir(z31.ir(z31.sRotLB(z31.swl(a36("r"), i35.i(a36("q"))))));
 var ch4theorem6 = challenge({ rules: rules2, goal: goal34, solution: solution34 });
 
 // src/challenges/ch4-theorem-7.ts
@@ -4074,7 +4069,7 @@ var goal35 = conclusion(
 );
 var solution35 = z32.ir(
   z32.ir(
-    z32.sRotLF(
+    z32.sRotLB(
       z32.swl(
         o24.p2.implication(
           a37("p"),
@@ -4155,8 +4150,8 @@ var goal42 = sequent(
 );
 var solution42 = z38.cl(
   z38.dr(
-    z38.sRotLF(
-      z38.sRotRF(
+    z38.sRotLB(
+      z38.sRotRB(
         z38.swl(
           o31.p2.conjunction(a44("r"), a44("p")),
           z38.swr(o31.p2.disjunction(a44("p"), a44("r")), i43.i(a44("s")))
@@ -4185,12 +4180,26 @@ var goal43 = sequent(
 );
 var solution43 = z39.cl(
   z39.dr(
-    z39.swl(
-      o32.p2.disjunction(a45("p"), a45("r")),
-      z39.cl(
-        z39.swr(
-          o32.p2.conjunction(a45("p"), a45("r")),
-          z39.dr(z39.sRotLF(z39.swl(a45("r"), z39.swr(a45("r"), i44.i(a45("p"))))))
+    z39.dl(
+      z39.swr(
+        o32.p2.conjunction(a45("p"), a45("r")),
+        z39.dr(
+          z39.sRotLB(
+            z39.swl(o32.p2.conjunction(a45("r"), a45("p")), z39.swr(a45("r"), i44.i(a45("p"))))
+          )
+        )
+      ),
+      z39.swr(
+        o32.p2.conjunction(a45("p"), a45("r")),
+        z39.dr(
+          z39.sRotLB(
+            z39.sRotRB(
+              z39.swl(
+                o32.p2.conjunction(a45("r"), a45("p")),
+                z39.swr(a45("p"), i44.i(a45("r")))
+              )
+            )
+          )
         )
       )
     )
@@ -4248,7 +4257,7 @@ var solution45 = z41.dr(
     z41.swr(
       a47("r"),
       z41.dr(
-        z41.sRotLF(
+        z41.sRotLB(
           z41.swl(
             o34.p2.conjunction(
               o34.p2.conjunction(a47("p"), a47("q")),
@@ -4272,7 +4281,7 @@ var goal46 = conclusion(
   )
 );
 var solution46 = z42.ir(
-  z42.cl(z42.nl(z42.sRotRF(z42.swr(o35.p2.disjunction(a48("r"), a48("s")), i47.i(a48("q"))))))
+  z42.cl(z42.nl(z42.sRotRB(z42.swr(o35.p2.disjunction(a48("r"), a48("s")), i47.i(a48("q"))))))
 );
 var ch5composition8 = challenge({ rules: rules2, goal: goal46, solution: solution46 });
 
@@ -4295,7 +4304,7 @@ var solution47 = z43.ir(
     z43.dr(
       z43.sRotRB(
         z43.nr(
-          z43.sRotLF(
+          z43.sRotLB(
             z43.swl(
               o36.p2.conjunction(
                 o36.p2.conjunction(o36.p1.negation(a49("p")), o36.p1.negation(a49("s"))),
@@ -4336,7 +4345,7 @@ var ch5composition11 = challenge({ rules: rules2, goal: goal49, solution: soluti
 var { a: a52, o: o39, z: z44, i: i51 } = rk;
 var goal50 = sequent([o39.p2.disjunction(a52("p"), a52("q"))], [a52("p"), a52("q")]);
 var solution50 = z44.dl(
-  z44.sRotRF(z44.swr(a52("q"), i51.i(a52("p")))),
+  z44.sRotRB(z44.swr(a52("q"), i51.i(a52("p")))),
   z44.swr(a52("p"), i51.i(a52("q")))
 );
 var ch6branching1 = challenge({ rules: rules2, goal: goal50, solution: solution50 });
@@ -4346,7 +4355,7 @@ var { a: a53, o: o40, z: z45, i: i52 } = rk;
 var goal51 = sequent([a53("p"), a53("q")], [o40.p2.conjunction(a53("p"), a53("q"))]);
 var solution51 = z45.cr(
   z45.swl(a53("q"), i52.i(a53("p"))),
-  z45.sRotLF(z45.swl(a53("p"), i52.i(a53("q"))))
+  z45.sRotLB(z45.swl(a53("p"), i52.i(a53("q"))))
 );
 var ch6branching2 = challenge({ rules: rules2, goal: goal51, solution: solution51 });
 
@@ -4369,7 +4378,7 @@ var goal53 = sequent(
   [o42.p2.disjunction(a55("q"), a55("p"))]
 );
 var solution53 = z47.dr(
-  z47.dl(z47.swr(a55("q"), i54.i(a55("p"))), z47.sRotRF(z47.swr(a55("p"), i54.i(a55("q")))))
+  z47.dl(z47.swr(a55("q"), i54.i(a55("p"))), z47.sRotRB(z47.swr(a55("p"), i54.i(a55("q")))))
 );
 var ch6branching4 = challenge({ rules: rules2, goal: goal53, solution: solution53 });
 
@@ -4380,7 +4389,7 @@ var goal54 = sequent(
   [o43.p2.conjunction(a56("q"), a56("p"))]
 );
 var solution54 = z48.cl(
-  z48.cr(z48.sRotLF(z48.swl(a56("p"), i55.i(a56("q")))), z48.swl(a56("q"), i55.i(a56("p"))))
+  z48.cr(z48.sRotLB(z48.swl(a56("p"), i55.i(a56("q")))), z48.swl(a56("q"), i55.i(a56("p"))))
 );
 var ch6branching5 = challenge({ rules: rules2, goal: goal54, solution: solution54 });
 
@@ -4395,8 +4404,8 @@ var goal55 = conclusion(
 var solution55 = z49.ir(
   z49.nl(
     z49.cr(
-      z49.sRotRF(z49.dr(z49.nr(z49.swr(o44.p1.negation(a57("q")), i56.i(a57("p")))))),
-      z49.sRotRF(z49.dr(z49.swr(o44.p1.negation(a57("p")), z49.nr(i56.i(a57("q"))))))
+      z49.sRotRB(z49.dr(z49.nr(z49.swr(o44.p1.negation(a57("q")), i56.i(a57("p")))))),
+      z49.sRotRB(z49.dr(z49.swr(o44.p1.negation(a57("p")), z49.nr(i56.i(a57("q"))))))
     )
   )
 );
@@ -4413,10 +4422,12 @@ var goal56 = conclusion(
 var solution56 = z50.ir(
   z50.nr(
     z50.cl(
-      z50.sRotLF(
-        z50.dl(
-          z50.nl(z50.swl(a58("q"), i57.i(a58("p")))),
-          z50.nl(z50.sRotLF(z50.swl(a58("p"), i57.i(a58("q")))))
+      z50.sRotLB(
+        z50.sRotLB(
+          z50.dl(
+            z50.nl(z50.swl(a58("q"), i57.i(a58("p")))),
+            z50.nl(z50.sRotLB(z50.swl(a58("p"), i57.i(a58("q")))))
+          )
         )
       )
     )
@@ -4440,11 +4451,11 @@ var solution57 = z51.ir(
     z51.dr(
       z51.dl(
         z51.cr(
-          z51.sRotRF(
+          z51.sRotRB(
             z51.swl(a59("q"), z51.swr(o46.p2.conjunction(a59("p"), a59("r")), i58.i(a59("p"))))
           ),
-          z51.sRotLF(
-            z51.sRotRF(
+          z51.sRotLB(
+            z51.sRotRB(
               z51.swl(
                 a59("p"),
                 z51.swr(o46.p2.conjunction(a59("p"), a59("r")), i58.i(a59("q")))
@@ -4456,7 +4467,7 @@ var solution57 = z51.ir(
           o46.p2.conjunction(a59("p"), a59("q")),
           z51.cr(
             z51.swl(a59("r"), i58.i(a59("p"))),
-            z51.sRotLF(z51.swl(a59("p"), i58.i(a59("r"))))
+            z51.sRotLB(z51.swl(a59("p"), i58.i(a59("r"))))
           )
         )
       )
@@ -4481,13 +4492,13 @@ var solution58 = z52.ir(
     z52.cl(
       z52.cr(
         z52.swl(a60("q"), i59.i(a60("p"))),
-        z52.dr(z52.sRotLF(z52.sRotRF(z52.swl(a60("p"), z52.swr(a60("r"), i59.i(a60("q")))))))
+        z52.dr(z52.sRotLB(z52.sRotRB(z52.swl(a60("p"), z52.swr(a60("r"), i59.i(a60("q")))))))
       )
     ),
     z52.cl(
       z52.cr(
         z52.swl(a60("r"), i59.i(a60("p"))),
-        z52.dr(z52.sRotLF(z52.swl(a60("p"), z52.swr(a60("q"), i59.i(a60("r"))))))
+        z52.dr(z52.sRotLB(z52.swl(a60("p"), z52.swr(a60("q"), i59.i(a60("r"))))))
       )
     )
   )
@@ -4507,8 +4518,8 @@ var ch6branching10 = challenge({ rules: rules2, goal: goal59, solution: solution
 var { a: a62, o: o49, z: z53, i: i61 } = rk;
 var goal60 = sequent([a62("p"), o49.p2.implication(a62("p"), a62("q"))], [a62("q")]);
 var solution60 = z53.il(
-  z53.sRotRF(z53.swr(a62("q"), i61.i(a62("p")))),
-  z53.sRotLF(z53.swl(a62("p"), i61.i(a62("q"))))
+  z53.sRotRB(z53.swr(a62("q"), i61.i(a62("p")))),
+  z53.sRotLB(z53.swl(a62("p"), i61.i(a62("q"))))
 );
 var ch7completeness1 = challenge({ rules: rules2, goal: goal60, solution: solution60 });
 
@@ -4522,10 +4533,10 @@ var goal61 = conclusion(
 );
 var solution61 = z54.ir(
   z54.ir(
-    z54.sRotLF(
+    z54.sRotLB(
       z54.il(
-        z54.sRotRF(z54.nr(z54.sRotLF(z54.swl(o50.p1.negation(a63("q")), i62.i(a63("p")))))),
-        z54.sRotLF(z54.nl(z54.sRotRF(z54.swr(o50.p1.negation(a63("p")), i62.i(a63("q"))))))
+        z54.sRotRB(z54.nr(z54.sRotLB(z54.swl(o50.p1.negation(a63("q")), i62.i(a63("p")))))),
+        z54.sRotLB(z54.nl(z54.sRotRB(z54.swr(o50.p1.negation(a63("p")), i62.i(a63("q"))))))
       )
     )
   )
@@ -4546,19 +4557,14 @@ var goal62 = conclusion(
 var solution62 = z55.ir(
   z55.ir(
     z55.ir(
-      z55.sRotLF(
+      z55.sRotLB(
         z55.il(
-          z55.sRotLF(
-            z55.il(
-              z55.sRotRF(z55.swr(a64("r"), z55.swr(a64("q"), i63.i(a64("p"))))),
-              z55.sRotLF(z55.swl(a64("p"), z55.swr(a64("p"), i63.i(a64("r")))))
-            )
+          z55.il(
+            z55.sRotRB(z55.swr(a64("q"), z55.swr(a64("r"), i63.i(a64("p"))))),
+            z55.sRotLB(z55.sRotRB(z55.swl(a64("p"), z55.swr(a64("r"), i63.i(a64("q"))))))
           ),
-          z55.sRotLF(
-            z55.il(
-              z55.sRotLF(z55.sRotRF(z55.swl(a64("p"), z55.swr(a64("r"), i63.i(a64("q")))))),
-              z55.sRotLB(z55.swl(a64("q"), z55.swl(a64("p"), i63.i(a64("r")))))
-            )
+          z55.sRotLB(
+            z55.swl(o51.p2.implication(a64("p"), a64("q")), z55.swl(a64("p"), i63.i(a64("r"))))
           )
         )
       )
@@ -4578,13 +4584,15 @@ var goal63 = conclusion(
 var solution63 = z56.ir(
   z56.ir(
     z56.ir(
-      z56.sRotLF(
-        z56.il(
-          z56.cr(
-            z56.sRotRF(z56.swl(a65("q"), z56.swr(a65("r"), i64.i(a65("p"))))),
-            z56.sRotLF(z56.sRotRF(z56.swl(a65("p"), z56.swr(a65("r"), i64.i(a65("q"))))))
-          ),
-          z56.sRotLB(z56.swl(a65("q"), z56.swl(a65("p"), i64.i(a65("r")))))
+      z56.sRotLB(
+        z56.sRotLB(
+          z56.il(
+            z56.cr(
+              z56.sRotRB(z56.swl(a65("q"), z56.swr(a65("r"), i64.i(a65("p"))))),
+              z56.sRotLB(z56.sRotRB(z56.swl(a65("p"), z56.swr(a65("r"), i64.i(a65("q"))))))
+            ),
+            z56.sRotLB(z56.swl(a65("q"), z56.swl(a65("p"), i64.i(a65("r")))))
+          )
         )
       )
     )
@@ -4618,13 +4626,13 @@ var solution65 = z58.ir(
   z58.ir(
     z58.il(
       z58.il(
-        z58.sRotRF(z58.nr(z58.swr(a67("p"), i66.i(a67("p"))))),
-        z58.sRotRF(z58.nr(z58.sRotLF(z58.swl(a67("q"), i66.i(a67("p"))))))
+        z58.swr(a67("p"), z58.sRotRB(z58.nr(i66.i(a67("p"))))),
+        z58.sRotRB(z58.nr(z58.sRotLB(z58.swl(a67("q"), i66.i(a67("p"))))))
       ),
-      z58.sRotLF(
+      z58.sRotLB(
         z58.il(
-          z58.sRotRF(z58.nr(z58.sRotLF(z58.swl(o54.p1.negation(a67("q")), i66.i(a67("p")))))),
-          z58.sRotLF(z58.nl(z58.sRotRF(z58.swr(o54.p1.negation(a67("p")), i66.i(a67("q"))))))
+          z58.sRotRB(z58.nr(z58.sRotLB(z58.swl(o54.p1.negation(a67("q")), i66.i(a67("p")))))),
+          z58.sRotLB(z58.nl(z58.sRotRB(z58.swr(o54.p1.negation(a67("p")), i66.i(a67("q"))))))
         )
       )
     )
@@ -4642,7 +4650,7 @@ var goal66 = conclusion(
 );
 var solution66 = z59.ir(
   z59.il(
-    z59.sRotRF(z59.ir(z59.swr(a68("q"), i67.i(a68("p"))))),
+    z59.sRotRB(z59.ir(z59.swr(a68("q"), i67.i(a68("p"))))),
     i67.i(o55.p2.implication(a68("p"), a68("q")))
   )
 );
@@ -4658,17 +4666,17 @@ var goal67 = conclusion(
 );
 var solution67 = z60.ir(
   z60.ir(
-    z60.sRotLF(
+    z60.sRotLB(
       z60.il(
         z60.ir(
-          z60.sRotLF(
+          z60.sRotLB(
             z60.swl(o56.p2.implication(a69("q"), a69("p")), z60.swr(a69("q"), i68.i(a69("p"))))
           )
         ),
-        z60.sRotLF(
+        z60.sRotLB(
           z60.il(
-            z60.sRotRF(z60.swr(a69("p"), i68.i(a69("q")))),
-            z60.sRotLF(z60.swl(a69("q"), i68.i(a69("p"))))
+            z60.sRotRB(z60.swr(a69("p"), i68.i(a69("q")))),
+            z60.sRotLB(z60.swl(a69("q"), i68.i(a69("p"))))
           )
         )
       )
@@ -4688,12 +4696,14 @@ var goal68 = conclusion(
 var solution68 = z61.ir(
   z61.ir(
     z61.cl(
-      z61.sRotLF(
-        z61.il(
-          z61.sRotRF(z61.swl(a70("q"), z61.swr(a70("r"), i69.i(a70("p"))))),
+      z61.sRotLB(
+        z61.sRotLB(
           z61.il(
-            z61.sRotLF(z61.sRotRF(z61.swl(a70("p"), z61.swr(a70("r"), i69.i(a70("q")))))),
-            z61.sRotLB(z61.swl(a70("q"), z61.swl(a70("p"), i69.i(a70("r")))))
+            z61.sRotRB(z61.swl(a70("q"), z61.swr(a70("r"), i69.i(a70("p"))))),
+            z61.il(
+              z61.sRotLB(z61.sRotRB(z61.swl(a70("p"), z61.swr(a70("r"), i69.i(a70("q")))))),
+              z61.sRotLB(z61.swl(a70("q"), z61.swl(a70("p"), i69.i(a70("r")))))
+            )
           )
         )
       )
@@ -4753,10 +4763,10 @@ var ch7completeness11 = challenge({ rules: rules2, goal: goal70, solution: solut
 // src/challenges/ch8-constants-1.ts
 var { a: a73, o: o60, z: z62, i: i72 } = rk;
 var goal71 = sequent([a73("p"), o60.p0.verum, a73("q")], [a73("r"), o60.p0.verum, a73("s")]);
-var solution71 = z62.sRotRF(
-  z62.swl(
-    a73("q"),
-    z62.swl(o60.p0.verum, z62.swl(a73("p"), z62.swr(a73("s"), z62.swr(a73("r"), i72.v()))))
+var solution71 = z62.swr(
+  a73("r"),
+  z62.sRotRB(
+    z62.swl(a73("q"), z62.swl(o60.p0.verum, z62.swl(a73("p"), z62.swr(a73("s"), i72.v()))))
   )
 );
 var ch8constants1 = challenge({ rules: rules2, goal: goal71, solution: solution71 });
@@ -4767,10 +4777,10 @@ var goal72 = sequent(
   [a74("s"), o61.p0.falsum, a74("r")],
   [a74("q"), o61.p0.falsum, a74("p")]
 );
-var solution72 = z63.sRotLF(
-  z63.swl(
-    a74("s"),
-    z63.swl(a74("r"), z63.swr(a74("q"), z63.swr(o61.p0.falsum, z63.swr(a74("p"), i73.f()))))
+var solution72 = z63.swl(
+  a74("r"),
+  z63.sRotLB(
+    z63.swl(a74("s"), z63.swr(a74("q"), z63.swr(o61.p0.falsum, z63.swr(a74("p"), i73.f()))))
   )
 );
 var ch8constants2 = challenge({ rules: rules2, goal: goal72, solution: solution72 });
@@ -4778,22 +4788,18 @@ var ch8constants2 = challenge({ rules: rules2, goal: goal72, solution: solution7
 // src/challenges/ch8-constants-3.ts
 var { a: a75, o: o62, z: z64, i: i74 } = rk;
 var goal73 = sequent([a75("s"), a75("p"), a75("s")], [a75("r"), o62.p0.verum, a75("r")]);
-var solution73 = z64.sRotRF(
-  z64.swl(
-    a75("s"),
-    z64.swl(a75("p"), z64.swl(a75("s"), z64.swr(a75("r"), z64.swr(a75("r"), i74.v()))))
-  )
+var solution73 = z64.swr(
+  a75("r"),
+  z64.sRotRB(z64.swl(a75("s"), z64.swl(a75("p"), z64.swl(a75("s"), z64.swr(a75("r"), i74.v())))))
 );
 var ch8constants3 = challenge({ rules: rules2, goal: goal73, solution: solution73 });
 
 // src/challenges/ch8-constants-4.ts
 var { a: a76, o: o63, z: z65, i: i75 } = rk;
 var goal74 = sequent([a76("s"), o63.p0.falsum, a76("s")], [a76("r"), a76("p"), a76("r")]);
-var solution74 = z65.sRotLF(
-  z65.swl(
-    a76("s"),
-    z65.swl(a76("s"), z65.swr(a76("r"), z65.swr(a76("p"), z65.swr(a76("r"), i75.f()))))
-  )
+var solution74 = z65.swl(
+  a76("s"),
+  z65.sRotLB(z65.swl(a76("s"), z65.swr(a76("r"), z65.swr(a76("p"), z65.swr(a76("r"), i75.f())))))
 );
 var ch8constants4 = challenge({ rules: rules2, goal: goal74, solution: solution74 });
 
@@ -4866,11 +4872,11 @@ var goal78 = conclusion(
 );
 var solution78 = z69.ir(
   z69.ir(
-    z69.sRotLF(
+    z69.sRotLB(
       z69.il(
-        z69.sRotRF(
+        z69.sRotRB(
           z69.ir(
-            z69.sRotLF(
+            z69.sRotLB(
               z69.swl(
                 o67.p2.implication(a80("q"), o67.p0.falsum),
                 z69.swr(a80("r"), i79.i(a80("p")))
@@ -4878,10 +4884,10 @@ var solution78 = z69.ir(
             )
           )
         ),
-        z69.sRotLF(
+        z69.sRotLB(
           z69.il(
-            z69.sRotRF(z69.swr(o67.p2.implication(a80("p"), a80("r")), i79.i(a80("q")))),
-            z69.sRotLF(
+            z69.sRotRB(z69.swr(o67.p2.implication(a80("p"), a80("r")), i79.i(a80("q")))),
+            z69.sRotLB(
               z69.swl(a80("q"), z69.swr(o67.p2.implication(a80("p"), a80("r")), i79.f()))
             )
           )
@@ -4913,7 +4919,7 @@ var solution79 = z70.cl(
     z70.il(
       z70.sRotRB(
         z70.ir(
-          z70.sRotLF(
+          z70.sRotLB(
             z70.swl(
               o68.p2.conjunction(a81("r"), a81("q")),
               z70.swr(
@@ -5006,12 +5012,12 @@ var goal82 = conclusion(
 );
 var solution82 = z73.ir(
   z73.cl(
-    z73.sRotLF(
+    z73.sRotLB(
       z73.il(
-        z73.sRotRF(
+        z73.sRotRB(
           z73.dr(
             z73.nr(
-              z73.sRotLF(
+              z73.sRotLB(
                 z73.swl(
                   o71.p2.disjunction(o71.p1.negation(a84("q")), a84("r")),
                   z73.swr(a84("r"), i83.i(a84("p")))
@@ -5020,10 +5026,10 @@ var solution82 = z73.ir(
             )
           )
         ),
-        z73.sRotLF(
+        z73.sRotLB(
           z73.dl(
             z73.nl(
-              z73.sRotRF(
+              z73.sRotRB(
                 z73.swr(
                   o71.p2.disjunction(o71.p1.negation(a84("p")), a84("r")),
                   i83.i(a84("q"))
@@ -5031,7 +5037,7 @@ var solution82 = z73.ir(
               )
             ),
             z73.dr(
-              z73.sRotLF(
+              z73.sRotLB(
                 z73.swl(a84("q"), z73.swr(o71.p1.negation(a84("p")), i83.i(a84("r"))))
               )
             )
@@ -5046,7 +5052,7 @@ var ch9consolidation3 = challenge({ rules: rules2, goal: goal82, solution: solut
 // src/challenges/ch9-consolidation-4.ts
 var { a: a85, o: o72, z: z74, i: i84 } = rk;
 var goal83 = conclusion(o72.p2.disjunction(a85("p"), o72.p1.negation(a85("p"))));
-var solution83 = z74.dr(z74.sRotRF(z74.nr(i84.i(a85("p")))));
+var solution83 = z74.dr(z74.sRotRB(z74.nr(i84.i(a85("p")))));
 var ch9consolidation4 = challenge({ rules: rules2, goal: goal83, solution: solution83 });
 
 // src/challenges/ch9-consolidation-5.ts
@@ -5060,12 +5066,14 @@ var goal84 = conclusion(
 var solution84 = z75.ir(
   z75.ir(
     z75.ir(
-      z75.sRotLF(
-        z75.il(
-          z75.sRotLF(z75.sRotRF(z75.swl(a86("q"), z75.swr(a86("r"), i85.i(a86("p")))))),
+      z75.sRotLB(
+        z75.sRotLB(
           z75.il(
-            z75.sRotRF(z75.swl(a86("p"), z75.swr(a86("r"), i85.i(a86("q"))))),
-            z75.sRotLB(z75.swl(a86("p"), z75.swl(a86("q"), i85.i(a86("r")))))
+            z75.sRotLB(z75.sRotRB(z75.swl(a86("q"), z75.swr(a86("r"), i85.i(a86("p")))))),
+            z75.il(
+              z75.sRotRB(z75.swl(a86("p"), z75.swr(a86("r"), i85.i(a86("q"))))),
+              z75.sRotLB(z75.swl(a86("p"), z75.swl(a86("q"), i85.i(a86("r")))))
+            )
           )
         )
       )
@@ -5089,27 +5097,18 @@ var solution85 = z76.ir(
   z76.ir(
     z76.ir(
       z76.dl(
-        z76.sRotLF(
-          z76.il(
-            z76.sRotLF(
-              z76.sRotRF(
-                z76.swl(
-                  o74.p2.implication(a87("q"), a87("r")),
-                  z76.swr(a87("r"), i86.i(a87("p")))
-                )
-              )
-            ),
-            z76.sRotLB(
-              z76.swl(
-                a87("p"),
-                z76.swl(o74.p2.implication(a87("q"), a87("r")), i86.i(a87("r")))
-              )
+        z76.sRotLB(
+          z76.swl(
+            o74.p2.implication(a87("q"), a87("r")),
+            z76.il(
+              z76.sRotRB(z76.swr(a87("r"), i86.i(a87("p")))),
+              z76.sRotLB(z76.swl(a87("p"), i86.i(a87("r"))))
             )
           )
         ),
         z76.sRotLB(
           z76.il(
-            z76.sRotRF(
+            z76.sRotRB(
               z76.swl(
                 o74.p2.implication(a87("p"), a87("r")),
                 z76.swr(a87("r"), i86.i(a87("q")))
@@ -5161,12 +5160,12 @@ var solution86 = z77.dr(
             z77.dr(
               z77.swr(
                 o75.p2.conjunction(a88("r"), o75.p2.implication(a88("s"), a88("p"))),
-                z77.dr(z77.sRotRF(z77.swr(a88("p"), i87.i(a88("r")))))
+                z77.dr(z77.sRotRB(z77.swr(a88("p"), i87.i(a88("r")))))
               )
             )
           )
         ),
-        z77.ir(z77.sRotLF(z77.swl(a88("r"), z77.swr(a88("q"), i87.f()))))
+        z77.ir(z77.sRotLB(z77.swl(a88("r"), z77.swr(a88("q"), i87.f()))))
       )
     )
   )
@@ -6127,7 +6126,6 @@ var qwertyKeyMap = {
   KeyH: "rightRotateLeft",
   KeyJ: "rightConnective",
   KeyL: "rightWeakening",
-  Semicolon: "rightRotateRight",
   KeyC: "lemma",
   Space: "axiom",
   Enter: "axiom",
@@ -6198,8 +6196,6 @@ var ps5HotKeyMap = {
   ...ps5SharedKeyMap,
   0: "rightWeakening",
   // Cross   ↔ L
-  1: "rightRotateRight",
-  // Circle  ↔ ;/ö
   2: "rightRotateLeft",
   // Square  ↔ H
   3: "rightConnective",
@@ -6312,7 +6308,6 @@ var ghostToDerivation = (chain, activeSequent2) => {
 };
 var ruleAction = {
   swl: "leftWeakening",
-  sRotLF: "leftRotateLeft",
   sRotLB: "leftRotateRight",
   nl: "leftConnective",
   cl: "leftConnective",
@@ -6324,7 +6319,6 @@ var ruleAction = {
   fil: "leftConnective",
   swr: "rightWeakening",
   sRotRB: "rightRotateLeft",
-  sRotRF: "rightRotateRight",
   nr: "rightConnective",
   dr: "rightConnective",
   dr1: "rightConnective",
@@ -7255,12 +7249,10 @@ var createPausePopup = (onResume, onExit, onReset, resetDisabled, onFresh, onSet
 var RULE_APPLY_ACTIONS = /* @__PURE__ */ new Set([
   "leftWeakening",
   "leftConnective",
-  "leftRotateLeft",
   "leftRotateRight",
   "rightWeakening",
   "rightConnective",
-  "rightRotateLeft",
-  "rightRotateRight"
+  "rightRotateLeft"
 ]);
 var createDispatch = (getWorkspace, rerender, navigate2, onSolved, onLevel, onMenu, onApplyReverse1, ctx = defaultCtx, onJustSolved) => (action) => {
   if (action === "gazeLeft" || action === "gazeRight") {
@@ -7329,9 +7321,6 @@ var createDispatch = (getWorkspace, rerender, navigate2, onSolved, onLevel, onMe
     case "leftWeakening":
       workspace.applyEvent(reverse02("swl"));
       break;
-    case "leftRotateLeft":
-      workspace.applyEvent(reverse02("sRotLF"));
-      break;
     case "leftRotateRight":
       workspace.applyEvent(reverse02("sRotLB"));
       break;
@@ -7343,9 +7332,6 @@ var createDispatch = (getWorkspace, rerender, navigate2, onSolved, onLevel, onMe
       break;
     case "rightRotateLeft":
       workspace.applyEvent(reverse02("sRotRB"));
-      break;
-    case "rightRotateRight":
-      workspace.applyEvent(reverse02("sRotRF"));
       break;
     case "rightConnective":
       autoRule(workspace, keys(rightLogical));
@@ -11245,21 +11231,7 @@ var extractAuxFormula = (rule, deps) => {
   const succ = dep1.result.succedent;
   return isNonEmptyArray(succ) ? succ[0] : null;
 };
-var tryInflate = (sequent2, allowedRules, out) => {
-  if (sequent2.antecedent.length > 1 && allowedRules.includes("sRotLF") && allowedRules.includes("sRotLB")) {
-    out.push(reverse02("sRotLF"));
-    out.push(reverse02("sRotLB"));
-    return;
-  }
-  if (sequent2.succedent.length > 1 && allowedRules.includes("sRotRF") && allowedRules.includes("sRotRB")) {
-    out.push(reverse02("sRotRF"));
-    out.push(reverse02("sRotRB"));
-  }
-};
-var walk = (node, out, shuffle2, inflateProb, allowedRules) => {
-  if (inflateProb > 0 && Math.random() < inflateProb) {
-    tryInflate(node.result, allowedRules, out);
-  }
+var walk = (node, out, shuffle2) => {
   const rule = node.rule;
   if (isReverseId1(rule)) {
     const aux = extractAuxFormula(rule, node.deps);
@@ -11272,21 +11244,19 @@ var walk = (node, out, shuffle2, inflateProb, allowedRules) => {
     const dep1 = node.deps[1];
     if (dep0 !== void 0 && dep1 !== void 0) {
       out.push(nextBranch());
-      walk(dep1, out, shuffle2, inflateProb, allowedRules);
-      walk(dep0, out, shuffle2, inflateProb, allowedRules);
+      walk(dep1, out, shuffle2);
+      walk(dep0, out, shuffle2);
       return;
     }
   }
   for (const dep of node.deps) {
-    walk(dep, out, shuffle2, inflateProb, allowedRules);
+    walk(dep, out, shuffle2);
   }
 };
 var linearize = (proof, opts = {}) => {
   const events = [];
   const shuffle2 = opts.shuffle ?? true;
-  const inflateProb = opts.inflateProb ?? 0;
-  const allowedRules = opts.allowedRules ?? [];
-  walk(proof, events, shuffle2, inflateProb, allowedRules);
+  walk(proof, events, shuffle2);
   return events;
 };
 
@@ -11437,9 +11407,7 @@ var createNpcDriver = (opts) => {
       return;
     }
     const linearizeOpts = {
-      shuffle: true,
-      inflateProb: opts.knobs.inflateProb,
-      allowedRules: opts.getWorkspace().availableRules()
+      shuffle: true
     };
     if (state.kind === "idle" || state.kind === "observing") {
       const solution87 = opts.getChallengeSolution();
@@ -13031,8 +12999,7 @@ var defaultNpcKnobs = () => ({
   baseThinkMs: 800,
   jitterMs: 400,
   skipAfterMs: 3e4,
-  skipStuckMs: 8e3,
-  inflateProb: 0
+  skipStuckMs: 8e3
 });
 var pickNumber2 = (params, key, fallback) => {
   const raw2 = params.get(key);
@@ -13050,8 +13017,7 @@ var parseNpcKnobsFromParams = (params, prefix) => {
       params,
       prefix + "skip_stuck",
       defaults.skipStuckMs
-    ),
-    inflateProb: pickNumber2(params, prefix + "inflate", defaults.inflateProb)
+    )
   };
 };
 var setNpcKnobsParams = (knobs, params, prefix) => {
@@ -13059,7 +13025,6 @@ var setNpcKnobsParams = (knobs, params, prefix) => {
   params.set(prefix + "jitter", String(knobs.jitterMs));
   params.set(prefix + "skip_time", String(knobs.skipAfterMs));
   params.set(prefix + "skip_stuck", String(knobs.skipStuckMs));
-  params.set(prefix + "inflate", String(knobs.inflateProb));
 };
 
 // src/web/versus-config.ts
@@ -13376,8 +13341,6 @@ var RULES2 = [
   "v",
   "swl",
   "swr",
-  "sRotLF",
-  "sRotRF",
   "sRotLB",
   "sRotRB",
   "nl",
