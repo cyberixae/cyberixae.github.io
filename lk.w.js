@@ -418,9 +418,6 @@
     return isActiveR(j) && r(head2(j.succedent));
   };
   var conclusion = (proposition) => sequent([], [proposition]);
-  var isConclusion = (j) => {
-    return j.antecedent.length === 0 && j.succedent.length === 1;
-  };
   var equals3 = (a, b) => {
     return equals2(a.antecedent, b.antecedent) && equals2(a.succedent, b.succedent);
   };
@@ -450,151 +447,6 @@
   function proofUsing(result, deps, rule) {
     return { kind: "transformation", result, deps, rule };
   }
-
-  // src/model/template.ts
-  var Variable = (name) => ({ kind: "var", name });
-  var Implication = (antecedent, consequent) => ({
-    kind: "implication",
-    antecedent,
-    consequent
-  });
-  var Negation = (negand) => ({
-    kind: "negation",
-    negand
-  });
-  var match2 = (t) => {
-    const check = (p, t2, bindings) => {
-      switch (t2.kind) {
-        case "var": {
-          const bound = bindings.get(t2.name);
-          if (bound !== void 0) return equals(bound, p);
-          bindings.set(t2.name, p);
-          return true;
-        }
-        case "implication":
-          return p.kind === "implication" && check(p.antecedent, t2.antecedent, bindings) && check(p.consequent, t2.consequent, bindings);
-        case "negation":
-          return p.kind === "negation" && check(p.negand, t2.negand, bindings);
-      }
-    };
-    return (p) => check(p, t, /* @__PURE__ */ new Map());
-  };
-
-  // src/rules/a1.ts
-  var P = Variable("P");
-  var Q = Variable("Q");
-  var Axiom1 = Implication(P, Implication(Q, P));
-  var isAxiom1 = match2(Axiom1);
-  var isA1Result = (s) => {
-    return isConclusion(s) && isAxiom1(s.succedent[0]);
-  };
-  var isA1ResultDerivation = refineDerivation(isA1Result);
-  var a1 = (result) => {
-    return introduction(result, "a1");
-  };
-  var applyA1 = (p, q) => {
-    return a1(conclusion(implication(p, implication(q, p))));
-  };
-  var reverseA1 = (p) => {
-    return a1(p.result);
-  };
-  var tryReverseA1 = (d) => {
-    return isA1ResultDerivation(d) ? reverseA1(d) : null;
-  };
-  var exampleA1 = applyA1(atom("A"), atom("B"));
-  var ruleA1 = {
-    id: "a1",
-    connectives: ["implication"],
-    isResult: isA1Result,
-    isResultDerivation: isA1ResultDerivation,
-    make: a1,
-    apply: applyA1,
-    reverse: reverseA1,
-    tryReverse: tryReverseA1,
-    example: exampleA1
-  };
-
-  // src/rules/a2.ts
-  var P2 = Variable("P");
-  var Q2 = Variable("Q");
-  var R = Variable("R");
-  var Axiom2 = Implication(
-    Implication(P2, Implication(Q2, R)),
-    Implication(Implication(P2, Q2), Implication(P2, R))
-  );
-  var isAxiom2 = match2(Axiom2);
-  var isA2Result = (s) => {
-    return isConclusion(s) && isAxiom2(s.succedent[0]);
-  };
-  var isA2ResultDerivation = refineDerivation(isA2Result);
-  var a2 = (result) => {
-    return introduction(result, "a2");
-  };
-  var applyA2 = (p, q, r) => a2(
-    conclusion(
-      implication(
-        implication(p, implication(q, r)),
-        implication(implication(p, q), implication(p, r))
-      )
-    )
-  );
-  var reverseA2 = (p) => {
-    return a2(p.result);
-  };
-  var tryReverseA2 = (d) => {
-    return isA2ResultDerivation(d) ? reverseA2(d) : null;
-  };
-  var exampleA2 = applyA2(atom("A"), atom("B"), atom("C"));
-  var ruleA2 = {
-    id: "a2",
-    connectives: ["implication"],
-    isResult: isA2Result,
-    isResultDerivation: isA2ResultDerivation,
-    make: a2,
-    apply: applyA2,
-    reverse: reverseA2,
-    tryReverse: tryReverseA2,
-    example: exampleA2
-  };
-
-  // src/rules/a3.ts
-  var P3 = Variable("P");
-  var Q3 = Variable("Q");
-  var Axiom3 = Implication(
-    Implication(Negation(P3), Negation(Q3)),
-    Implication(Q3, P3)
-  );
-  var isAxiom3 = match2(Axiom3);
-  var isA3Result = (s) => {
-    return isConclusion(s) && isAxiom3(s.succedent[0]);
-  };
-  var isA3ResultDerivation = refineDerivation(isA3Result);
-  var a3 = (result) => {
-    return introduction(result, "a3");
-  };
-  var applyA3 = (p, q) => a3(
-    conclusion(
-      implication(implication(negation(p), negation(q)), implication(q, p))
-    )
-  );
-  var reverseA3 = (p) => {
-    return a3(p.result);
-  };
-  var tryReverseA3 = (d) => {
-    return isA3ResultDerivation(d) ? reverseA3(d) : null;
-  };
-  var exampleA3 = applyA3(atom("A"), atom("B"));
-  var ruleA3 = {
-    id: "a3",
-    connectives: ["implication", "negation"],
-    isResult: isA3Result,
-    isResultDerivation: isA3ResultDerivation,
-    make: a3,
-    apply: applyA3,
-    reverse: reverseA3,
-    tryReverse: tryReverseA3,
-    example: exampleA3
-  };
 
   // src/rules/cl.ts
   var isCLResult = refineActiveL(isConjunction);
@@ -634,84 +486,6 @@
     reverse: reverseCL,
     tryReverse: tryReverseCL,
     example: exampleCL
-  };
-
-  // src/rules/cl1.ts
-  var isCL1Result = refineActiveL(isConjunction);
-  var isCL1ResultDerivation = refineDerivation(isCL1Result);
-  var cl1 = (result, deps) => {
-    return transformation(result, deps, "cl1");
-  };
-  var applyCL1 = (b, ...deps) => {
-    const [dep] = deps;
-    const \u03B3 = init(dep.result.antecedent);
-    const a = last(dep.result.antecedent);
-    const \u03B4 = dep.result.succedent;
-    return cl1(sequent([...\u03B3, conjunction(a, b)], \u03B4), deps);
-  };
-  var reverseCL1 = (p) => {
-    const \u03B3 = init(p.result.antecedent);
-    const acb = last(p.result.antecedent);
-    const a = acb.leftConjunct;
-    const \u03B4 = p.result.succedent;
-    return cl1(p.result, [premise(sequent([...\u03B3, a], \u03B4))]);
-  };
-  var tryReverseCL1 = (d) => {
-    return isCL1ResultDerivation(d) ? reverseCL1(d) : null;
-  };
-  var exampleCL1 = applyCL1(
-    atom("B"),
-    premise(sequent([atom("\u0393"), atom("A")], [atom("\u0394")]))
-  );
-  var ruleCL1 = {
-    id: "cl1",
-    connectives: ["conjunction"],
-    isResult: isCL1Result,
-    isResultDerivation: isCL1ResultDerivation,
-    make: cl1,
-    apply: applyCL1,
-    reverse: reverseCL1,
-    tryReverse: tryReverseCL1,
-    example: exampleCL1
-  };
-
-  // src/rules/cl2.ts
-  var isCL2Result = refineActiveL(isConjunction);
-  var isCL2ResultDerivation = refineDerivation(isCL2Result);
-  var cl2 = (result, deps) => {
-    return transformation(result, deps, "cl2");
-  };
-  var applyCL2 = (a, ...deps) => {
-    const [dep] = deps;
-    const \u03B3 = init(dep.result.antecedent);
-    const b = last(dep.result.antecedent);
-    const \u03B4 = dep.result.succedent;
-    return cl2(sequent([...\u03B3, conjunction(a, b)], \u03B4), deps);
-  };
-  var reverseCL2 = (p) => {
-    const \u03B3 = init(p.result.antecedent);
-    const acb = last(p.result.antecedent);
-    const b = acb.rightConjunct;
-    const \u03B4 = p.result.succedent;
-    return cl2(p.result, [premise(sequent([...\u03B3, b], \u03B4))]);
-  };
-  var tryReverseCL2 = (d) => {
-    return isCL2ResultDerivation(d) ? reverseCL2(d) : null;
-  };
-  var exampleCL2 = applyCL2(
-    atom("A"),
-    premise(sequent([atom("\u0393"), atom("B")], [atom("\u0394")]))
-  );
-  var ruleCL2 = {
-    id: "cl2",
-    connectives: ["conjunction"],
-    isResult: isCL2Result,
-    isResultDerivation: isCL2ResultDerivation,
-    make: cl2,
-    apply: applyCL2,
-    reverse: reverseCL2,
-    tryReverse: tryReverseCL2,
-    example: exampleCL2
   };
 
   // src/rules/cr.ts
@@ -843,210 +617,6 @@
     example: exampleDL
   };
 
-  // src/rules/fcr.ts
-  var isFCRResult = (s) => {
-    const first = s.succedent.at(0);
-    return first !== void 0 && isConjunction(first);
-  };
-  var isFCRResultDerivation = refineDerivation(isFCRResult);
-  var fcr = (result, deps) => {
-    return transformation(result, deps, "fcr");
-  };
-  var applyFCR = (...deps) => {
-    const [dep1, dep2] = deps;
-    const \u03B3 = dep1.result.antecedent;
-    const \u03C2 = dep2.result.antecedent;
-    const a = head2(dep1.result.succedent);
-    const b = head2(dep2.result.succedent);
-    const \u03B4 = tail(dep1.result.succedent);
-    const \u03C0 = tail(dep2.result.succedent);
-    return fcr(sequent([...\u03B3, ...\u03C2], [conjunction(a, b), ...\u03B4, ...\u03C0]), deps);
-  };
-  var reverseFCR = (p, splitAnt, splitSuc) => {
-    const acb = head2(p.result.succedent);
-    const rest = tail(p.result.succedent);
-    const [\u03B3, \u03C2] = splitAnt(p.result.antecedent);
-    const a = acb.leftConjunct;
-    const b = acb.rightConjunct;
-    const [\u03B4, \u03C0] = splitSuc(rest);
-    return fcr(p.result, [
-      premise(sequent(\u03B3, [a, ...\u03B4])),
-      premise(sequent(\u03C2, [b, ...\u03C0]))
-    ]);
-  };
-  var tryReverseFCR = (splitAnt, splitSuc) => (d) => {
-    if (!isFCRResultDerivation(d)) return null;
-    return reverseFCR(d, splitAnt, splitSuc);
-  };
-  var exampleFCR = applyFCR(
-    premise(sequent([atom("\u0393")], [atom("A"), atom("\u0394")])),
-    premise(sequent([atom("\u03A3")], [atom("B"), atom("\u03A0")]))
-  );
-  var ruleFCR = {
-    id: "fcr",
-    connectives: ["conjunction"],
-    isResult: isFCRResult,
-    isResultDerivation: isFCRResultDerivation,
-    make: fcr,
-    apply: applyFCR,
-    reverse: reverseFCR,
-    tryReverse: tryReverseFCR,
-    example: exampleFCR
-  };
-
-  // src/rules/fcut.ts
-  var isFCutResult = (s) => {
-    return true;
-  };
-  var isFCutResultDerivation = refineDerivation(isFCutResult);
-  var fcut = (result, deps) => {
-    return transformation(result, deps, "fcut");
-  };
-  var applyFCut = (...deps) => {
-    const [dep1, dep2] = deps;
-    const \u03B3 = dep1.result.antecedent;
-    const \u03B4 = init(dep1.result.succedent);
-    const \u03C2 = tail(dep2.result.antecedent);
-    const \u03C0 = dep2.result.succedent;
-    return fcut(sequent([...\u03B3, ...\u03C2], [...\u03B4, ...\u03C0]), deps);
-  };
-  var reverseFCut = (p, a, splitAnt, splitSuc) => {
-    const [\u03B3, \u03C2] = splitAnt(p.result.antecedent);
-    const [\u03B4, \u03C0] = splitSuc(p.result.succedent);
-    return fcut(p.result, [
-      premise(sequent(\u03B3, [...\u03B4, a])),
-      premise(sequent([a, ...\u03C2], \u03C0))
-    ]);
-  };
-  var tryReverseFCut = (a) => (d) => {
-    if (!isFCutResultDerivation(d)) return null;
-    const antLen = d.result.antecedent.length;
-    const sucLen = d.result.succedent.length;
-    return reverseFCut(
-      d,
-      a,
-      (arr) => [arr.slice(0, antLen), arr.slice(antLen)],
-      (arr) => [arr.slice(0, sucLen), arr.slice(sucLen)]
-    );
-  };
-  var exampleFCut = applyFCut(
-    premise(sequent([atom("\u0393")], [atom("\u0394"), atom("A")])),
-    premise(sequent([atom("A"), atom("\u03A3")], [atom("\u03A0")]))
-  );
-  var ruleFCut = {
-    id: "fcut",
-    connectives: [],
-    isResult: isFCutResult,
-    isResultDerivation: isFCutResultDerivation,
-    make: fcut,
-    apply: applyFCut,
-    reverse: reverseFCut,
-    tryReverse: tryReverseFCut,
-    example: exampleFCut
-  };
-
-  // src/rules/fdl.ts
-  var isFDLResult = (s) => {
-    const last2 = s.antecedent.at(-1);
-    return last2 !== void 0 && isDisjunction(last2);
-  };
-  var isFDLResultDerivation = refineDerivation(isFDLResult);
-  var fdl = (result, deps) => {
-    return transformation(result, deps, "fdl");
-  };
-  var applyFDL = (...deps) => {
-    const [dep1, dep2] = deps;
-    const \u03B3 = init(dep1.result.antecedent);
-    const \u03C2 = init(dep2.result.antecedent);
-    const a = last(dep1.result.antecedent);
-    const b = last(dep2.result.antecedent);
-    const \u03B4 = dep1.result.succedent;
-    const \u03C0 = dep2.result.succedent;
-    return fdl(sequent([...\u03B3, ...\u03C2, disjunction(a, b)], [...\u03B4, ...\u03C0]), deps);
-  };
-  var reverseFDL = (p, splitAnt, splitSuc) => {
-    const adb = last(p.result.antecedent);
-    const rest = init(p.result.antecedent);
-    const [\u03B3, \u03C2] = splitAnt(rest);
-    const a = adb.leftDisjunct;
-    const b = adb.rightDisjunct;
-    const [\u03B4, \u03C0] = splitSuc(p.result.succedent);
-    return fdl(p.result, [
-      premise(sequent([...\u03B3, a], \u03B4)),
-      premise(sequent([...\u03C2, b], \u03C0))
-    ]);
-  };
-  var tryReverseFDL = (splitAnt, splitSuc) => (d) => {
-    if (!isFDLResultDerivation(d)) return null;
-    return reverseFDL(d, splitAnt, splitSuc);
-  };
-  var exampleFDL = applyFDL(
-    premise(sequent([atom("\u0393"), atom("A")], [atom("\u0394")])),
-    premise(sequent([atom("\u03A3"), atom("B")], [atom("\u03A0")]))
-  );
-  var ruleFDL = {
-    id: "fdl",
-    connectives: ["disjunction"],
-    isResult: isFDLResult,
-    isResultDerivation: isFDLResultDerivation,
-    make: fdl,
-    apply: applyFDL,
-    reverse: reverseFDL,
-    tryReverse: tryReverseFDL,
-    example: exampleFDL
-  };
-
-  // src/rules/fil.ts
-  var isFILResult = (s) => {
-    const last2 = s.antecedent.at(-1);
-    return last2 !== void 0 && isImplication(last2);
-  };
-  var isFILResultDerivation = refineDerivation(isFILResult);
-  var fil = (result, deps) => {
-    return transformation(result, deps, "fil");
-  };
-  var applyFIL = (...deps) => {
-    const [dep1, dep2] = deps;
-    const \u03B3 = dep1.result.antecedent;
-    const \u03C2 = init(dep2.result.antecedent);
-    const a = head2(dep1.result.succedent);
-    const b = last(dep2.result.antecedent);
-    const \u03B4 = tail(dep1.result.succedent);
-    const \u03C0 = dep2.result.succedent;
-    return fil(sequent([...\u03B3, ...\u03C2, implication(a, b)], [...\u03B4, ...\u03C0]), deps);
-  };
-  var reverseFIL = (p, splitAnt, splitSuc) => {
-    const aib = last(p.result.antecedent);
-    const rest = init(p.result.antecedent);
-    const [\u03B3, \u03C2] = splitAnt(rest);
-    const a = aib.antecedent;
-    const b = aib.consequent;
-    const [\u03B4, \u03C0] = splitSuc(p.result.succedent);
-    return fil(p.result, [
-      premise(sequent(\u03B3, [a, ...\u03B4])),
-      premise(sequent([...\u03C2, b], \u03C0))
-    ]);
-  };
-  var tryReverseFIL = (splitAnt, splitSuc) => (d) => {
-    if (!isFILResultDerivation(d)) return null;
-    return reverseFIL(d, splitAnt, splitSuc);
-  };
-  var exampleFIL = applyFIL(
-    premise(sequent([atom("\u0393")], [atom("A"), atom("\u0394")])),
-    premise(sequent([atom("\u03A3"), atom("B")], [atom("\u03A0")]))
-  );
-  var ruleFIL = {
-    id: "fil",
-    connectives: ["implication"],
-    isResult: isFILResult,
-    isResultDerivation: isFILResultDerivation,
-    make: fil,
-    apply: applyFIL,
-    reverse: reverseFIL,
-    tryReverse: tryReverseFIL,
-    example: exampleFIL
-  };
-
   // src/rules/dr.ts
   var isDRResult = (s) => {
     return s.succedent.at(0)?.kind === "disjunction";
@@ -1087,88 +657,6 @@
     reverse: reverseDR,
     tryReverse: tryReverseDR,
     example: exampleDR
-  };
-
-  // src/rules/dr1.ts
-  var isDR1Result = (s) => {
-    return s.succedent.at(0)?.kind === "disjunction";
-  };
-  var isDR1ResultDerivation = refineDerivation(isDR1Result);
-  var dr1 = (result, deps) => {
-    return transformation(result, deps, "dr1");
-  };
-  var applyDR1 = (b, ...deps) => {
-    const [dep] = deps;
-    const \u03B3 = dep.result.antecedent;
-    const \u03B4 = tail(dep.result.succedent);
-    const a = head2(dep.result.succedent);
-    return dr1(sequent(\u03B3, [disjunction(a, b), ...\u03B4]), deps);
-  };
-  var reverseDR1 = (p) => {
-    const \u03B3 = p.result.antecedent;
-    const adb = head2(p.result.succedent);
-    const a = adb.leftDisjunct;
-    const \u03B4 = tail(p.result.succedent);
-    return dr1(p.result, [premise(sequent(\u03B3, [a, ...\u03B4]))]);
-  };
-  var tryReverseDR1 = (d) => {
-    return isDR1ResultDerivation(d) ? reverseDR1(d) : null;
-  };
-  var exampleDR1 = applyDR1(
-    atom("B"),
-    premise(sequent([atom("\u0393")], [atom("A"), atom("\u0394")]))
-  );
-  var ruleDR1 = {
-    id: "dr1",
-    connectives: ["disjunction"],
-    isResult: isDR1Result,
-    isResultDerivation: isDR1ResultDerivation,
-    make: dr1,
-    apply: applyDR1,
-    reverse: reverseDR1,
-    tryReverse: tryReverseDR1,
-    example: exampleDR1
-  };
-
-  // src/rules/dr2.ts
-  var isDR2Result = (s) => {
-    return s.succedent.at(0)?.kind === "disjunction";
-  };
-  var isDR2ResultDerivation = refineDerivation(isDR2Result);
-  var dr2 = (result, deps) => {
-    return transformation(result, deps, "dr2");
-  };
-  var applyDR2 = (a, ...deps) => {
-    const [dep] = deps;
-    const \u03B3 = dep.result.antecedent;
-    const \u03B4 = tail(dep.result.succedent);
-    const b = head2(dep.result.succedent);
-    return dr2(sequent(\u03B3, [disjunction(a, b), ...\u03B4]), deps);
-  };
-  var reverseDR2 = (p) => {
-    const \u03B3 = p.result.antecedent;
-    const adb = head2(p.result.succedent);
-    const b = adb.rightDisjunct;
-    const \u03B4 = tail(p.result.succedent);
-    return dr2(p.result, [premise(sequent(\u03B3, [b, ...\u03B4]))]);
-  };
-  var tryReverseDR2 = (d) => {
-    return isDR2ResultDerivation(d) ? reverseDR2(d) : null;
-  };
-  var exampleDR2 = applyDR2(
-    atom("A"),
-    premise(sequent([atom("\u0393")], [atom("B"), atom("\u0394")]))
-  );
-  var ruleDR2 = {
-    id: "dr2",
-    connectives: ["disjunction"],
-    isResult: isDR2Result,
-    isResultDerivation: isDR2ResultDerivation,
-    make: dr2,
-    apply: applyDR2,
-    reverse: reverseDR2,
-    tryReverse: tryReverseDR2,
-    example: exampleDR2
   };
 
   // src/rules/f.ts
@@ -1307,53 +795,6 @@
     example: exampleIR
   };
 
-  // src/utils/utils.ts
-  var assertEqual = (a, b) => {
-    if (JSON.stringify(a) === JSON.stringify(b)) {
-      return a;
-    }
-    return assertNever(b);
-  };
-  function assertNever(_n, s = "Unexpected value") {
-    throw new Error(s);
-  }
-
-  // src/rules/mp.ts
-  var isMPResult = (j) => isConclusion(j);
-  var isMPResultDerivation = refineDerivation(isMPResult);
-  var mp = (result, deps) => transformation(result, deps, "mp");
-  var applyMP = (...deps) => {
-    const [dep1, dep2] = deps;
-    const a12 = dep1.result.succedent[0].antecedent;
-    const a22 = dep2.result.succedent[0];
-    const _a = assertEqual(a12, a22);
-    const c = dep1.result.succedent[0].consequent;
-    return transformation(conclusion(c), deps, "mp");
-  };
-  var reverseMP = (d, p) => {
-    const q = head2(d.result.succedent);
-    const piq = implication(p, q);
-    return mp(d.result, [premise(conclusion(piq)), premise(conclusion(p))]);
-  };
-  var tryReverseMP = (p) => (d) => {
-    return isMPResultDerivation(d) ? reverseMP(d, p) : null;
-  };
-  var exampleMP = applyMP(
-    premise(conclusion(implication(atom("A"), atom("B")))),
-    premise(conclusion(atom("A")))
-  );
-  var ruleMP = {
-    id: "mp",
-    connectives: [],
-    isResult: isMPResult,
-    isResultDerivation: isMPResultDerivation,
-    make: mp,
-    apply: applyMP,
-    reverse: reverseMP,
-    tryReverse: tryReverseMP,
-    example: exampleMP
-  };
-
   // src/rules/nl.ts
   var isNLResult = refineActiveL(isNegation);
   var isNLResultDerivation = refineDerivation(isNLResult);
@@ -1430,82 +871,6 @@
     example: exampleNR
   };
 
-  // src/rules/scl.ts
-  var isSCLResult = (s) => {
-    return s.antecedent.length > 0;
-  };
-  var isSCLResultDerivation = refineDerivation(isSCLResult);
-  var scl = (result, deps) => {
-    return transformation(result, deps, "scl");
-  };
-  var applySCL = (...deps) => {
-    const [dep] = deps;
-    const \u03B3 = init(init(dep.result.antecedent));
-    const a = last(dep.result.antecedent);
-    const \u03B4 = dep.result.succedent;
-    return scl(sequent([...\u03B3, a], \u03B4), deps);
-  };
-  var reverseSCL = (p) => {
-    const \u03B3 = init(p.result.antecedent);
-    const a = last(p.result.antecedent);
-    const \u03B4 = p.result.succedent;
-    return scl(p.result, [premise(sequent([...\u03B3, a, a], \u03B4))]);
-  };
-  var tryReverseSCL = (d) => {
-    return isSCLResultDerivation(d) ? reverseSCL(d) : null;
-  };
-  var exampleSCL = applySCL(
-    premise(sequent([atom("\u0393"), atom("A"), atom("A")], [atom("\u0394")]))
-  );
-  var ruleSCL = {
-    id: "scl",
-    connectives: [],
-    isResult: isSCLResult,
-    isResultDerivation: isSCLResultDerivation,
-    make: scl,
-    apply: applySCL,
-    reverse: reverseSCL,
-    tryReverse: tryReverseSCL,
-    example: exampleSCL
-  };
-
-  // src/rules/scr.ts
-  var isSCRResult = isActiveR;
-  var isSCRResultDerivation = refineDerivation(isSCRResult);
-  var scr = (result, deps) => {
-    return transformation(result, deps, "scr");
-  };
-  var applySCR = (...deps) => {
-    const [dep] = deps;
-    const \u03B3 = dep.result.antecedent;
-    const a = head2(dep.result.succedent);
-    const \u03B4 = tail(tail(dep.result.succedent));
-    return scr(sequent(\u03B3, [a, ...\u03B4]), deps);
-  };
-  var reverseSCR = (p) => {
-    const \u03B3 = p.result.antecedent;
-    const a = head2(p.result.succedent);
-    const \u03B4 = tail(p.result.succedent);
-    return scr(p.result, [premise(sequent(\u03B3, [a, a, ...\u03B4]))]);
-  };
-  var tryReverseSCR = (d) => {
-    return isSCRResultDerivation(d) ? reverseSCR(d) : null;
-  };
-  var exampleSCR = applySCR(
-    premise(sequent([atom("\u0393")], [atom("A"), atom("A"), atom("\u0394")]))
-  );
-  var ruleSCR = {
-    id: "scr",
-    connectives: [],
-    isResult: isSCRResult,
-    isResultDerivation: isSCRResultDerivation,
-    make: scr,
-    apply: applySCR,
-    reverse: reverseSCR,
-    tryReverse: tryReverseSCR,
-    example: exampleSCR
-  };
-
   // src/rules/srotlb.ts
   var isSRotLBResult = (s) => {
     return s.antecedent.length > 1;
@@ -1547,47 +912,6 @@
     example: exampleSRotLB
   };
 
-  // src/rules/srotlf.ts
-  var isSRotLFResult = (s) => {
-    return s.antecedent.length > 1;
-  };
-  var isSRotLFResultDerivation = refineDerivation(isSRotLFResult);
-  var sRotLF = (result, deps) => {
-    return transformation(result, deps, "sRotLF");
-  };
-  var applySRotLF = (...deps) => {
-    const [dep] = deps;
-    const \u03B3 = init(init(dep.result.antecedent));
-    const a = last(dep.result.antecedent);
-    const b = last(init(dep.result.antecedent));
-    const \u03B4 = dep.result.succedent;
-    return sRotLF(sequent([a, ...\u03B3, b], \u03B4), deps);
-  };
-  var reverseSRotLF = (p) => {
-    const \u03B3 = init(tail(p.result.antecedent));
-    const a = head2(p.result.antecedent);
-    const b = last(p.result.antecedent);
-    const \u03B4 = p.result.succedent;
-    return sRotLF(p.result, [premise(sequent([...\u03B3, b, a], \u03B4))]);
-  };
-  var tryReverseSRotLF = (d) => {
-    return isSRotLFResultDerivation(d) ? reverseSRotLF(d) : null;
-  };
-  var exampleSRotLF = applySRotLF(
-    premise(sequent([atom("\u0393"), atom("B"), atom("A")], [atom("\u0394")]))
-  );
-  var ruleSRotLF = {
-    id: "sRotLF",
-    connectives: [],
-    isResult: isSRotLFResult,
-    isResultDerivation: isSRotLFResultDerivation,
-    make: sRotLF,
-    apply: applySRotLF,
-    reverse: reverseSRotLF,
-    tryReverse: tryReverseSRotLF,
-    example: exampleSRotLF
-  };
-
   // src/rules/srotrb.ts
   var isSRotRBResult = (s) => {
     return s.succedent.length > 1;
@@ -1627,47 +951,6 @@
     reverse: reverseSRotRB,
     tryReverse: tryReverseSRotRB,
     example: exampleSRotRB
-  };
-
-  // src/rules/srotrf.ts
-  var isSRotRFResult = (s) => {
-    return s.succedent.length > 1;
-  };
-  var isSRotRFResultDerivation = refineDerivation(isSRotRFResult);
-  var sRotRF = (result, deps) => {
-    return transformation(result, deps, "sRotRF");
-  };
-  var applySRotRF = (...deps) => {
-    const [dep] = deps;
-    const \u03B3 = dep.result.antecedent;
-    const \u03B4 = tail(tail(dep.result.succedent));
-    const a = head2(dep.result.succedent);
-    const b = head2(tail(dep.result.succedent));
-    return sRotRF(sequent(\u03B3, [b, ...\u03B4, a]), deps);
-  };
-  var reverseSRotRF = (p) => {
-    const \u03B3 = p.result.antecedent;
-    const \u03B4 = init(tail(p.result.succedent));
-    const a = last(p.result.succedent);
-    const b = head2(p.result.succedent);
-    return sRotRF(p.result, [premise(sequent(\u03B3, [a, b, ...\u03B4]))]);
-  };
-  var tryReverseSRotRF = (d) => {
-    return isSRotRFResultDerivation(d) ? reverseSRotRF(d) : null;
-  };
-  var exampleSRotRF = applySRotRF(
-    premise(sequent([atom("\u0393")], [atom("A"), atom("B"), atom("\u0394")]))
-  );
-  var ruleSRotRF = {
-    id: "sRotRF",
-    connectives: [],
-    isResult: isSRotRFResult,
-    isResultDerivation: isSRotRFResultDerivation,
-    make: sRotRF,
-    apply: applySRotRF,
-    reverse: reverseSRotRF,
-    tryReverse: tryReverseSRotRF,
-    example: exampleSRotRF
   };
 
   // src/rules/swl.ts
@@ -1744,88 +1027,6 @@
     example: exampleSWR
   };
 
-  // src/rules/sxl.ts
-  var isSXLResult = (s) => {
-    return s.antecedent.length > 1;
-  };
-  var isSXLResultDerivation = refineDerivation(isSXLResult);
-  var sxl = (result, deps) => {
-    return transformation(result, deps, "sxl");
-  };
-  var applySXL = (...deps) => {
-    const [dep] = deps;
-    const \u03B3 = init(init(dep.result.antecedent));
-    const b = last(dep.result.antecedent);
-    const a = last(init(dep.result.antecedent));
-    const \u03B4 = dep.result.succedent;
-    return sxl(sequent([...\u03B3, b, a], \u03B4), deps);
-  };
-  var reverseSXL = (p) => {
-    const \u03B3 = init(init(p.result.antecedent));
-    const a = last(p.result.antecedent);
-    const b = last(init(p.result.antecedent));
-    const \u03B4 = p.result.succedent;
-    return sxl(p.result, [premise(sequent([...\u03B3, a, b], \u03B4))]);
-  };
-  var tryReverseSXL = (d) => {
-    return isSXLResultDerivation(d) ? reverseSXL(d) : null;
-  };
-  var exampleSXL = applySXL(
-    premise(sequent([atom("\u0393"), atom("A"), atom("B")], [atom("\u0394")]))
-  );
-  var ruleSXL = {
-    id: "sxl",
-    connectives: [],
-    isResult: isSXLResult,
-    isResultDerivation: isSXLResultDerivation,
-    make: sxl,
-    apply: applySXL,
-    reverse: reverseSXL,
-    tryReverse: tryReverseSXL,
-    example: exampleSXL
-  };
-
-  // src/rules/sxr.ts
-  var isSXRResult = (s) => {
-    return s.succedent.length > 1;
-  };
-  var isSXRResultDerivation = refineDerivation(isSXRResult);
-  var sxr = (result, deps) => {
-    return transformation(result, deps, "sxr");
-  };
-  var applySXR = (...deps) => {
-    const [dep] = deps;
-    const \u03B3 = dep.result.antecedent;
-    const b = head2(tail(dep.result.succedent));
-    const a = head2(dep.result.succedent);
-    const \u03B4 = tail(tail(dep.result.succedent));
-    return sxr(sequent(\u03B3, [b, a, ...\u03B4]), deps);
-  };
-  var reverseSXR = (p) => {
-    const \u03B3 = p.result.antecedent;
-    const a = head2(tail(p.result.succedent));
-    const b = head2(p.result.succedent);
-    const \u03B4 = tail(tail(p.result.succedent));
-    return sxr(p.result, [premise(sequent(\u03B3, [a, b, ...\u03B4]))]);
-  };
-  var tryReverseSXR = (d) => {
-    return isSXRResultDerivation(d) ? reverseSXR(d) : null;
-  };
-  var exampleSXR = applySXR(
-    premise(sequent([atom("\u0393")], [atom("A"), atom("B"), atom("\u0394")]))
-  );
-  var ruleSXR = {
-    id: "sxr",
-    connectives: [],
-    isResult: isSXRResult,
-    isResultDerivation: isSXRResultDerivation,
-    make: sxr,
-    apply: applySXR,
-    reverse: reverseSXR,
-    tryReverse: tryReverseSXR,
-    example: exampleSXR
-  };
-
   // src/rules/v.ts
   var isVResult = (s) => {
     return isTupleOf0(s.antecedent) && isTupleOf1(s.succedent) && equals(s.succedent[0], verum);
@@ -1856,21 +1057,14 @@
   var reverseAxiom0 = {
     f: ruleF,
     v: ruleV,
-    i: ruleI,
-    a1: ruleA1,
-    a2: ruleA2,
-    a3: ruleA3
+    i: ruleI
   };
   var reverseLogic0 = {
     ir: ruleIR,
     nl: ruleNL,
     nr: ruleNR,
     cl: ruleCL,
-    cl1: ruleCL1,
-    cl2: ruleCL2,
     dr: ruleDR,
-    dr1: ruleDR1,
-    dr2: ruleDR2,
     dl: ruleDL,
     cr: ruleCR,
     il: ruleIL
@@ -1878,14 +1072,8 @@
   var reverseStructure0 = {
     swl: ruleSWL,
     swr: ruleSWR,
-    scl: ruleSCL,
-    scr: ruleSCR,
-    sRotLF: ruleSRotLF,
     sRotLB: ruleSRotLB,
-    sRotRF: ruleSRotRF,
-    sRotRB: ruleSRotRB,
-    sxl: ruleSXL,
-    sxr: ruleSXR
+    sRotRB: ruleSRotRB
   };
   var reverse0 = {
     ...reverseAxiom0,
@@ -1893,46 +1081,26 @@
     ...reverseStructure0
   };
   var reverse1 = {
-    cut: ruleCut,
-    fcut: ruleFCut,
-    mp: ruleMP
+    cut: ruleCut
   };
   var isReverseId1 = (s) => s in reverse1;
-  var reverseSplit2 = {
-    fcr: ruleFCR,
-    fdl: ruleFDL,
-    fil: ruleFIL
-  };
   var _reverse = {
     ...reverse0,
-    ...reverse1,
-    ...reverseSplit2
+    ...reverse1
   };
   var center = {
-    a1: ruleA1,
-    a2: ruleA2,
-    a3: ruleA3,
     cut: ruleCut,
-    fcut: ruleFCut,
-    i: ruleI,
-    mp: ruleMP
+    i: ruleI
   };
   var leftStructural = {
-    scl: ruleSCL,
     swl: ruleSWL,
-    sRotLB: ruleSRotLB,
-    sRotLF: ruleSRotLF,
-    sxl: ruleSXL
+    sRotLB: ruleSRotLB
   };
   var leftLogical = {
     nl: ruleNL,
     cl: ruleCL,
-    cl1: ruleCL1,
-    cl2: ruleCL2,
     dl: ruleDL,
-    fdl: ruleFDL,
-    il: ruleIL,
-    fil: ruleFIL
+    il: ruleIL
   };
   var left = {
     f: ruleF,
@@ -1940,19 +1108,13 @@
     ...leftLogical
   };
   var rightStructural = {
-    scr: ruleSCR,
     swr: ruleSWR,
-    sRotRB: ruleSRotRB,
-    sRotRF: ruleSRotRF,
-    sxr: ruleSXR
+    sRotRB: ruleSRotRB
   };
   var rightLogical = {
     nr: ruleNR,
     dr: ruleDR,
-    dr1: ruleDR1,
-    dr2: ruleDR2,
     cr: ruleCR,
-    fcr: ruleFCR,
     ir: ruleIR
   };
   var right = {
@@ -2277,14 +1439,8 @@
   var STRUCTURAL_RULES = /* @__PURE__ */ new Set([
     "swl",
     "swr",
-    "scl",
-    "scr",
-    "sRotLF",
     "sRotLB",
-    "sRotRF",
-    "sRotRB",
-    "sxl",
-    "sxr"
+    "sRotRB"
   ]);
   var countNonStructural = (d) => {
     if (d.kind === "premise") return 0;
