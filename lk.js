@@ -5526,13 +5526,12 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
     },
     ctx.getActionHint("lemma")
   );
-  const lemmaGroup = makeGroup("controls-lemma");
+  const miscGroup = makeGroup("controls-misc");
   if (onSkip !== void 0) {
     const skipBtn = createButton(t("skip"), false, onSkip);
     skipBtn.classList.add("mutating");
-    lemmaGroup.appendChild(skipBtn);
+    miscGroup.appendChild(skipBtn);
   }
-  lemmaGroup.appendChild(lemmaBtn);
   const gazeGroup = makeGroup(ctx.isGazeModeActive() ? "gaze" : "hot");
   gazeGroup.appendChild(gazeLeftBtn);
   gazeGroup.appendChild(gazeWeakeningBtn);
@@ -5577,6 +5576,7 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
   axiomBtn.classList.add("mutating");
   const navGroup = makeGroup("controls-nav");
   navGroup.appendChild(prevBranchBtn);
+  if (hideLemma !== true) navGroup.appendChild(lemmaBtn);
   navGroup.appendChild(controlsEl);
   navGroup.appendChild(axiomBtn);
   navGroup.appendChild(nextBranchBtn);
@@ -5586,7 +5586,7 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
     congrats.buttons.setAttribute("class", "congrabuttons controls-group");
     controlsBar.appendChild(congrats.buttons);
   } else {
-    if (hideLemma !== true) controlsBar.appendChild(lemmaGroup);
+    if (hideLemma !== true) controlsBar.appendChild(miscGroup);
     controlsBar.appendChild(navGroup);
     controlsBar.appendChild(gazeGroup);
   }
