@@ -3,6 +3,16 @@
 :root {
   --gaze-color: #48f;
   --branch-color: #fcaa;
+  --lemma-color: #9b72c2;
+  /* `mutating` buttons (Undo, Close, Drop, Destruct, Skip) directly change the
+     proof state and take their control group's accent as a border, via the
+     cascading --btn-mutating-border each group sets. Out-of-group mutating
+     buttons fall back to transparent. `inert` navigation/select buttons keep
+     the default border. */
+  --btn-mutating-border: transparent;
+  /* Darkened branch accent for nav-group mutating borders; the raw
+     --branch-color is too faint to read as a 3px border. */
+  --branch-border: #d97a55;
 }
 
 html {
@@ -78,15 +88,7 @@ html.loading body {
   line-height: 1.2em;
   border-color: transparent;
 }
-.bench-topbar .bench-skip-btn {
-  position: relative;
-  width: 1.2em;
-  height: 1.2em;
-  line-height: 1.2em;
-  border-color: transparent;
-}
-.bench-topbar .quiz-menu-btn .key-hint,
-.bench-topbar .bench-skip-btn .key-hint {
+.bench-topbar .quiz-menu-btn .key-hint {
   position: absolute;
   width: 30px;
   height: 30px;
@@ -110,60 +112,44 @@ html.loading body {
   color: #000a;
   border: 2px solid #fed;
 }
+.bench-topbar-center {
+  display: flex;
+  justify-content: center;
+  align-items: start;
+}
+.bench-zoom {
+  display: flex;
+  gap: 0.5em;
+}
+.bench-zoom .button {
+  position: relative;
+  font-family: inherit;
+  height: 1.2em;
+  line-height: 1.2em;
+  border-color: transparent;
+}
+.bench-zoom .button.zoom-reset {
+  width: 1.2em;
+}
+.bench-zoom .button.zoom-step {
+  width: 1.9em;
+  padding-left: 0;
+  padding-right: 0;
+}
 
-/* Mobile (default): gaze / lemma-zoom-axiom / nav */
+/* A centered row of groups (Lemma · Branch · Gaze) with free space at the outer
+   edges; each group wraps onto its own line once they no longer all fit. */
 .controls {
   grid-area: controls;
   position: relative;
   z-index: 4;
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  grid-template-areas:
-    'gaze  gaze  gaze'
-    'lemma zoom  axiom'
-    'nav   nav   nav';
-  gap: 0.5em;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 0.5em 1em;
   padding: 20px 0.5em 0.5em;
 }
-.controls .controls-nav {
-  grid-area: nav;
-}
-.controls .controls-lemma {
-  grid-area: lemma;
-}
-.controls > .gaze,
-.controls > .hot {
-  grid-area: gaze;
-}
-.controls .controls-axiom {
-  grid-area: axiom;
-}
-.controls .controls-zoom {
-  grid-area: zoom;
-}
-.controls > .congrabuttons {
-  grid-column: 1 / -1;
-  justify-self: center;
-}
-.controls .controls-group {
-  justify-self: center;
-}
-.controls .controls-lemma {
-  justify-self: end;
-}
-.controls .controls-axiom {
-  justify-self: start;
-}
-.controls-wing {
-  display: contents;
-}
-/* Mobile only */
-@container bench (max-width: 639px) {
-  .button.zoom-reset {
-    min-width: 1.4em;
-  }
-}
-/* Tablet: lemma-gaze-axiom / nav-zoom */
 @container bench (min-width: 640px) {
   .bench {
     padding: 1em 0;
@@ -176,46 +162,8 @@ html.loading body {
     min-width: 1.5em;
   }
   .controls {
-    grid-template-columns: 1fr auto auto 1fr;
-    grid-template-areas:
-      'lemma gaze  gaze  axiom'
-      'nav   nav   zoom  zoom';
     padding-left: 1em;
     padding-right: 1em;
-  }
-  .controls .controls-lemma {
-    justify-self: start;
-  }
-  .controls .controls-axiom {
-    justify-self: end;
-  }
-  .controls .controls-nav {
-    justify-self: start;
-  }
-  .controls .controls-zoom {
-    justify-self: end;
-  }
-}
-/* Desktop: wings left/right of centered gaze */
-@container bench (min-width: 1080px) {
-  .controls {
-    grid-template-columns: 1fr auto 1fr;
-    grid-template-areas: 'left gaze right';
-    padding-left: 1em;
-    padding-right: 1em;
-  }
-  .controls-wing {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 0.5em;
-    justify-content: space-between;
-  }
-  .controls-wing-left {
-    grid-area: left;
-  }
-  .controls-wing-right {
-    grid-area: right;
   }
 }
 .controls-group {
@@ -227,12 +175,19 @@ html.loading body {
 }
 .controls-group.gaze {
   border-bottom-color: var(--gaze-color);
+  --btn-mutating-border: var(--gaze-color);
 }
 .controls-group.hot {
   border-bottom-color: #c33;
+  --btn-mutating-border: #c33;
 }
 .controls-nav {
   border-bottom-color: var(--branch-color);
+  --btn-mutating-border: var(--branch-border);
+}
+.controls-lemma {
+  border-bottom-color: var(--lemma-color);
+  --btn-mutating-border: var(--lemma-color);
 }
 .controls-undo-inner {
   display: contents;
@@ -417,7 +372,9 @@ html.loading body {
 /* buttons are the pointer/touch UI. Show them only while pointer/touch is the */
 /* active device; a keyboard or gamepad player uses physical keys/buttons and */
 /* gets a cleaner view. Scoped to .mode-single so Versus is unaffected. */
-html.mode-single .controls .button .key-hint {
+html.mode-single .controls .button .key-hint,
+html.mode-single .bench-topbar .quiz-menu-btn .key-hint,
+html.mode-single .bench-topbar .bench-rules-btn .key-hint {
   display: none;
 }
 /* visibility (not display) so the buttons reserve their space and the layout */
@@ -426,8 +383,8 @@ html.mode-single:not(.input-pointer) .controls:not(:has(.congrabuttons)) {
   visibility: hidden;
 }
 html.mode-single:not(.input-pointer) .bench-topbar .quiz-menu-btn,
-html.mode-single:not(.input-pointer) .bench-topbar .bench-skip-btn,
-html.mode-single:not(.input-pointer) .bench-topbar .bench-rules-btn {
+html.mode-single:not(.input-pointer) .bench-topbar .bench-rules-btn,
+html.mode-single:not(.input-pointer) .bench-topbar .bench-zoom {
   visibility: hidden;
 }
 
@@ -444,6 +401,9 @@ html.mode-single:not(.input-pointer) .bench-topbar .bench-rules-btn {
   opacity: 1;
   text-wrap: nowrap;
   margin: 0;
+}
+.button.mutating {
+  border-color: var(--btn-mutating-border);
 }
 .button:not(.disabled):hover {
   background-color: #fff;
@@ -1777,8 +1737,8 @@ html.mode-single:not(.input-pointer) .bench-topbar .bench-rules-btn {
 .versus-half-keys .controls:not(:has(.congrabuttons)) {
   visibility: hidden;
 }
-.versus-half-keys .bench-topbar .bench-skip-btn,
-.versus-half-keys .bench-topbar .bench-rules-btn {
+.versus-half-keys .bench-topbar .bench-rules-btn,
+.versus-half-keys .bench-topbar .bench-zoom {
   visibility: hidden;
 }
 .versus-half .playarea {
@@ -1814,18 +1774,6 @@ html.mode-single:not(.input-pointer) .bench-topbar .bench-rules-btn {
   font-size: 1.5em;
   border-color: transparent;
   margin: 1.2em 0 0.6em;
-}
-.versus-menu-btn .key-hint {
-  position: absolute;
-  width: 30px;
-  height: 30px;
-  line-height: 28px;
-  top: 0;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: #fff6;
-  color: #000a;
-  border: 2px solid #fed;
 }
 .versus-thermo-clock {
   flex-shrink: 0;

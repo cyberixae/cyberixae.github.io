@@ -3404,14 +3404,13 @@ var en = {
   paused: "Paused",
   resumeGame: "Resume Game",
   resetChallenge: "Reset Challenge",
-  freshChallenge: "Fresh Challenge",
   exitToMainMenu: "Exit to Main Menu",
   left: "Left",
   right: "Right",
   drop: "Drop",
   destruct: "Destruct",
   rules: "Rules",
-  axiom: "Axiom",
+  axiom: "Close",
   playAgain: "Play Again",
   playAgainShort: "Again",
   settings: "Settings",
@@ -3479,14 +3478,13 @@ var fi = {
   paused: "Pys\xE4ytetty",
   resumeGame: "Jatka peli\xE4",
   resetChallenge: "Aloita alusta",
-  freshChallenge: "Uusi haaste",
   exitToMainMenu: "P\xE4\xE4valikkoon",
   left: "Vasen",
   right: "Oikea",
   drop: "Pudota",
   destruct: "Pura",
   rules: "S\xE4\xE4nn\xF6t",
-  axiom: "Aksiooma",
+  axiom: "Sulje",
   playAgain: "Pelaa uudestaan",
   playAgainShort: "Uudestaan",
   settings: "Asetukset",
@@ -3554,14 +3552,13 @@ var es = {
   paused: "Pausado",
   resumeGame: "Reanudar juego",
   resetChallenge: "Reiniciar desaf\xEDo",
-  freshChallenge: "Nuevo desaf\xEDo",
   exitToMainMenu: "Salir al men\xFA principal",
   left: "Izquierda",
   right: "Derecha",
   drop: "Soltar",
   destruct: "Destruir",
   rules: "Reglas",
-  axiom: "Axioma",
+  axiom: "Cerrar",
   playAgain: "Jugar de nuevo",
   playAgainShort: "De nuevo",
   settings: "Ajustes",
@@ -3629,14 +3626,13 @@ var cs = {
   paused: "Pozastaveno",
   resumeGame: "Pokra\u010Dovat",
   resetChallenge: "Restartovat v\xFDzvu",
-  freshChallenge: "Nov\xE1 v\xFDzva",
   exitToMainMenu: "Zp\u011Bt do hlavn\xEDho menu",
   left: "Vlevo",
   right: "Vpravo",
   drop: "Pustit",
   destruct: "Zni\u010Dit",
   rules: "Pravidla",
-  axiom: "Axiom",
+  axiom: "Zav\u0159\xEDt",
   playAgain: "Hr\xE1t znovu",
   playAgainShort: "Znovu",
   settings: "Nastaven\xED",
@@ -3704,14 +3700,13 @@ var pl = {
   paused: "Pauza",
   resumeGame: "Wzn\xF3w gr\u0119",
   resetChallenge: "Zresetuj wyzwanie",
-  freshChallenge: "Nowe wyzwanie",
   exitToMainMenu: "Wyjd\u017A do menu g\u0142\xF3wnego",
   left: "Lewo",
   right: "Prawo",
   drop: "Upu\u015B\u0107",
   destruct: "Zniszcz",
   rules: "Zasady",
-  axiom: "Aksjomat",
+  axiom: "Zamknij",
   playAgain: "Zagraj ponownie",
   playAgainShort: "Ponownie",
   settings: "Ustawienia",
@@ -4915,7 +4910,6 @@ var createBenchCtx = (isGamepadMode = false, autoZoom = true, showPar = true, sh
       gazeModeActive2 = v2;
     },
     getActionHint: (action) => getActionHintPure(action, isGamepadMode),
-    kbdHint: (s) => isGamepadMode ? void 0 : s,
     getTreeZoom: () => zoom,
     setTreeZoom: (v2) => {
       zoom = v2;
@@ -4944,7 +4938,6 @@ var defaultCtx = {
   isGazeModeActive,
   setGazeModeActive,
   getActionHint,
-  kbdHint,
   getTreeZoom: () => treeZoom,
   setTreeZoom: (v2) => {
     treeZoom = v2;
@@ -5347,23 +5340,15 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
     if (menuHint !== void 0) menuBtn.appendChild(keyHintBadge(menuHint));
     topbarLeft.appendChild(menuBtn);
   }
-  if (!solved && onSkip !== void 0) {
-    const skipBtn = document.createElement("div");
-    skipBtn.setAttribute("class", "button bench-skip-btn");
-    skipBtn.setAttribute("aria-label", t("skip"));
-    skipBtn.textContent = "\xBB";
-    skipBtn.onclick = onSkip;
-    const skipHint = ctx.getActionHint("skip");
-    if (skipHint !== void 0) skipBtn.appendChild(keyHintBadge(skipHint));
-    topbarLeft.appendChild(skipBtn);
-  }
   topbar.appendChild(topbarLeft);
+  const topbarCenter = document.createElement("div");
+  topbarCenter.setAttribute("class", "bench-topbar-center");
   const hud = document.createElement("div");
   hud.setAttribute("class", "hud" + (solved ? " solved" : ""));
-  if (ctx.showHud) {
+  if (ctx.showHud && solved) {
     const hudCounts = formatHudCounts(countRuleUsage(focus2.derivation));
-    hud.innerHTML = solved ? t("moves") + " " + hudCounts : hudCounts;
-    if (solved && ctx.showPar) {
+    hud.innerHTML = t("moves") + " " + hudCounts;
+    if (ctx.showPar) {
       const solution87 = workspace.currentSolution();
       const par = document.createElement("div");
       par.setAttribute("class", "par");
@@ -5371,7 +5356,8 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
       hud.appendChild(par);
     }
   }
-  topbar.appendChild(hud);
+  topbarCenter.appendChild(hud);
+  topbar.appendChild(topbarCenter);
   const topbarRight = document.createElement("div");
   topbarRight.setAttribute("class", "bench-topbar-right");
   if (!solved) {
@@ -5443,34 +5429,19 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
   rulesSheet.appendChild(sheetSides);
   panel.appendChild(rulesSheet);
   panel.appendChild(createPlayArea(workspace, ctx));
-  const zoomOut = createButton(
-    "\u2212",
-    false,
-    () => {
-      ctx.setTreeZoom(Math.max(ZOOM_MIN, ctx.getTreeZoom() - ZOOM_STEP));
-      rerender();
-    },
-    ctx.kbdHint("-")
-  );
-  const zoomReset = createButton(
-    ":",
-    false,
-    () => {
-      ctx.setTreeZoom(1);
-      rerender();
-    },
-    ctx.kbdHint("0")
-  );
+  const zoomOut = createButton("\u2212", false, () => {
+    ctx.setTreeZoom(Math.max(ZOOM_MIN, ctx.getTreeZoom() - ZOOM_STEP));
+    rerender();
+  });
+  const zoomReset = createButton(":", false, () => {
+    ctx.setTreeZoom(1);
+    rerender();
+  });
   zoomReset.classList.add("zoom-reset");
-  const zoomIn = createButton(
-    "+",
-    false,
-    () => {
-      ctx.setTreeZoom(Math.min(ZOOM_MAX, ctx.getTreeZoom() + ZOOM_STEP));
-      rerender();
-    },
-    ctx.kbdHint("+")
-  );
+  const zoomIn = createButton("+", false, () => {
+    ctx.setTreeZoom(Math.min(ZOOM_MAX, ctx.getTreeZoom() + ZOOM_STEP));
+    rerender();
+  });
   const gazeMovable = !inactive && seq.antecedent.length + seq.succedent.length > 1;
   const leftDisabled = ctx.isGazeModeActive() ? !gazeMovable : inactive || seq.antecedent.length === 0;
   const rightDisabled = ctx.isGazeModeActive() ? !gazeMovable : inactive || seq.succedent.length === 0;
@@ -5556,18 +5527,25 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
     ctx.getActionHint("lemma")
   );
   const lemmaGroup = makeGroup("controls-lemma");
+  if (onSkip !== void 0) {
+    const skipBtn = createButton(t("skip"), false, onSkip);
+    skipBtn.classList.add("mutating");
+    lemmaGroup.appendChild(skipBtn);
+  }
   lemmaGroup.appendChild(lemmaBtn);
   const gazeGroup = makeGroup(ctx.isGazeModeActive() ? "gaze" : "hot");
   gazeGroup.appendChild(gazeLeftBtn);
   gazeGroup.appendChild(gazeWeakeningBtn);
   gazeGroup.appendChild(gazeConnectiveBtn);
   gazeGroup.appendChild(gazeRightBtn);
-  const axiomGroup = makeGroup("controls-axiom");
-  axiomGroup.appendChild(axiomBtn);
-  const zoomGroup = makeGroup("controls-zoom");
+  zoomOut.classList.add("zoom-step");
+  zoomIn.classList.add("zoom-step");
+  const zoomGroup = document.createElement("div");
+  zoomGroup.setAttribute("class", "bench-zoom");
   zoomGroup.appendChild(zoomOut);
   zoomGroup.appendChild(zoomReset);
   zoomGroup.appendChild(zoomIn);
+  if (!solved) topbarCenter.appendChild(zoomGroup);
   controlsEl.setAttribute("class", "controls-undo-inner");
   const branchCount = branches(workspace.currentConjecture().derivation).length;
   const canSwitch = !solved && branchCount > 1;
@@ -5589,9 +5567,18 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
     },
     ctx.getActionHint("nextBranch")
   );
+  gazeLeftBtn.classList.add("inert");
+  gazeRightBtn.classList.add("inert");
+  lemmaBtn.classList.add("inert");
+  prevBranchBtn.classList.add("inert");
+  nextBranchBtn.classList.add("inert");
+  gazeWeakeningBtn.classList.add("mutating");
+  gazeConnectiveBtn.classList.add("mutating");
+  axiomBtn.classList.add("mutating");
   const navGroup = makeGroup("controls-nav");
   navGroup.appendChild(prevBranchBtn);
   navGroup.appendChild(controlsEl);
+  navGroup.appendChild(axiomBtn);
   navGroup.appendChild(nextBranchBtn);
   const controlsBar = document.createElement("div");
   controlsBar.setAttribute("class", "controls");
@@ -5599,17 +5586,9 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
     congrats.buttons.setAttribute("class", "congrabuttons controls-group");
     controlsBar.appendChild(congrats.buttons);
   } else {
-    const leftWing = document.createElement("div");
-    leftWing.setAttribute("class", "controls-wing controls-wing-left");
-    leftWing.appendChild(navGroup);
-    if (hideLemma !== true) leftWing.appendChild(lemmaGroup);
-    controlsBar.appendChild(leftWing);
+    if (hideLemma !== true) controlsBar.appendChild(lemmaGroup);
+    controlsBar.appendChild(navGroup);
     controlsBar.appendChild(gazeGroup);
-    const rightWing = document.createElement("div");
-    rightWing.setAttribute("class", "controls-wing controls-wing-right");
-    rightWing.appendChild(axiomGroup);
-    rightWing.appendChild(zoomGroup);
-    controlsBar.appendChild(rightWing);
   }
   panel.appendChild(controlsBar);
   if (!solved && pinned.length > 0) {
@@ -5649,7 +5628,7 @@ var autoRule = (workspace, rules3) => {
   if (!first) return;
   workspace.applyEvent(reverse02(first));
 };
-var createPausePopup = (onResume, onExit, onReset, resetDisabled, onFresh, onSettings, onCustom) => {
+var createPausePopup = (onResume, onExit, onReset, resetDisabled, onSettings, onCustom) => {
   const shroud = document.createElement("div");
   shroud.setAttribute("class", "shroud pause-shroud");
   shroud.onclick = (ev) => {
@@ -5686,11 +5665,6 @@ var createPausePopup = (onResume, onExit, onReset, resetDisabled, onFresh, onSet
   if (onCustom) {
     buttons.appendChild(
       createButton(t("customChallenge"), false, onCustom, kbdHint("b"))
-    );
-  }
-  if (onFresh) {
-    buttons.appendChild(
-      createButton(t("freshChallenge"), false, onFresh, kbdHint("n"))
     );
   }
   if (onSettings) {
@@ -6285,21 +6259,21 @@ var createControls = (ws, _listingEl, rerender, showLevelButton, onLevel) => {
       createButton(t("level"), false, onLevel, getActionHint("level"))
     );
   }
-  panel.appendChild(
-    createButton(
-      t("undo"),
-      !undoEnabled,
-      () => {
-        if (canUndo) {
-          ws.applyEvent({ kind: "undo" });
-        } else {
-          setGazeModeActive(false);
-        }
-        rerender();
-      },
-      getActionHint("undo")
-    )
+  const undoBtn = createButton(
+    t("undo"),
+    !undoEnabled,
+    () => {
+      if (canUndo) {
+        ws.applyEvent({ kind: "undo" });
+      } else {
+        setGazeModeActive(false);
+      }
+      rerender();
+    },
+    getActionHint("undo")
   );
+  undoBtn.classList.add("mutating");
+  panel.appendChild(undoBtn);
   return panel;
 };
 var createCongrats = (ws, selectLevel, rerender) => {
@@ -6568,21 +6542,21 @@ var createControls2 = (getWorkspace, rerender) => {
   const undoEnabled = canUndo || isGazeModeActive();
   const panel = document.createElement("div");
   panel.setAttribute("class", "controls");
-  panel.appendChild(
-    createButton(
-      t("undo"),
-      !undoEnabled,
-      () => {
-        if (canUndo) {
-          ws.applyEvent({ kind: "undo" });
-        } else {
-          setGazeModeActive(false);
-        }
-        rerender();
-      },
-      getActionHint("undo")
-    )
+  const undoBtn = createButton(
+    t("undo"),
+    !undoEnabled,
+    () => {
+      if (canUndo) {
+        ws.applyEvent({ kind: "undo" });
+      } else {
+        setGazeModeActive(false);
+      }
+      rerender();
+    },
+    getActionHint("undo")
   );
+  undoBtn.classList.add("mutating");
+  panel.appendChild(undoBtn);
   return panel;
 };
 var createCongrats2 = (onNew, onSettings) => {
@@ -6687,7 +6661,10 @@ var mountRandom = (container, navigate2, session2, onNewChallenge) => {
         controlsEl,
         rerender,
         togglePausePopup,
-        onApplyReverse1
+        onApplyReverse1,
+        void 0,
+        void 0,
+        freshFromPopup
       )
     );
     if (pausePopupOpen) {
@@ -6699,7 +6676,6 @@ var mountRandom = (container, navigate2, session2, onNewChallenge) => {
           exitToMenu,
           resetFromPopup,
           !resetEnabled,
-          freshFromPopup,
           openSettings
         )
       );
@@ -7367,7 +7343,7 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
   const makeCtx = (input) => {
     const base = createBenchCtx(input !== "keyboard", true, false, false, 1);
     if (input !== "mouse") return base;
-    return { ...base, getActionHint: () => void 0, kbdHint: () => void 0 };
+    return { ...base, getActionHint: () => void 0 };
   };
   const ctx1 = makeCtx(versusConfig.p1Input);
   const ctx2 = makeCtx(versusConfig.p2Input);
@@ -7393,21 +7369,21 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     el.setAttribute("class", "controls");
     const canUndo = activePath(ws.currentConjecture()).length > 0;
     const enabled = canUndo || ctx.isGazeModeActive();
-    el.appendChild(
-      createButton(
-        t("undo"),
-        !enabled,
-        () => {
-          if (canUndo) {
-            ws.applyEvent(undo2());
-          } else {
-            ctx.setGazeModeActive(false);
-          }
-          refresh();
-        },
-        ctx.getActionHint("undo")
-      )
+    const undoBtn = createButton(
+      t("undo"),
+      !enabled,
+      () => {
+        if (canUndo) {
+          ws.applyEvent(undo2());
+        } else {
+          ctx.setGazeModeActive(false);
+        }
+        refresh();
+      },
+      ctx.getActionHint("undo")
     );
+    undoBtn.classList.add("mutating");
+    el.appendChild(undoBtn);
     return el;
   };
   const buildHalf1 = () => {
@@ -7541,12 +7517,7 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     thermoTotal.appendChild(totalCell2);
     thermo.appendChild(thermoTotal);
     thermo.appendChild(thermoRows);
-    const menuBtn = createButton(
-      "\u22EE",
-      false,
-      () => setPaused(true),
-      getActionHintPure("menu", false)
-    );
+    const menuBtn = createButton("\u22EE", false, () => setPaused(true));
     menuBtn.classList.add("versus-menu-btn");
     menuBtn.setAttribute("aria-label", t("menu"));
     thermo.appendChild(menuBtn);
