@@ -3901,46 +3901,74 @@ var createLangSwitcher = () => {
   return wrap;
 };
 
-// src/web/menu.ts
-var modeLabel = {
-  random: () => t("random"),
-  campaign: () => t("campaign")
-};
-var mountMenu = (container, navigate2) => {
-  let clicks = 0;
-  const render = () => {
-    container.innerHTML = "";
-    const panel = document.createElement("div");
-    panel.setAttribute("class", "menu");
-    panel.appendChild(createLangSwitcher());
-    const title = document.createElement("div");
-    title.setAttribute("class", "menu-title");
-    title.innerHTML = t("title");
-    title.onclick = () => {
-      clicks += 1;
-      if (clicks > 5) navigate2("secret");
-    };
-    panel.appendChild(title);
-    const modes = document.createElement("div");
-    modes.setAttribute("class", "menu-modes");
-    const versusBtn = document.createElement("div");
-    versusBtn.setAttribute("class", "button menu-mode");
-    versusBtn.textContent = t("versus");
-    versusBtn.onclick = () => navigate2("versus-config");
-    modes.appendChild(versusBtn);
-    for (const mode of gameModes) {
-      const btn = document.createElement("div");
-      btn.setAttribute("class", "button menu-mode");
-      btn.innerHTML = modeLabel[mode]();
-      btn.onclick = () => navigate2(mode);
-      modes.appendChild(btn);
+// src/web/button-cursor.ts
+var clamp = (v2, lo, hi) => Math.max(lo, Math.min(hi, v2));
+var cursorNavActions = /* @__PURE__ */ new Set([
+  "gazeLeft",
+  "gazeRight",
+  "gazeConnective",
+  "gazeWeakening",
+  "leftRotateLeft",
+  "leftRotateRight",
+  "leftConnective",
+  "leftWeakening"
+]);
+var createButtonCursor = (rows) => {
+  let row = 0;
+  let col = 0;
+  let visible = false;
+  const refresh = () => {
+    for (const r of rows) {
+      for (const cell of r) cell.btn.classList.remove("cursor");
     }
-    panel.appendChild(modes);
-    container.appendChild(panel);
+    const focused = visible ? rows[row]?.[col] : void 0;
+    if (focused !== void 0) focused.btn.classList.add("cursor");
   };
-  render();
-  return { cleanup: () => {
-  }, rerender: render };
+  const reveal = () => {
+    if (visible) return false;
+    visible = true;
+    row = 0;
+    col = 0;
+    refresh();
+    return true;
+  };
+  const move = (dRow, dCol) => {
+    if (reveal()) return;
+    row = clamp(row + dRow, 0, rows.length - 1);
+    const r = rows[row];
+    if (r !== void 0) col = clamp(col + dCol, 0, r.length - 1);
+    refresh();
+  };
+  const activate = () => {
+    if (reveal()) return;
+    const cell = rows[row]?.[col];
+    if (cell !== void 0 && (cell.isEnabled?.() ?? true)) cell.activate();
+  };
+  const onAction = (action) => {
+    switch (action) {
+      case "gazeLeft":
+      case "leftRotateLeft":
+        move(0, -1);
+        break;
+      case "gazeRight":
+      case "leftRotateRight":
+        move(0, 1);
+        break;
+      case "gazeConnective":
+      case "leftConnective":
+        move(-1, 0);
+        break;
+      case "gazeWeakening":
+      case "leftWeakening":
+        move(1, 0);
+        break;
+      case "axiom":
+        activate();
+        break;
+    }
+  };
+  const isEngaged = () => visible;
+  return { onAction, refresh, isEngaged };
 };
 
 // src/interactive/event.ts
@@ -4799,8 +4827,6 @@ var toggleHotMode = () => {
   notifyGamepadListeners();
 };
 var getActionHint = (action) => isGamepadActive() ? activeActionPadHint()[action] : actionKeyHint[action];
-var kbdHint = (s) => isGamepadActive() ? void 0 : s;
-var dualHint = (kbd, padAction) => isGamepadActive() ? activeActionPadHint()[padAction] : kbd;
 var getActionHintPure = (action, isGamepad) => isGamepad ? activeActionPadHint()[action] : actionKeyHint[action];
 
 // src/web/game.ts
@@ -4847,22 +4873,12 @@ var keyHintBadge = (hint, variant = "base") => {
   badge.textContent = hint;
   return badge;
 };
-var createButton = (label, disabled, onClick, hint, hintVariant = "base") => {
+var createButton = (label, disabled, onClick) => {
   const el = document.createElement("pre");
   el.setAttribute("class", "button" + (disabled ? " disabled" : ""));
   if (!disabled && onClick) el.onclick = onClick;
-  if (hint !== void 0) {
-    el.appendChild(keyHintBadge(hint, hintVariant));
-  }
   if (typeof label === "string") {
-    if (hint !== void 0) {
-      const labelSpan = document.createElement("span");
-      labelSpan.setAttribute("class", "button-label");
-      labelSpan.textContent = label;
-      el.appendChild(labelSpan);
-    } else {
-      el.innerHTML = label;
-    }
+    el.innerHTML = label;
   } else {
     const longSpan = document.createElement("span");
     longSpan.setAttribute("class", "button-label long");
@@ -5324,8 +5340,6 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
   const rulesLed = document.createElement("span");
   rulesLed.setAttribute("class", "led" + (ctx.isRulesVisible() ? " on" : ""));
   rulesBtn.appendChild(rulesLed);
-  const rulesHint = ctx.getActionHint("toggleRules");
-  if (rulesHint !== void 0) rulesBtn.appendChild(keyHintBadge(rulesHint));
   const topbar = document.createElement("div");
   topbar.setAttribute("class", "bench-topbar");
   const topbarLeft = document.createElement("div");
@@ -5336,8 +5350,6 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
     menuBtn.setAttribute("aria-label", t("menu"));
     menuBtn.textContent = "\u22EE";
     menuBtn.onclick = onMenu;
-    const menuHint = ctx.getActionHint("menu");
-    if (menuHint !== void 0) menuBtn.appendChild(keyHintBadge(menuHint));
     topbarLeft.appendChild(menuBtn);
   }
   topbar.appendChild(topbarLeft);
@@ -5445,37 +5457,27 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
   const gazeMovable = !inactive && seq.antecedent.length + seq.succedent.length > 1;
   const leftDisabled = ctx.isGazeModeActive() ? !gazeMovable : inactive || seq.antecedent.length === 0;
   const rightDisabled = ctx.isGazeModeActive() ? !gazeMovable : inactive || seq.succedent.length === 0;
-  const gazeLeftBtn = createButton(
-    t("left"),
-    leftDisabled,
-    () => {
-      if (!ctx.isGazeModeActive()) {
-        ctx.setGazeModeActive(true);
-        workspace.setGaze({
-          side: "left",
-          index: seq.antecedent.length - 1
-        });
-      } else {
-        workspace.moveGaze(-1);
-      }
-      rerender();
-    },
-    ctx.getActionHint("gazeLeft")
-  );
-  const gazeRightBtn = createButton(
-    t("right"),
-    rightDisabled,
-    () => {
-      if (!ctx.isGazeModeActive()) {
-        ctx.setGazeModeActive(true);
-        workspace.setGaze({ side: "right", index: 0 });
-      } else {
-        workspace.moveGaze(1);
-      }
-      rerender();
-    },
-    ctx.getActionHint("gazeRight")
-  );
+  const gazeLeftBtn = createButton(t("left"), leftDisabled, () => {
+    if (!ctx.isGazeModeActive()) {
+      ctx.setGazeModeActive(true);
+      workspace.setGaze({
+        side: "left",
+        index: seq.antecedent.length - 1
+      });
+    } else {
+      workspace.moveGaze(-1);
+    }
+    rerender();
+  });
+  const gazeRightBtn = createButton(t("right"), rightDisabled, () => {
+    if (!ctx.isGazeModeActive()) {
+      ctx.setGazeModeActive(true);
+      workspace.setGaze({ side: "right", index: 0 });
+    } else {
+      workspace.moveGaze(1);
+    }
+    rerender();
+  });
   const gazeWeakeningBtn = createButton(
     t("drop"),
     !ctx.isGazeModeActive() || inactive,
@@ -5483,8 +5485,7 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
       workspace.setGazeKind("weakening");
       applyGazeRule(workspace, "weakening");
       rerender();
-    },
-    ctx.getActionHint("gazeWeakening")
+    }
   );
   const connectiveRule = gazeHints.connective?.eventualRule ?? null;
   const connectiveLabel = connectiveRule !== null ? ruleConnectiveLabel[connectiveRule] ?? "" : "";
@@ -5496,8 +5497,7 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
       workspace.setGazeKind("connective");
       applyGazeRule(workspace, "connective");
       rerender();
-    },
-    ctx.getActionHint("gazeConnective")
+    }
   );
   const makeGroup = (...cls) => {
     const g = document.createElement("div");
@@ -5510,22 +5510,16 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
     () => {
       autoRule(workspace, keys(reverseAxiom0));
       rerender();
-    },
-    ctx.getActionHint("axiom")
+    }
   );
   const lemmaDisabled = inactive || onApplyReverse1 === void 0 || !ls.includes("cut");
-  const lemmaBtn = createButton(
-    t("lemma"),
-    lemmaDisabled,
-    () => {
-      if (onApplyReverse1 === void 0) return;
-      onApplyReverse1("cut", (formula) => {
-        workspace.applyEvent(reverse12("cut", formula));
-        rerender();
-      });
-    },
-    ctx.getActionHint("lemma")
-  );
+  const lemmaBtn = createButton(t("lemma"), lemmaDisabled, () => {
+    if (onApplyReverse1 === void 0) return;
+    onApplyReverse1("cut", (formula) => {
+      workspace.applyEvent(reverse12("cut", formula));
+      rerender();
+    });
+  });
   const miscGroup = makeGroup("controls-misc");
   if (onSkip !== void 0) {
     const skipBtn = createButton(t("skip"), false, onSkip);
@@ -5548,24 +5542,14 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
   controlsEl.setAttribute("class", "controls-undo-inner");
   const branchCount = branches(workspace.currentConjecture().derivation).length;
   const canSwitch = !solved && branchCount > 1;
-  const prevBranchBtn = createButton(
-    t("prevBranch"),
-    !canSwitch,
-    () => {
-      workspace.applyEvent(prevBranch());
-      rerender();
-    },
-    ctx.getActionHint("prevBranch")
-  );
-  const nextBranchBtn = createButton(
-    t("nextBranch"),
-    !canSwitch,
-    () => {
-      workspace.applyEvent(nextBranch());
-      rerender();
-    },
-    ctx.getActionHint("nextBranch")
-  );
+  const prevBranchBtn = createButton(t("prevBranch"), !canSwitch, () => {
+    workspace.applyEvent(prevBranch());
+    rerender();
+  });
+  const nextBranchBtn = createButton(t("nextBranch"), !canSwitch, () => {
+    workspace.applyEvent(nextBranch());
+    rerender();
+  });
   gazeLeftBtn.classList.add("inert");
   gazeRightBtn.classList.add("inert");
   lemmaBtn.classList.add("inert");
@@ -5648,37 +5632,48 @@ var createPausePopup = (onResume, onExit, onReset, resetDisabled, onSettings, on
   panel.appendChild(title);
   const buttons = document.createElement("div");
   buttons.setAttribute("class", "pause-buttons");
-  buttons.appendChild(
-    createButton(t("resumeGame"), false, onResume, dualHint("m", "undo"))
+  const cells = [];
+  const addButton = (el, activate, isEnabled) => {
+    buttons.appendChild(el);
+    cells.push({ btn: el, activate, isEnabled });
+  };
+  addButton(
+    createButton(t("resumeGame"), false, onResume),
+    onResume,
+    () => true
   );
   const spacer = document.createElement("div");
   spacer.setAttribute("class", "pause-buttons-spacer");
   buttons.appendChild(spacer);
-  buttons.appendChild(
-    createButton(
-      t("resetChallenge"),
-      resetDisabled,
-      onReset,
-      getActionHint("reset")
-    )
+  addButton(
+    createButton(t("resetChallenge"), resetDisabled, onReset),
+    onReset,
+    () => !resetDisabled
   );
   if (onCustom) {
-    buttons.appendChild(
-      createButton(t("customChallenge"), false, onCustom, kbdHint("b"))
+    addButton(
+      createButton(t("customChallenge"), false, onCustom),
+      onCustom,
+      () => true
     );
   }
   if (onSettings) {
-    buttons.appendChild(
-      createButton(t("customChallenge"), false, onSettings, kbdHint("b"))
+    addButton(
+      createButton(t("customChallenge"), false, onSettings),
+      onSettings,
+      () => true
     );
   }
-  buttons.appendChild(
-    createButton(t("exitToMainMenu"), false, onExit, getActionHint("exit"))
+  addButton(
+    createButton(t("exitToMainMenu"), false, onExit),
+    onExit,
+    () => true
   );
   panel.appendChild(buttons);
   shroud.appendChild(panel);
   shroud.appendChild(createLangSwitcher());
-  return shroud;
+  const cursor = createButtonCursor(cells.map((c) => [c]));
+  return { el: shroud, onAction: cursor.onAction };
 };
 var RULE_APPLY_ACTIONS = /* @__PURE__ */ new Set([
   "leftWeakening",
@@ -5907,6 +5902,68 @@ var setupGamepad = (dispatch, gamepadIndex = 0) => {
   };
 };
 
+// src/web/menu.ts
+var modeLabel = {
+  random: () => t("random"),
+  campaign: () => t("campaign")
+};
+var mountMenu = (container, navigate2) => {
+  let clicks = 0;
+  let cursor = null;
+  const render = () => {
+    container.innerHTML = "";
+    const panel = document.createElement("div");
+    panel.setAttribute("class", "menu");
+    panel.appendChild(createLangSwitcher());
+    const title = document.createElement("div");
+    title.setAttribute("class", "menu-title");
+    title.innerHTML = t("title");
+    title.onclick = () => {
+      clicks += 1;
+      if (clicks > 5) navigate2("secret");
+    };
+    panel.appendChild(title);
+    const modes = document.createElement("div");
+    modes.setAttribute("class", "menu-modes");
+    const cells = [];
+    const versusBtn = document.createElement("div");
+    versusBtn.setAttribute("class", "button menu-mode");
+    versusBtn.textContent = t("versus");
+    const versusActivate = () => navigate2("versus-config");
+    versusBtn.onclick = versusActivate;
+    modes.appendChild(versusBtn);
+    cells.push({ btn: versusBtn, activate: versusActivate });
+    for (const mode of gameModes) {
+      const btn = document.createElement("div");
+      btn.setAttribute("class", "button menu-mode");
+      btn.innerHTML = modeLabel[mode]();
+      const activate = () => navigate2(mode);
+      btn.onclick = activate;
+      modes.appendChild(btn);
+      cells.push({ btn, activate });
+    }
+    panel.appendChild(modes);
+    container.appendChild(panel);
+    cursor = createButtonCursor(cells.map((c) => [c]));
+  };
+  render();
+  const handleKey = (ev) => {
+    if (ev.ctrlKey || ev.metaKey || ev.altKey) return;
+    markKeyboardInput();
+    const action = qwertyKeyMap[ev.code];
+    if (action !== void 0) cursor?.onAction(action);
+  };
+  document.addEventListener("keydown", handleKey);
+  const cleanupGamepad = setupGamepad((action) => cursor?.onAction(action));
+  return {
+    cleanup: () => {
+      document.removeEventListener("keydown", handleKey);
+      cleanupGamepad();
+    },
+    rerender: render
+  };
+};
+
 // src/web/formula-editor.ts
 var makeBtn = (label, handler) => {
   const btn = document.createElement("pre");
@@ -5919,19 +5976,9 @@ var setDisabled = (btn, disabled, handler) => {
   btn.setAttribute("class", disabled ? "button disabled" : "button");
   btn.onclick = disabled ? null : handler;
 };
-var makeHintBadge = (text) => {
-  const badge = document.createElement("span");
-  badge.setAttribute("class", text.length > 1 ? "key-hint wide" : "key-hint");
-  badge.textContent = text;
-  return badge;
-};
-var clamp = (v2, lo, hi) => Math.max(lo, Math.min(hi, v2));
-var createFormulaEditor = (title, confirmLabel, onConfirm, onCancel, undoHint, activateHint) => {
+var createFormulaEditor = (title, confirmLabel, onConfirm, onCancel) => {
   let stack = [];
   let history2 = [];
-  let cursorRow = 0;
-  let cursorCol = 0;
-  let cursorVisible = false;
   const saveAndSet = (next2) => {
     history2 = [...history2, stack];
     stack = next2;
@@ -6078,9 +6125,7 @@ var createFormulaEditor = (title, confirmLabel, onConfirm, onCancel, undoHint, a
     connCells,
     controlCells
   ];
-  const hintBadge = undoHint !== void 0 ? makeHintBadge(undoHint) : null;
-  const cursorBadge = activateHint !== void 0 ? makeHintBadge(activateHint) : null;
-  if (cursorBadge !== null) cursorBadge.classList.add("cursor-hint");
+  const cursor = createButtonCursor(rows);
   const renderState = () => {
     stackDisplay.innerHTML = stack.length === 0 ? "" : stack.map((p) => html(fromProp(p)(basic))).join(" ");
     setDisabled(negBtn, stack.length === 0, () => {
@@ -6098,89 +6143,23 @@ var createFormulaEditor = (title, confirmLabel, onConfirm, onCancel, undoHint, a
     setDisabled(undoBtn, history2.length === 0, () => {
       doUndo();
     });
-    if (hintBadge !== null) {
-      hintBadge.remove();
-      if (history2.length > 0) {
-        undoBtn.appendChild(hintBadge);
-      } else {
-        cancelBtn.appendChild(hintBadge);
-      }
-    }
     const formula = stack.length === 1 ? stack[0] : void 0;
     confirmBtn.setAttribute(
       "class",
       formula !== void 0 ? "button" : "button disabled"
     );
     confirmBtn.onclick = formula !== void 0 ? confirmCurrent : null;
-    for (const row of rows) {
-      for (const cell of row) cell.btn.classList.remove("cursor");
-    }
-    const focused = cursorVisible ? rows[cursorRow]?.[cursorCol] : void 0;
-    if (focused !== void 0) focused.btn.classList.add("cursor");
-    if (cursorBadge !== null) {
-      cursorBadge.remove();
-      if (focused !== void 0 && focused.isEnabled()) {
-        focused.btn.appendChild(cursorBadge);
-      }
-    }
-  };
-  const moveCursor = (dRow, dCol) => {
-    if (!cursorVisible) {
-      cursorVisible = true;
-      cursorRow = 0;
-      cursorCol = 0;
-      renderState();
-      return;
-    }
-    cursorRow = clamp(cursorRow + dRow, 0, rows.length - 1);
-    const row = rows[cursorRow];
-    if (row !== void 0)
-      cursorCol = clamp(cursorCol + dCol, 0, row.length - 1);
-    renderState();
-  };
-  const activateFocused = () => {
-    if (!cursorVisible) {
-      cursorVisible = true;
-      cursorRow = 0;
-      cursorCol = 0;
-      renderState();
-      return;
-    }
-    const cell = rows[cursorRow]?.[cursorCol];
-    if (cell !== void 0 && cell.isEnabled()) cell.activate();
-  };
-  const onAction = (action) => {
-    switch (action) {
-      case "gazeLeft":
-      case "leftRotateLeft":
-        moveCursor(0, -1);
-        break;
-      case "gazeRight":
-      case "leftRotateRight":
-        moveCursor(0, 1);
-        break;
-      case "gazeConnective":
-      case "leftConnective":
-        moveCursor(-1, 0);
-        break;
-      case "gazeWeakening":
-      case "leftWeakening":
-        moveCursor(1, 0);
-        break;
-      case "axiom":
-        activateFocused();
-        break;
-    }
+    cursor.refresh();
   };
   renderState();
   return {
     el: shroud,
+    onAction: cursor.onAction,
     tryUndo: () => {
       if (history2.length === 0) return false;
       doUndo();
       return true;
-    },
-    onAction
+    }
   };
 };
 
@@ -6255,23 +6234,16 @@ var createControls = (ws, _listingEl, rerender, showLevelButton, onLevel) => {
   const panel = document.createElement("div");
   panel.setAttribute("class", "controls");
   if (showLevelButton) {
-    panel.appendChild(
-      createButton(t("level"), false, onLevel, getActionHint("level"))
-    );
+    panel.appendChild(createButton(t("level"), false, onLevel));
   }
-  const undoBtn = createButton(
-    t("undo"),
-    !undoEnabled,
-    () => {
-      if (canUndo) {
-        ws.applyEvent({ kind: "undo" });
-      } else {
-        setGazeModeActive(false);
-      }
-      rerender();
-    },
-    getActionHint("undo")
-  );
+  const undoBtn = createButton(t("undo"), !undoEnabled, () => {
+    if (canUndo) {
+      ws.applyEvent({ kind: "undo" });
+    } else {
+      setGazeModeActive(false);
+    }
+    rerender();
+  });
   undoBtn.classList.add("mutating");
   panel.appendChild(undoBtn);
   return panel;
@@ -6282,34 +6254,31 @@ var createCongrats = (ws, selectLevel, rerender) => {
   hurray.innerHTML = t("congratulations");
   const buttons = document.createElement("div");
   buttons.setAttribute("class", "congrabuttons");
-  buttons.appendChild(
-    createButton(
-      { long: t("prevLevel"), short: t("prevLevelShort") },
-      false,
-      () => selectLevel(ws.previousConjectureId()),
-      dualHint("p", "undo")
-    )
+  const cells = [];
+  const addButton = (label, activate) => {
+    const el = createButton(label, false, activate);
+    buttons.appendChild(el);
+    cells.push({ btn: el, activate });
+  };
+  addButton(
+    { long: t("prevLevel"), short: t("prevLevelShort") },
+    () => selectLevel(ws.previousConjectureId())
   );
-  buttons.appendChild(
-    createButton(
-      { long: t("playAgain"), short: t("playAgainShort") },
-      false,
-      () => {
-        ws.applyEvent(reset2());
-        rerender();
-      },
-      getActionHint("reset")
-    )
+  addButton({ long: t("playAgain"), short: t("playAgainShort") }, () => {
+    ws.applyEvent(reset2());
+    rerender();
+  });
+  addButton(
+    { long: t("nextLevel"), short: t("nextLevelShort") },
+    () => selectLevel(ws.nextConjectureId())
   );
-  buttons.appendChild(
-    createButton(
-      { long: t("nextLevel"), short: t("nextLevelShort") },
-      false,
-      () => selectLevel(ws.nextConjectureId()),
-      dualHint("\u2423", "axiom")
-    )
-  );
-  return { hurray, buttons };
+  const cursor = createButtonCursor([cells]);
+  return {
+    hurray,
+    buttons,
+    onAction: cursor.onAction,
+    isEngaged: cursor.isEngaged
+  };
 };
 var mountCampaign = (container, navigate2, session2) => {
   setDefaultRulesVisible(false);
@@ -6343,6 +6312,8 @@ var mountCampaign = (container, navigate2, session2) => {
   };
   let listingEl = createListing(ws, selectLevel);
   let pausePopupOpen = false;
+  let pausePopup = null;
+  let congrats = null;
   const togglePausePopup = () => {
     pausePopupOpen = !pausePopupOpen;
     rerender();
@@ -6392,9 +6363,7 @@ var mountCampaign = (container, navigate2, session2) => {
         container.removeChild(modal);
         onFormula(formula);
       },
-      cancel,
-      "\u232B",
-      getActionHint("axiom")
+      cancel
     );
     closeFormulaEditor = cancel;
     tryUndoInEditor = tryUndo;
@@ -6412,7 +6381,11 @@ var mountCampaign = (container, navigate2, session2) => {
       levelPresses >= 2,
       () => toggleLevel(listingEl)
     );
-    const makeCongrats = () => createCongrats(ws, selectLevel, rerender);
+    const makeCongrats = () => {
+      const c = createCongrats(ws, selectLevel, rerender);
+      congrats = c;
+      return c;
+    };
     container.appendChild(
       createBench(
         ws,
@@ -6425,16 +6398,19 @@ var mountCampaign = (container, navigate2, session2) => {
       )
     );
     if (pausePopupOpen) {
-      const canReset = activePath(ws.currentConjecture()).length > 0;
-      const resetEnabled = canReset || isGazeModeActive();
-      container.appendChild(
-        createPausePopup(
+      if (!pausePopup) {
+        const canReset = activePath(ws.currentConjecture()).length > 0;
+        const resetEnabled = canReset || isGazeModeActive();
+        pausePopup = createPausePopup(
           closePausePopup,
           exitToMenu,
           resetFromPopup,
           !resetEnabled
-        )
-      );
+        );
+      }
+      container.appendChild(pausePopup.el);
+    } else {
+      pausePopup = null;
     }
   };
   const onSolved = (action) => {
@@ -6485,7 +6461,20 @@ var mountCampaign = (container, navigate2, session2) => {
       closePausePopup();
       return;
     }
-    if (pausePopupOpen && action !== "menu") return;
+    if (pausePopupOpen && action !== "menu") {
+      pausePopup?.onAction(action);
+      return;
+    }
+    if (ws.isSolved() && congrats) {
+      if (cursorNavActions.has(action)) {
+        congrats.onAction(action);
+        return;
+      }
+      if (action === "axiom" && congrats.isEngaged()) {
+        congrats.onAction("axiom");
+        return;
+      }
+    }
     baseDispatch(action);
   };
   const params = new URLSearchParams(window.location.search);
@@ -6542,19 +6531,14 @@ var createControls2 = (getWorkspace, rerender) => {
   const undoEnabled = canUndo || isGazeModeActive();
   const panel = document.createElement("div");
   panel.setAttribute("class", "controls");
-  const undoBtn = createButton(
-    t("undo"),
-    !undoEnabled,
-    () => {
-      if (canUndo) {
-        ws.applyEvent({ kind: "undo" });
-      } else {
-        setGazeModeActive(false);
-      }
-      rerender();
-    },
-    getActionHint("undo")
-  );
+  const undoBtn = createButton(t("undo"), !undoEnabled, () => {
+    if (canUndo) {
+      ws.applyEvent({ kind: "undo" });
+    } else {
+      setGazeModeActive(false);
+    }
+    rerender();
+  });
   undoBtn.classList.add("mutating");
   panel.appendChild(undoBtn);
   return panel;
@@ -6565,13 +6549,21 @@ var createCongrats2 = (onNew, onSettings) => {
   hurray.innerHTML = t("congratulations");
   const buttons = document.createElement("div");
   buttons.setAttribute("class", "congrabuttons");
-  buttons.appendChild(
-    createButton(t("customChallenge"), false, onSettings, kbdHint("b"))
-  );
-  buttons.appendChild(
-    createButton(t("newChallenge"), false, onNew, dualHint("n", "axiom"))
-  );
-  return { hurray, buttons };
+  const cells = [];
+  const addButton = (label, activate) => {
+    const el = createButton(label, false, activate);
+    buttons.appendChild(el);
+    cells.push({ btn: el, activate });
+  };
+  addButton(t("customChallenge"), onSettings);
+  addButton(t("newChallenge"), onNew);
+  const cursor = createButtonCursor([cells]);
+  return {
+    hurray,
+    buttons,
+    onAction: cursor.onAction,
+    isEngaged: cursor.isEngaged
+  };
 };
 var mountRandom = (container, navigate2, session2, onNewChallenge) => {
   setDefaultRulesVisible(false);
@@ -6582,6 +6574,8 @@ var mountRandom = (container, navigate2, session2, onNewChallenge) => {
     rerender();
   };
   let pausePopupOpen = false;
+  let pausePopup = null;
+  let congrats = null;
   const togglePausePopup = () => {
     pausePopupOpen = !pausePopupOpen;
     rerender();
@@ -6640,9 +6634,7 @@ var mountRandom = (container, navigate2, session2, onNewChallenge) => {
         container.removeChild(modal);
         onFormula(formula);
       },
-      cancel,
-      "\u232B",
-      getActionHint("axiom")
+      cancel
     );
     closeFormulaEditor = cancel;
     tryUndoInEditor = tryUndo;
@@ -6653,7 +6645,11 @@ var mountRandom = (container, navigate2, session2, onNewChallenge) => {
     const ws = getWorkspace();
     container.innerHTML = "";
     const controlsEl = createControls2(getWorkspace, rerender);
-    const makeCongrats = () => createCongrats2(onNew, openSettings);
+    const makeCongrats = () => {
+      const c = createCongrats2(onNew, openSettings);
+      congrats = c;
+      return c;
+    };
     container.appendChild(
       createBench(
         ws,
@@ -6668,17 +6664,20 @@ var mountRandom = (container, navigate2, session2, onNewChallenge) => {
       )
     );
     if (pausePopupOpen) {
-      const canReset = activePath(ws.currentConjecture()).length > 0;
-      const resetEnabled = canReset || isGazeModeActive();
-      container.appendChild(
-        createPausePopup(
+      if (!pausePopup) {
+        const canReset = activePath(ws.currentConjecture()).length > 0;
+        const resetEnabled = canReset || isGazeModeActive();
+        pausePopup = createPausePopup(
           closePausePopup,
           exitToMenu,
           resetFromPopup,
           !resetEnabled,
           openSettings
-        )
-      );
+        );
+      }
+      container.appendChild(pausePopup.el);
+    } else {
+      pausePopup = null;
     }
   };
   const onSolved = (action) => {
@@ -6727,7 +6726,20 @@ var mountRandom = (container, navigate2, session2, onNewChallenge) => {
       closePausePopup();
       return;
     }
-    if (pausePopupOpen && action !== "menu") return;
+    if (pausePopupOpen && action !== "menu") {
+      pausePopup?.onAction(action);
+      return;
+    }
+    if (getWorkspace().isSolved() && congrats) {
+      if (cursorNavActions.has(action)) {
+        congrats.onAction(action);
+        return;
+      }
+      if (action === "axiom" && congrats.isEngaged()) {
+        congrats.onAction("axiom");
+        return;
+      }
+    }
     baseDispatch(action);
   };
   rerender();
@@ -7252,7 +7264,7 @@ var totalMoves = (ws) => {
   const counts = countRuleUsage(ws.currentConjecture().derivation);
   return Object.values(counts).reduce((a87, b) => a87 + b, 0);
 };
-var makeVersusFormulaEditor = (side, onFormula, onCancel, undoHint, activateHint) => {
+var makeVersusFormulaEditor = (side, onFormula, onCancel) => {
   let modalEl = null;
   const close = () => {
     modalEl?.remove();
@@ -7267,9 +7279,7 @@ var makeVersusFormulaEditor = (side, onFormula, onCancel, undoHint, activateHint
       modalEl = null;
       onFormula(formula);
     },
-    close,
-    undoHint,
-    activateHint
+    close
   );
   modalEl = el;
   if (side === "left") {
@@ -7350,6 +7360,8 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
   let timeLeft = versusConfig.gameDurationSeconds;
   let gameOver = false;
   let paused = false;
+  let pauseMenu = null;
+  let resultScreen = null;
   let timerEl = null;
   let closeEditor1 = null;
   let tryUndoEditor1 = null;
@@ -7369,19 +7381,14 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     el.setAttribute("class", "controls");
     const canUndo = activePath(ws.currentConjecture()).length > 0;
     const enabled = canUndo || ctx.isGazeModeActive();
-    const undoBtn = createButton(
-      t("undo"),
-      !enabled,
-      () => {
-        if (canUndo) {
-          ws.applyEvent(undo2());
-        } else {
-          ctx.setGazeModeActive(false);
-        }
-        refresh();
-      },
-      ctx.getActionHint("undo")
-    );
+    const undoBtn = createButton(t("undo"), !enabled, () => {
+      if (canUndo) {
+        ws.applyEvent(undo2());
+      } else {
+        ctx.setGazeModeActive(false);
+      }
+      refresh();
+    });
     undoBtn.classList.add("mutating");
     el.appendChild(undoBtn);
     return el;
@@ -7547,37 +7554,21 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     panel.appendChild(title);
     const buttons = document.createElement("div");
     buttons.setAttribute("class", "pause-buttons");
-    buttons.appendChild(
-      createButton(
-        t("resumeGame"),
-        false,
-        () => setPaused(false),
-        getActionHintPure("menu", false)
-      )
-    );
-    buttons.appendChild(
-      createButton(
-        t("playAgain"),
-        false,
-        () => navigate2("versus"),
-        getActionHintPure("skip", false)
-      )
-    );
-    buttons.appendChild(
-      createButton(t("settings"), false, () => navigate2("versus-config"))
-    );
-    buttons.appendChild(
-      createButton(
-        t("exitToMainMenu"),
-        false,
-        () => navigate2("menu"),
-        getActionHintPure("exit", false)
-      )
-    );
+    const cells = [];
+    const addButton = (label, activate) => {
+      const el = createButton(label, false, activate);
+      buttons.appendChild(el);
+      cells.push({ btn: el, activate });
+    };
+    addButton(t("resumeGame"), () => setPaused(false));
+    addButton(t("playAgain"), () => navigate2("versus"));
+    addButton(t("settings"), () => navigate2("versus-config"));
+    addButton(t("exitToMainMenu"), () => navigate2("menu"));
     panel.appendChild(buttons);
     shroud.appendChild(panel);
     shroud.appendChild(createLangSwitcher());
-    return shroud;
+    const cursor = createButtonCursor(cells.map((c) => [c]));
+    return { el: shroud, onAction: cursor.onAction };
   };
   const rerender = () => {
     if (ws1.isSolved()) commitScore1();
@@ -7596,8 +7587,15 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     arena.appendChild(half2El);
     screen.appendChild(arena);
     root.appendChild(screen);
-    if (gameOver) root.appendChild(buildResultScreen());
-    else if (paused) root.appendChild(buildPauseMenu());
+    if (gameOver) {
+      if (!resultScreen) resultScreen = buildResultScreen();
+      root.appendChild(resultScreen.el);
+    } else if (paused) {
+      if (!pauseMenu) pauseMenu = buildPauseMenu();
+      root.appendChild(pauseMenu.el);
+    } else {
+      pauseMenu = null;
+    }
   };
   const breakdownEntry = (resolved, ci, i88) => {
     if (i88 !== ci) return resolved.get(i88);
@@ -7753,24 +7751,17 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     overlay.appendChild(grid);
     const actions = document.createElement("div");
     actions.setAttribute("class", "versus-breakdown-actions");
-    actions.appendChild(
-      createButton(
-        t("settings"),
-        false,
-        () => navigate2("versus-config"),
-        getActionHintPure("lemma", false)
-      )
-    );
-    actions.appendChild(
-      createButton(
-        t("playAgain"),
-        false,
-        () => navigate2("versus"),
-        getActionHintPure("skip", false)
-      )
-    );
+    const cells = [];
+    const addButton = (label, activate) => {
+      const el = createButton(label, false, activate);
+      actions.appendChild(el);
+      cells.push({ btn: el, activate });
+    };
+    addButton(t("settings"), () => navigate2("versus-config"));
+    addButton(t("playAgain"), () => navigate2("versus"));
     overlay.appendChild(actions);
-    return overlay;
+    const cursor = createButtonCursor([cells]);
+    return { el: overlay, onAction: cursor.onAction };
   };
   const commitScore1 = () => {
     if (scoreCommitted1) return;
@@ -7980,9 +7971,7 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
         closeEditor1 = null;
         tryUndoEditor1 = null;
         onActionEditor1 = null;
-      },
-      versusConfig.p1Input === "keyboard" ? "\u232B" : versusConfig.p1Input === "mouse" ? void 0 : "\u25CB",
-      ctx1.getActionHint("axiom")
+      }
     );
     closeEditor1 = ed1.close;
     tryUndoEditor1 = ed1.tryUndo;
@@ -8002,9 +7991,7 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
         closeEditor2 = null;
         tryUndoEditor2 = null;
         onActionEditor2 = null;
-      },
-      versusConfig.p2Input === "keyboard" ? "\u232B" : versusConfig.p2Input === "mouse" ? void 0 : "\u25CB",
-      ctx2.getActionHint("axiom")
+      }
     );
     closeEditor2 = ed2.close;
     tryUndoEditor2 = ed2.tryUndo;
@@ -8034,12 +8021,7 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     const hurray = document.createElement("div");
     const buttons = document.createElement("div");
     buttons.appendChild(
-      createButton(
-        t("continue"),
-        false,
-        () => dispatch1("axiom"),
-        ctx1.getActionHint("axiom")
-      )
+      createButton(t("continue"), false, () => dispatch1("axiom"))
     );
     return { hurray, buttons };
   };
@@ -8047,12 +8029,7 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     const hurray = document.createElement("div");
     const buttons = document.createElement("div");
     buttons.appendChild(
-      createButton(
-        t("continue"),
-        false,
-        () => dispatch2("axiom"),
-        ctx2.getActionHint("axiom")
-      )
+      createButton(t("continue"), false, () => dispatch2("axiom"))
     );
     return { hurray, buttons };
   };
@@ -8104,6 +8081,7 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
   const handleResultAction = (action) => {
     if (action === "lemma") navigate2("versus-config");
     else if (action === "skip") navigate2("versus");
+    else resultScreen?.onAction(action);
   };
   const handleControlAction = (action) => {
     if (gameOver) {
@@ -8114,6 +8092,7 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
       if (action === "menu" || action === "undo") setPaused(false);
       else if (action === "skip") navigate2("versus");
       else if (action === "exit") navigate2("menu");
+      else pauseMenu?.onAction(action);
       return;
     }
     if (action !== "menu") return;
