@@ -1408,10 +1408,25 @@ var apply = (s, edit) => {
   }
   return cursor;
 };
-var undo = (s) => {
+var isFrozen = (start, path) => start !== null && subDerivation(start, path)?.kind === "transformation";
+var canUndo = (s, start = null) => {
   const path = activePath(s);
   const current2 = subDerivation(s.derivation, path);
   if (current2?.kind === "transformation") {
+    return !isFrozen(start, path);
+  }
+  if (isNonEmptyArray(path)) {
+    return !isFrozen(start, init(path));
+  }
+  return false;
+};
+var undo = (s, start = null) => {
+  const path = activePath(s);
+  const current2 = subDerivation(s.derivation, path);
+  if (current2?.kind === "transformation") {
+    if (isFrozen(start, path)) {
+      return s;
+    }
     const derivation = editDerivation(
       s.derivation,
       path,
@@ -1424,6 +1439,9 @@ var undo = (s) => {
   }
   if (isNonEmptyArray(path)) {
     const parentPath = init(path);
+    if (isFrozen(start, parentPath)) {
+      return s;
+    }
     const derivation = editDerivation(
       s.derivation,
       parentPath,
@@ -1442,10 +1460,10 @@ var undo = (s) => {
   }
   return s;
 };
-var reset = (s) => {
-  return focus(premise(s.derivation.result));
+var reset = (s, start = null) => {
+  return focus(start ?? premise(s.derivation.result));
 };
-var applyEvent = (state, ev) => {
+var applyEvent = (state, ev, start = null) => {
   switch (ev.kind) {
     case "reverse0": {
       const rule = reverse0[ev.rev];
@@ -1458,10 +1476,10 @@ var applyEvent = (state, ev) => {
       break;
     }
     case "undo":
-      state = undo(state);
+      state = undo(state, start);
       break;
     case "reset":
-      state = reset(state);
+      state = reset(state, start);
       break;
     case "nextBranch":
       state = next(state);
@@ -1512,7 +1530,7 @@ var Workspace = class {
     if (c) return c;
     console.warn(`Conjecture '${this.selected}' not initialized, recovering`);
     const conf = get(this.theorems, this.selected);
-    const f2 = focus(premise(conf.goal));
+    const f2 = focus(conf.start ?? premise(conf.goal));
     this.conjectures[this.selected] = f2;
     return f2;
   }
@@ -1531,6 +1549,16 @@ var Workspace = class {
     const conf = get(this.theorems, this.selected);
     return isChallenge(conf) ? conf.solution : void 0;
   }
+  // The presolved foundation, when the challenge has one: Undo/Reset floor
+  // here and the renderer shows its nodes frozen.
+  currentStart() {
+    return get(this.theorems, this.selected).start;
+  }
+  // Whether undo would change anything (false at the bare goal and at a
+  // presolved floor) — for honest Undo-button rendering.
+  canUndo() {
+    return canUndo(this.currentConjecture(), this.currentStart() ?? null);
+  }
   pinnedRules() {
     const conf = get(this.theorems, this.selected);
     return isTutorial(conf) ? conf.pinned : [];
@@ -1543,7 +1571,7 @@ var Workspace = class {
   selectConjecture(id) {
     if (!(id in this.conjectures)) {
       const conf = get(this.theorems, id);
-      this.conjectures[id] = focus(premise(conf.goal));
+      this.conjectures[id] = focus(conf.start ?? premise(conf.goal));
     }
     this.selected = id;
   }
@@ -1556,7 +1584,7 @@ var Workspace = class {
   applyEvent(ev) {
     const oldGaze = this.gaze();
     const cursor = this.currentConjecture();
-    const update = applyEvent(cursor, ev);
+    const update = applyEvent(cursor, ev, this.currentStart() ?? null);
     this.conjectures[this.selected] = update;
     if (ev.kind === "nextBranch" || ev.kind === "prevBranch" || ev.kind === "reset") {
       this._gaze = null;
@@ -1576,7 +1604,7 @@ var Workspace = class {
   }
   applyEventWithGaze(ev, nextGaze) {
     const cursor = this.currentConjecture();
-    const update = applyEvent(cursor, ev);
+    const update = applyEvent(cursor, ev, this.currentStart() ?? null);
     this.conjectures[this.selected] = update;
     this._gaze = nextGaze;
   }
@@ -3396,7 +3424,7 @@ var challenges = {
 // src/web/i18n.ts
 var en = {
   title: "LK",
-  random: "Random",
+  random: "Zen",
   campaign: "Campaign",
   menu: "Menu",
   undo: "Undo",
@@ -3414,6 +3442,7 @@ var en = {
   playAgain: "Play Again",
   playAgainShort: "Again",
   settings: "Settings",
+  matchSetup: "Match Setup",
   newChallenge: "New Challenge",
   prevLevel: "Prev Level",
   prevLevelShort: "Prev",
@@ -3424,7 +3453,7 @@ var en = {
   backToSystems: "\u2190 Systems",
   sideLeft: "L",
   sideRight: "R",
-  randomConfig: "Random",
+  randomConfig: "Zen",
   formulaShape: "Settings",
   size: "Formula Length",
   connectives: "Connectives",
@@ -3447,7 +3476,7 @@ var en = {
   done: "Done",
   goal: "Goal",
   statsTemplate: "Generated {formulas} formulas ({rate}/s), {tautologies} tautologies, {solved} solved. Updated {sinceUpdate}s ago.",
-  customChallenge: "Custom Challenge",
+  challengeSetup: "Challenge Setup",
   lemmaTitle: "Build Lemma",
   lemmaConfirm: "Confirm",
   lemma: "Lemma",
@@ -3466,11 +3495,23 @@ var en = {
   keyboard: "Keyboard",
   gamepad1: "Gamepad 1",
   gamepad2: "Gamepad 2",
-  npc: "NPC"
+  npc: "NPC",
+  tutorial: "Tutorial",
+  tutorialBasics: "Must Know",
+  tutorialLogic: "Good to Know",
+  tutorialPart: "Part",
+  tutorialAdvance: "Next Topic",
+  tutorialPrevious: "Previous Topic",
+  tutorialOneMore: "One More Challenge",
+  tutorialShape1: "Split",
+  tutorialShape2: "Side flip",
+  tutorialShape3: "Crossing",
+  tutorialShape4: "Branching",
+  tutorialShape5: "Branching crossing"
 };
 var fi = {
   title: "LK",
-  random: "Satunnainen",
+  random: "Zen",
   campaign: "Kampanja",
   menu: "Valikko",
   undo: "Kumoa",
@@ -3488,6 +3529,7 @@ var fi = {
   playAgain: "Pelaa uudestaan",
   playAgainShort: "Uudestaan",
   settings: "Asetukset",
+  matchSetup: "Ottelun asetukset",
   newChallenge: "Uusi haaste",
   prevLevel: "Edellinen",
   prevLevelShort: "Edellinen",
@@ -3498,7 +3540,7 @@ var fi = {
   backToSystems: "\u2190 J\xE4rjestelm\xE4t",
   sideLeft: "V",
   sideRight: "O",
-  randomConfig: "Satunnainen",
+  randomConfig: "Zen",
   formulaShape: "Asetukset",
   size: "Kaavan pituus",
   connectives: "Konnektiivit",
@@ -3521,7 +3563,7 @@ var fi = {
   done: "Valmis",
   goal: "Tavoite",
   statsTemplate: "Tuotettu {formulas} kaavaa ({rate}/s), {tautologies} tautologiaa, {solved} ratkaisua. P\xE4ivitetty {sinceUpdate}s sitten.",
-  customChallenge: "Muokattu haaste",
+  challengeSetup: "Haasteen asetukset",
   lemmaTitle: "Rakenna lemma",
   lemmaConfirm: "Vahvista",
   lemma: "Lemma",
@@ -3540,11 +3582,23 @@ var fi = {
   keyboard: "N\xE4pp\xE4imist\xF6",
   gamepad1: "Ohjain 1",
   gamepad2: "Ohjain 2",
-  npc: "NPC"
+  npc: "NPC",
+  tutorial: "Opastus",
+  tutorialBasics: "Pakko tiet\xE4\xE4",
+  tutorialLogic: "Hyv\xE4 tiet\xE4\xE4",
+  tutorialPart: "Osa",
+  tutorialAdvance: "Seuraava aihe",
+  tutorialPrevious: "Edellinen aihe",
+  tutorialOneMore: "Viel\xE4 yksi haaste",
+  tutorialShape1: "Halkaisu",
+  tutorialShape2: "Puolenvaihto",
+  tutorialShape3: "Ylitys",
+  tutorialShape4: "Haarautuminen",
+  tutorialShape5: "Haarautuva ylitys"
 };
 var es = {
   title: "LK",
-  random: "Aleatorio",
+  random: "Zen",
   campaign: "Campa\xF1a",
   menu: "Men\xFA",
   undo: "Deshacer",
@@ -3562,6 +3616,7 @@ var es = {
   playAgain: "Jugar de nuevo",
   playAgainShort: "De nuevo",
   settings: "Ajustes",
+  matchSetup: "Configuraci\xF3n de partida",
   newChallenge: "Nuevo desaf\xEDo",
   prevLevel: "Nivel anterior",
   prevLevelShort: "Anterior",
@@ -3572,7 +3627,7 @@ var es = {
   backToSystems: "\u2190 Sistemas",
   sideLeft: "I",
   sideRight: "D",
-  randomConfig: "Aleatorio",
+  randomConfig: "Zen",
   formulaShape: "Ajustes",
   size: "Longitud de f\xF3rmula",
   connectives: "Conectivos",
@@ -3595,7 +3650,7 @@ var es = {
   done: "Hecho",
   goal: "Objetivo",
   statsTemplate: "Generadas {formulas} f\xF3rmulas ({rate}/s), {tautologies} tautolog\xEDas, {solved} resueltas. Actualizado hace {sinceUpdate}s.",
-  customChallenge: "Desaf\xEDo personalizado",
+  challengeSetup: "Configuraci\xF3n del desaf\xEDo",
   lemmaTitle: "Construir lema",
   lemmaConfirm: "Confirmar",
   lemma: "Lema",
@@ -3614,11 +3669,23 @@ var es = {
   keyboard: "Teclado",
   gamepad1: "Mando 1",
   gamepad2: "Mando 2",
-  npc: "NPC"
+  npc: "NPC",
+  tutorial: "Tutorial",
+  tutorialBasics: "Imprescindible",
+  tutorialLogic: "Recomendado",
+  tutorialPart: "Parte",
+  tutorialAdvance: "Siguiente tema",
+  tutorialPrevious: "Tema anterior",
+  tutorialOneMore: "Un desaf\xEDo m\xE1s",
+  tutorialShape1: "Divisi\xF3n",
+  tutorialShape2: "Cambio de lado",
+  tutorialShape3: "Cruce",
+  tutorialShape4: "Ramificaci\xF3n",
+  tutorialShape5: "Cruce con ramas"
 };
 var cs = {
   title: "LK",
-  random: "N\xE1hodn\xE9",
+  random: "Zen",
   campaign: "Kampa\u0148",
   menu: "Menu",
   undo: "Zp\u011Bt",
@@ -3636,6 +3703,7 @@ var cs = {
   playAgain: "Hr\xE1t znovu",
   playAgainShort: "Znovu",
   settings: "Nastaven\xED",
+  matchSetup: "Nastaven\xED z\xE1pasu",
   newChallenge: "Nov\xE1 v\xFDzva",
   prevLevel: "P\u0159edchoz\xED \xFArove\u0148",
   prevLevelShort: "P\u0159edchoz\xED",
@@ -3646,7 +3714,7 @@ var cs = {
   backToSystems: "\u2190 Syst\xE9my",
   sideLeft: "L",
   sideRight: "P",
-  randomConfig: "N\xE1hodn\xE9",
+  randomConfig: "Zen",
   formulaShape: "Nastaven\xED",
   size: "D\xE9lka formule",
   connectives: "Spojky",
@@ -3669,7 +3737,7 @@ var cs = {
   done: "Hotovo",
   goal: "C\xEDl",
   statsTemplate: "Vygenerov\xE1no {formulas} formul\xED ({rate}/s), {tautologies} tautologi\xED, {solved} vy\u0159e\u0161eno. Aktualizov\xE1no p\u0159ed {sinceUpdate}s.",
-  customChallenge: "Vlastn\xED v\xFDzva",
+  challengeSetup: "Nastaven\xED v\xFDzvy",
   lemmaTitle: "Sestavit lemma",
   lemmaConfirm: "Potvrdit",
   lemma: "Lemma",
@@ -3688,11 +3756,23 @@ var cs = {
   keyboard: "Kl\xE1vesnice",
   gamepad1: "Ovlada\u010D 1",
   gamepad2: "Ovlada\u010D 2",
-  npc: "NPC"
+  npc: "NPC",
+  tutorial: "N\xE1vod",
+  tutorialBasics: "Nutn\xE9 v\u011Bd\u011Bt",
+  tutorialLogic: "Dobr\xE9 v\u011Bd\u011Bt",
+  tutorialPart: "\u010C\xE1st",
+  tutorialAdvance: "Dal\u0161\xED t\xE9ma",
+  tutorialPrevious: "P\u0159edchoz\xED t\xE9ma",
+  tutorialOneMore: "Je\u0161t\u011B jedna v\xFDzva",
+  tutorialShape1: "Rozd\u011Blen\xED",
+  tutorialShape2: "Zm\u011Bna strany",
+  tutorialShape3: "P\u0159echod",
+  tutorialShape4: "V\u011Btven\xED",
+  tutorialShape5: "V\u011Btven\xFD p\u0159echod"
 };
 var pl = {
   title: "LK",
-  random: "Losowe",
+  random: "Zen",
   campaign: "Kampania",
   menu: "Menu",
   undo: "Cofnij",
@@ -3710,6 +3790,7 @@ var pl = {
   playAgain: "Zagraj ponownie",
   playAgainShort: "Ponownie",
   settings: "Ustawienia",
+  matchSetup: "Ustawienia meczu",
   newChallenge: "Nowe wyzwanie",
   prevLevel: "Poprzedni poziom",
   prevLevelShort: "Poprz.",
@@ -3720,7 +3801,7 @@ var pl = {
   backToSystems: "\u2190 Systemy",
   sideLeft: "L",
   sideRight: "P",
-  randomConfig: "Losowe",
+  randomConfig: "Zen",
   formulaShape: "Ustawienia",
   size: "D\u0142ugo\u015B\u0107 formu\u0142y",
   connectives: "Sp\xF3jniki",
@@ -3743,7 +3824,7 @@ var pl = {
   done: "Gotowe",
   goal: "Cel",
   statsTemplate: "Wygenerowano {formulas} formu\u0142 ({rate}/s), {tautologies} tautologii, {solved} rozwi\u0105zanych. Zaktualizowano {sinceUpdate}s temu.",
-  customChallenge: "Niestandardowe wyzwanie",
+  challengeSetup: "Ustawienia wyzwania",
   lemmaTitle: "Zbuduj lemat",
   lemmaConfirm: "Zatwierd\u017A",
   lemma: "Lemat",
@@ -3762,7 +3843,19 @@ var pl = {
   keyboard: "Klawiatura",
   gamepad1: "Pad 1",
   gamepad2: "Pad 2",
-  npc: "NPC"
+  npc: "NPC",
+  tutorial: "Samouczek",
+  tutorialBasics: "Trzeba wiedzie\u0107",
+  tutorialLogic: "Warto wiedzie\u0107",
+  tutorialPart: "Cz\u0119\u015B\u0107",
+  tutorialAdvance: "Nast\u0119pny temat",
+  tutorialPrevious: "Poprzedni temat",
+  tutorialOneMore: "Jeszcze jedno wyzwanie",
+  tutorialShape1: "Podzia\u0142",
+  tutorialShape2: "Zmiana strony",
+  tutorialShape3: "Przej\u015Bcie",
+  tutorialShape4: "Rozga\u0142\u0119zienie",
+  tutorialShape5: "Rozga\u0142\u0119zione przej\u015Bcie"
 };
 var messages = {
   cs,
@@ -3913,9 +4006,9 @@ var cursorNavActions = /* @__PURE__ */ new Set([
   "leftConnective",
   "leftWeakening"
 ]);
-var createButtonCursor = (rows) => {
-  let row = 0;
-  let col = 0;
+var createButtonCursor = (rows, opts = {}) => {
+  let row = opts.startRow ?? 0;
+  let col = opts.startCol ?? 0;
   let visible = false;
   const refresh = () => {
     for (const r of rows) {
@@ -3927,13 +4020,13 @@ var createButtonCursor = (rows) => {
   const reveal = () => {
     if (visible) return false;
     visible = true;
-    row = 0;
-    col = 0;
+    row = opts.startRow ?? 0;
+    col = opts.startCol ?? 0;
     refresh();
     return true;
   };
   const move = (dRow, dCol) => {
-    if (reveal()) return;
+    if (reveal() && opts.moveOnReveal !== true) return;
     row = clamp(row + dRow, 0, rows.length - 1);
     const r = rows[row];
     if (r !== void 0) col = clamp(col + dCol, 0, r.length - 1);
@@ -4460,14 +4553,15 @@ var renderInferenceLine = (ruleId, ghost = false) => {
   container.appendChild(label);
   return container;
 };
-var renderDerivation = (derivation, activePath2, gaze = null, currentPath = [], ghostPath = null) => {
+var renderDerivation = (derivation, activePath2, gaze = null, currentPath = [], ghostPath = null, start = null) => {
   const isGhostBoundary = ghostPath !== null && equalPaths(currentPath, ghostPath);
   const isGhostNode = ghostPath !== null && currentPath.length > ghostPath.length && startsWith(currentPath, ghostPath);
   const isActive = equalPaths(currentPath, activePath2) || isGhostBoundary;
   const isOpenActive = isActive && derivation.kind === "premise" && !isGhostBoundary;
   const isClosedActive = isActive && derivation.kind === "transformation" && !isGhostBoundary;
+  const isFrozen2 = start !== null && subDerivation(start, currentPath)?.kind === "transformation";
   const node = document.createElement("div");
-  const cls = "tree-node" + (isOpenActive ? " tree-active" : "") + (isClosedActive ? " tree-closed-active" : "") + (isGhostBoundary ? " tree-active" : "") + (isGhostNode ? " ghost-node" : "");
+  const cls = "tree-node" + (isOpenActive ? " tree-active" : "") + (isClosedActive ? " tree-closed-active" : "") + (isGhostBoundary ? " tree-active" : "") + (isGhostNode ? " ghost-node" : "") + (isFrozen2 ? " tree-frozen" : "");
   node.setAttribute("class", cls);
   let leafDepth = 0;
   if (derivation.kind === "transformation") {
@@ -4485,7 +4579,8 @@ var renderDerivation = (derivation, activePath2, gaze = null, currentPath = [], 
         activePath2,
         gaze,
         [...currentPath, i88],
-        ghostPath
+        ghostPath,
+        start
       );
       const childDepth = Number(child.dataset["leafDepth"] ?? "0");
       if (childDepth > maxChildDepth) maxChildDepth = childDepth;
@@ -4645,7 +4740,6 @@ var qwertyKeyMap = {
   Backquote: "level",
   KeyW: "prevBranch",
   KeyO: "nextBranch",
-  KeyY: "reset",
   KeyA: "leftRotateLeft",
   KeyS: "leftWeakening",
   KeyF: "leftConnective",
@@ -5060,7 +5154,14 @@ var createPlayArea = (workspace, ctx) => {
       ghostPath = path;
     }
   }
-  const tree2 = renderDerivation(derivation, path, gaze, [], ghostPath);
+  const tree2 = renderDerivation(
+    derivation,
+    path,
+    gaze,
+    [],
+    ghostPath,
+    workspace.currentStart() ?? null
+  );
   const isFresh = focus2.derivation.kind === "premise";
   tree2.style.visibility = "hidden";
   panel.appendChild(tree2);
@@ -5247,7 +5348,7 @@ var formatHudCounts = (counts) => {
   const total = order.reduce((sum, cat) => sum + counts[cat], 0);
   return `<b>${total}</b>`;
 };
-var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onApplyReverse1, hideLemma, ctx = defaultCtx, onSkip) => {
+var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onApplyReverse1, hideLemma, ctx = defaultCtx, onSkip, hideGaze, hideRulesButton) => {
   const ls = workspace.applicableRules();
   const rules3 = workspace.availableRules();
   const solved = workspace.isSolved();
@@ -5372,7 +5473,7 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
   topbar.appendChild(topbarCenter);
   const topbarRight = document.createElement("div");
   topbarRight.setAttribute("class", "bench-topbar-right");
-  if (!solved) {
+  if (!solved && hideRulesButton !== true) {
     topbarRight.appendChild(rulesBtn);
   }
   topbar.appendChild(topbarRight);
@@ -5570,9 +5671,9 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
     congrats.buttons.setAttribute("class", "congrabuttons controls-group");
     controlsBar.appendChild(congrats.buttons);
   } else {
-    if (hideLemma !== true) controlsBar.appendChild(miscGroup);
+    if (onSkip !== void 0) controlsBar.appendChild(miscGroup);
     controlsBar.appendChild(navGroup);
-    controlsBar.appendChild(gazeGroup);
+    if (hideGaze !== true) controlsBar.appendChild(gazeGroup);
   }
   panel.appendChild(controlsBar);
   if (!solved && pinned.length > 0) {
@@ -5612,7 +5713,7 @@ var autoRule = (workspace, rules3) => {
   if (!first) return;
   workspace.applyEvent(reverse02(first));
 };
-var createPausePopup = (onResume, onExit, onReset, resetDisabled, onSettings, onCustom) => {
+var createPausePopup = (onResume, onExit, onSettings, onCustom) => {
   const shroud = document.createElement("div");
   shroud.setAttribute("class", "shroud pause-shroud");
   shroud.onclick = (ev) => {
@@ -5645,21 +5746,16 @@ var createPausePopup = (onResume, onExit, onReset, resetDisabled, onSettings, on
   const spacer = document.createElement("div");
   spacer.setAttribute("class", "pause-buttons-spacer");
   buttons.appendChild(spacer);
-  addButton(
-    createButton(t("resetChallenge"), resetDisabled, onReset),
-    onReset,
-    () => !resetDisabled
-  );
   if (onCustom) {
     addButton(
-      createButton(t("customChallenge"), false, onCustom),
+      createButton(t("challengeSetup"), false, onCustom),
       onCustom,
       () => true
     );
   }
   if (onSettings) {
     addButton(
-      createButton(t("customChallenge"), false, onSettings),
+      createButton(t("challengeSetup"), false, onSettings),
       onSettings,
       () => true
     );
@@ -5683,7 +5779,10 @@ var RULE_APPLY_ACTIONS = /* @__PURE__ */ new Set([
   "rightConnective",
   "rightRotateLeft"
 ]);
-var createDispatch = (getWorkspace, rerender, navigate2, onSolved, onLevel, onMenu, onApplyReverse1, ctx = defaultCtx, onJustSolved) => (action) => {
+var createDispatch = (getWorkspace, rerender, navigate2, onSolved, onLevel, onMenu, onApplyReverse1, ctx = defaultCtx, onJustSolved, blockGaze) => (action) => {
+  if (blockGaze !== void 0 && blockGaze() && (action === "gazeLeft" || action === "gazeRight" || action === "gazeConnective" || action === "gazeWeakening")) {
+    return;
+  }
   if (action === "gazeLeft" || action === "gazeRight") {
     if (!ctx.isGazeModeActive()) {
       const workspace2 = getWorkspace();
@@ -5705,7 +5804,7 @@ var createDispatch = (getWorkspace, rerender, navigate2, onSolved, onLevel, onMe
     }
   } else if (action === "gazeConnective" || action === "gazeWeakening") {
     if (!ctx.isGazeModeActive()) return;
-  } else if (ctx.isGazeModeActive() && (RULE_APPLY_ACTIONS.has(action) || action === "reset")) {
+  } else if (ctx.isGazeModeActive() && RULE_APPLY_ACTIONS.has(action)) {
     ctx.setGazeModeActive(false);
   } else if (action === "undo" && ctx.isGazeModeActive()) {
     if (activePath(getWorkspace().currentConjecture()).length === 0) {
@@ -5727,11 +5826,6 @@ var createDispatch = (getWorkspace, rerender, navigate2, onSolved, onLevel, onMe
     return;
   }
   const workspace = getWorkspace();
-  if (action === "reset") {
-    workspace.applyEvent(reset2());
-    rerender();
-    return;
-  }
   if (workspace.isSolved()) {
     onSolved(action);
     return;
@@ -6229,15 +6323,15 @@ var createListing = (ws, onSelect) => {
   return shroud;
 };
 var createControls = (ws, _listingEl, rerender, showLevelButton, onLevel) => {
-  const canUndo = activePath(ws.currentConjecture()).length > 0;
-  const undoEnabled = canUndo || isGazeModeActive();
+  const canUndo2 = ws.canUndo();
+  const undoEnabled = canUndo2 || isGazeModeActive();
   const panel = document.createElement("div");
   panel.setAttribute("class", "controls");
   if (showLevelButton) {
     panel.appendChild(createButton(t("level"), false, onLevel));
   }
   const undoBtn = createButton(t("undo"), !undoEnabled, () => {
-    if (canUndo) {
+    if (canUndo2) {
       ws.applyEvent({ kind: "undo" });
     } else {
       setGazeModeActive(false);
@@ -6326,14 +6420,6 @@ var mountCampaign = (container, navigate2, session2) => {
     pausePopupOpen = false;
     navigate2("menu");
   };
-  const resetFromPopup = () => {
-    if (activePath(ws.currentConjecture()).length > 0) {
-      ws.applyEvent(reset2());
-    }
-    setGazeModeActive(false);
-    pausePopupOpen = false;
-    rerender();
-  };
   let formulaEditorOpen = false;
   let closeFormulaEditor = null;
   let tryUndoInEditor = null;
@@ -6399,14 +6485,7 @@ var mountCampaign = (container, navigate2, session2) => {
     );
     if (pausePopupOpen) {
       if (!pausePopup) {
-        const canReset = activePath(ws.currentConjecture()).length > 0;
-        const resetEnabled = canReset || isGazeModeActive();
-        pausePopup = createPausePopup(
-          closePausePopup,
-          exitToMenu,
-          resetFromPopup,
-          !resetEnabled
-        );
+        pausePopup = createPausePopup(closePausePopup, exitToMenu);
       }
       container.appendChild(pausePopup.el);
     } else {
@@ -6451,10 +6530,6 @@ var mountCampaign = (container, navigate2, session2) => {
     }
     if (action === "exit") {
       if (pausePopupOpen) exitToMenu();
-      return;
-    }
-    if (action === "reset" && pausePopupOpen) {
-      resetFromPopup();
       return;
     }
     if (action === "undo" && pausePopupOpen) {
@@ -6527,12 +6602,12 @@ var mountCampaign = (container, navigate2, session2) => {
 // src/web/random.ts
 var createControls2 = (getWorkspace, rerender) => {
   const ws = getWorkspace();
-  const canUndo = activePath(ws.currentConjecture()).length > 0;
-  const undoEnabled = canUndo || isGazeModeActive();
+  const canUndo2 = ws.canUndo();
+  const undoEnabled = canUndo2 || isGazeModeActive();
   const panel = document.createElement("div");
   panel.setAttribute("class", "controls");
   const undoBtn = createButton(t("undo"), !undoEnabled, () => {
-    if (canUndo) {
+    if (canUndo2) {
       ws.applyEvent({ kind: "undo" });
     } else {
       setGazeModeActive(false);
@@ -6543,7 +6618,7 @@ var createControls2 = (getWorkspace, rerender) => {
   panel.appendChild(undoBtn);
   return panel;
 };
-var createCongrats2 = (onNew, onSettings) => {
+var createCongrats2 = (onRetry, onNew, onSettings) => {
   const hurray = document.createElement("div");
   hurray.setAttribute("class", "hurray");
   hurray.innerHTML = t("congratulations");
@@ -6555,7 +6630,8 @@ var createCongrats2 = (onNew, onSettings) => {
     buttons.appendChild(el);
     cells.push({ btn: el, activate });
   };
-  addButton(t("customChallenge"), onSettings);
+  addButton(t("challengeSetup"), onSettings);
+  addButton(t("playAgain"), onRetry);
   addButton(t("newChallenge"), onNew);
   const cursor = createButtonCursor([cells]);
   return {
@@ -6592,13 +6668,9 @@ var mountRandom = (container, navigate2, session2, onNewChallenge) => {
     pausePopupOpen = false;
     navigate2("random-config");
   };
-  const resetFromPopup = () => {
-    const ws = getWorkspace();
-    if (activePath(ws.currentConjecture()).length > 0) {
-      ws.applyEvent(reset2());
-    }
+  const onRetry = () => {
+    getWorkspace().applyEvent(reset2());
     setGazeModeActive(false);
-    pausePopupOpen = false;
     rerender();
   };
   const freshFromPopup = () => {
@@ -6646,7 +6718,7 @@ var mountRandom = (container, navigate2, session2, onNewChallenge) => {
     container.innerHTML = "";
     const controlsEl = createControls2(getWorkspace, rerender);
     const makeCongrats = () => {
-      const c = createCongrats2(onNew, openSettings);
+      const c = createCongrats2(onRetry, onNew, openSettings);
       congrats = c;
       return c;
     };
@@ -6665,15 +6737,7 @@ var mountRandom = (container, navigate2, session2, onNewChallenge) => {
     );
     if (pausePopupOpen) {
       if (!pausePopup) {
-        const canReset = activePath(ws.currentConjecture()).length > 0;
-        const resetEnabled = canReset || isGazeModeActive();
-        pausePopup = createPausePopup(
-          closePausePopup,
-          exitToMenu,
-          resetFromPopup,
-          !resetEnabled,
-          openSettings
-        );
+        pausePopup = createPausePopup(closePausePopup, exitToMenu, openSettings);
       }
       container.appendChild(pausePopup.el);
     } else {
@@ -6716,10 +6780,6 @@ var mountRandom = (container, navigate2, session2, onNewChallenge) => {
     }
     if (action === "exit") {
       if (pausePopupOpen) exitToMenu();
-      return;
-    }
-    if (action === "reset" && pausePopupOpen) {
-      resetFromPopup();
       return;
     }
     if (action === "undo" && pausePopupOpen) {
@@ -6948,6 +7008,11 @@ var mountSecret = (container, navigate2) => {
     systemsBtn.innerHTML = t("systems");
     systemsBtn.onclick = () => navigate2("system");
     modes.appendChild(systemsBtn);
+    const tutorialBtn = document.createElement("div");
+    tutorialBtn.setAttribute("class", "button menu-mode");
+    tutorialBtn.innerHTML = t("tutorial");
+    tutorialBtn.onclick = () => navigate2("tutorial");
+    modes.appendChild(tutorialBtn);
     panel.appendChild(modes);
     const backBtn = document.createElement("div");
     backBtn.setAttribute("class", "button menu-mode");
@@ -7251,980 +7316,6 @@ var createNpcDriver = (opts) => {
       cancelSolverIfPlanning();
       solver.cleanup();
     }
-  };
-};
-
-// src/web/versus.ts
-var formatTime = (s) => {
-  const m = Math.floor(s / 60);
-  const sec = s % 60;
-  return `${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
-};
-var totalMoves = (ws) => {
-  const counts = countRuleUsage(ws.currentConjecture().derivation);
-  return Object.values(counts).reduce((a87, b) => a87 + b, 0);
-};
-var makeVersusFormulaEditor = (side, onFormula, onCancel) => {
-  let modalEl = null;
-  const close = () => {
-    modalEl?.remove();
-    modalEl = null;
-    onCancel();
-  };
-  const { el, tryUndo, onAction } = createFormulaEditor(
-    t("lemmaTitle"),
-    t("lemmaConfirm"),
-    (formula) => {
-      modalEl?.remove();
-      modalEl = null;
-      onFormula(formula);
-    },
-    close
-  );
-  modalEl = el;
-  if (side === "left") {
-    el.style.right = "calc(50% + 2.5em)";
-  } else {
-    el.style.left = "calc(50% + 2.5em)";
-  }
-  document.body.appendChild(el);
-  return { close, tryUndo, onAction };
-};
-var mountVersus = (container, navigate2, pool2, versusConfig) => {
-  container.innerHTML = "";
-  const root = document.createElement("div");
-  container.appendChild(root);
-  const sharedChallenges = [];
-  const ensureChallenge = (i88) => {
-    while (sharedChallenges.length <= i88 + 2) sharedChallenges.push(pool2.take());
-  };
-  ensureChallenge(0);
-  let wsIdx1 = 0;
-  let index1 = 1;
-  let score1 = 0;
-  const resolved1 = /* @__PURE__ */ new Map();
-  const levelPoints1 = /* @__PURE__ */ new Map();
-  const skipSynthetic1 = /* @__PURE__ */ new Map();
-  let pending1 = [];
-  let scoreCommitted1 = false;
-  let wsIdx2 = 0;
-  let index2 = 1;
-  let score2 = 0;
-  const resolved2 = /* @__PURE__ */ new Map();
-  const levelPoints2 = /* @__PURE__ */ new Map();
-  const skipSynthetic2 = /* @__PURE__ */ new Map();
-  let pending2 = [];
-  let scoreCommitted2 = false;
-  const currentChallengeIdx1 = () => wsIdx1;
-  const currentChallengeIdx2 = () => wsIdx2;
-  const makeWorkspace = (i88) => {
-    ensureChallenge(i88);
-    const item = sharedChallenges[i88];
-    if (item === void 0)
-      throw new Error("no challenge at index " + String(i88));
-    return new Workspace({ challenge: item.challenge });
-  };
-  const advancePlayer1 = () => {
-    scoreCommitted1 = false;
-    const [next1, ...rest1] = pending1;
-    if (next1 !== void 0) {
-      wsIdx1 = next1;
-      pending1 = rest1;
-    } else {
-      wsIdx1 = index1;
-      index1 += 1;
-    }
-    ws1 = makeWorkspace(wsIdx1);
-  };
-  const advancePlayer2 = () => {
-    scoreCommitted2 = false;
-    const [next2, ...rest2] = pending2;
-    if (next2 !== void 0) {
-      wsIdx2 = next2;
-      pending2 = rest2;
-    } else {
-      wsIdx2 = index2;
-      index2 += 1;
-    }
-    ws2 = makeWorkspace(wsIdx2);
-  };
-  let ws1 = makeWorkspace(0);
-  let ws2 = makeWorkspace(0);
-  const makeCtx = (input) => {
-    const base = createBenchCtx(input !== "keyboard", true, false, false, 1);
-    if (input !== "mouse") return base;
-    return { ...base, getActionHint: () => void 0 };
-  };
-  const ctx1 = makeCtx(versusConfig.p1Input);
-  const ctx2 = makeCtx(versusConfig.p2Input);
-  let timeLeft = versusConfig.gameDurationSeconds;
-  let gameOver = false;
-  let paused = false;
-  let pauseMenu = null;
-  let resultScreen = null;
-  let timerEl = null;
-  let closeEditor1 = null;
-  let tryUndoEditor1 = null;
-  let onActionEditor1 = null;
-  let closeEditor2 = null;
-  let tryUndoEditor2 = null;
-  let onActionEditor2 = null;
-  const isNpc1 = versusConfig.p1Input === "npc";
-  const isNpc2 = versusConfig.p2Input === "npc";
-  const hideControls1 = versusConfig.p1Input !== "mouse" && !isNpc1;
-  const hideControls2 = versusConfig.p2Input !== "mouse" && !isNpc2;
-  let half1El = null;
-  let half2El = null;
-  let thermoEl = null;
-  const makeUndoControls = (ws, ctx, refresh) => {
-    const el = document.createElement("div");
-    el.setAttribute("class", "controls");
-    const canUndo = activePath(ws.currentConjecture()).length > 0;
-    const enabled = canUndo || ctx.isGazeModeActive();
-    const undoBtn = createButton(t("undo"), !enabled, () => {
-      if (canUndo) {
-        ws.applyEvent(undo2());
-      } else {
-        ctx.setGazeModeActive(false);
-      }
-      refresh();
-    });
-    undoBtn.classList.add("mutating");
-    el.appendChild(undoBtn);
-    return el;
-  };
-  const buildHalf1 = () => {
-    const half2 = document.createElement("div");
-    half2.setAttribute(
-      "class",
-      "versus-half" + (isNpc1 ? " versus-half-npc" : "") + (hideControls1 ? " versus-half-keys" : "")
-    );
-    half2.appendChild(
-      createBench(
-        ws1,
-        makeCongratsP1,
-        isNpc1 ? document.createElement("div") : makeUndoControls(ws1, ctx1, refreshP1),
-        refreshP1,
-        void 0,
-        onApplyReverse1,
-        void 0,
-        ctx1,
-        isNpc1 ? void 0 : skipPlayer1
-      )
-    );
-    return half2;
-  };
-  const buildHalf2 = () => {
-    const half2 = document.createElement("div");
-    half2.setAttribute(
-      "class",
-      "versus-half" + (isNpc2 ? " versus-half-npc" : "") + (hideControls2 ? " versus-half-keys" : "")
-    );
-    half2.appendChild(
-      createBench(
-        ws2,
-        makeCongratsP2,
-        isNpc2 ? document.createElement("div") : makeUndoControls(ws2, ctx2, refreshP2),
-        refreshP2,
-        void 0,
-        onApplyReverse2,
-        void 0,
-        ctx2,
-        isNpc2 ? void 0 : skipPlayer2
-      )
-    );
-    return half2;
-  };
-  const buildThermo = () => {
-    const thermo = document.createElement("div");
-    thermo.setAttribute("class", "versus-thermo");
-    const clock = document.createElement("div");
-    clock.setAttribute("class", "versus-thermo-clock");
-    clock.textContent = formatTime(timeLeft);
-    timerEl = clock;
-    thermo.appendChild(clock);
-    const thermoRows = document.createElement("div");
-    thermoRows.setAttribute("class", "versus-thermo-rows");
-    const ci1 = currentChallengeIdx1();
-    const ci2 = currentChallengeIdx2();
-    const allKeys = [
-      ci1,
-      ci2,
-      ...Array.from(resolved1.keys()),
-      ...Array.from(resolved2.keys())
-    ];
-    const maxIdx = Math.max(...allKeys);
-    const currentMoves1 = totalMoves(ws1);
-    const currentMoves2 = totalMoves(ws2);
-    const displayEntry = (resolved, ci, i88) => {
-      if (i88 !== ci) return resolved.get(i88);
-      const entry = resolved.get(ci);
-      return typeof entry === "number" ? entry : "current";
-    };
-    const entryMoves = (e, cur, synthetic) => {
-      if (e === void 0) return "";
-      if (e === "current") return String(cur);
-      if (e === "skip")
-        return synthetic !== void 0 ? `(${String(synthetic)})` : "\u2013";
-      return String(e);
-    };
-    const entryPts = (e, pts) => {
-      if (e === void 0 || e === "current" || e === "skip") return "";
-      const bonus = (pts ?? 1) - 1;
-      return bonus > 0 ? `+${String(bonus)}` : "";
-    };
-    const makeCell = (entry, cur, pts, synthetic, playerClass) => {
-      const cell2 = document.createElement("div");
-      cell2.setAttribute(
-        "class",
-        `versus-thermo-cell ${playerClass}${entry === "current" ? " current" : ""}`
-      );
-      const movesEl = document.createElement("div");
-      movesEl.setAttribute("class", "versus-thermo-moves");
-      movesEl.textContent = entryMoves(entry, cur, synthetic);
-      const ptsEl = document.createElement("div");
-      ptsEl.setAttribute("class", "versus-thermo-points");
-      ptsEl.textContent = entryPts(entry, pts);
-      cell2.appendChild(movesEl);
-      cell2.appendChild(ptsEl);
-      return cell2;
-    };
-    for (let i88 = maxIdx; i88 >= 0; i88 -= 1) {
-      const row = document.createElement("div");
-      row.setAttribute("class", "versus-thermo-row");
-      row.appendChild(
-        makeCell(
-          displayEntry(resolved1, ci1, i88),
-          currentMoves1,
-          levelPoints1.get(i88),
-          skipSynthetic1.get(i88),
-          "p1"
-        )
-      );
-      row.appendChild(
-        makeCell(
-          displayEntry(resolved2, ci2, i88),
-          currentMoves2,
-          levelPoints2.get(i88),
-          skipSynthetic2.get(i88),
-          "p2"
-        )
-      );
-      thermoRows.appendChild(row);
-    }
-    const thermoTotal = document.createElement("div");
-    thermoTotal.setAttribute("class", "versus-thermo-total");
-    const totalCell1 = document.createElement("div");
-    totalCell1.setAttribute("class", "versus-thermo-cell p1 total");
-    totalCell1.textContent = String(score1);
-    const totalCell2 = document.createElement("div");
-    totalCell2.setAttribute("class", "versus-thermo-cell p2 total");
-    totalCell2.textContent = String(score2);
-    thermoTotal.appendChild(totalCell1);
-    thermoTotal.appendChild(totalCell2);
-    thermo.appendChild(thermoTotal);
-    thermo.appendChild(thermoRows);
-    const menuBtn = createButton("\u22EE", false, () => setPaused(true));
-    menuBtn.classList.add("versus-menu-btn");
-    menuBtn.setAttribute("aria-label", t("menu"));
-    thermo.appendChild(menuBtn);
-    return thermo;
-  };
-  const setPaused = (v2) => {
-    paused = v2;
-    rerender();
-  };
-  const buildPauseMenu = () => {
-    const shroud = document.createElement("div");
-    shroud.setAttribute("class", "shroud pause-shroud");
-    shroud.onclick = (ev) => {
-      if (ev.target === shroud) {
-        ev.preventDefault();
-        setPaused(false);
-      }
-    };
-    const panel = document.createElement("div");
-    panel.setAttribute("class", "pause-popup");
-    panel.onclick = (ev) => {
-      ev.stopPropagation();
-    };
-    const title = document.createElement("div");
-    title.setAttribute("class", "pause-title");
-    title.textContent = t("paused");
-    panel.appendChild(title);
-    const buttons = document.createElement("div");
-    buttons.setAttribute("class", "pause-buttons");
-    const cells = [];
-    const addButton = (label, activate) => {
-      const el = createButton(label, false, activate);
-      buttons.appendChild(el);
-      cells.push({ btn: el, activate });
-    };
-    addButton(t("resumeGame"), () => setPaused(false));
-    addButton(t("playAgain"), () => navigate2("versus"));
-    addButton(t("settings"), () => navigate2("versus-config"));
-    addButton(t("exitToMainMenu"), () => navigate2("menu"));
-    panel.appendChild(buttons);
-    shroud.appendChild(panel);
-    shroud.appendChild(createLangSwitcher());
-    const cursor = createButtonCursor(cells.map((c) => [c]));
-    return { el: shroud, onAction: cursor.onAction };
-  };
-  const rerender = () => {
-    if (ws1.isSolved()) commitScore1();
-    if (ws2.isSolved()) commitScore2();
-    root.innerHTML = "";
-    timerEl = null;
-    const screen = document.createElement("div");
-    screen.setAttribute("class", "versus-screen");
-    const arena = document.createElement("div");
-    arena.setAttribute("class", "versus-arena");
-    half1El = buildHalf1();
-    half2El = buildHalf2();
-    thermoEl = buildThermo();
-    arena.appendChild(half1El);
-    arena.appendChild(thermoEl);
-    arena.appendChild(half2El);
-    screen.appendChild(arena);
-    root.appendChild(screen);
-    if (gameOver) {
-      if (!resultScreen) resultScreen = buildResultScreen();
-      root.appendChild(resultScreen.el);
-    } else if (paused) {
-      if (!pauseMenu) pauseMenu = buildPauseMenu();
-      root.appendChild(pauseMenu.el);
-    } else {
-      pauseMenu = null;
-    }
-  };
-  const breakdownEntry = (resolved, ci, i88) => {
-    if (i88 !== ci) return resolved.get(i88);
-    const entry = resolved.get(ci);
-    return typeof entry === "number" ? entry : "current";
-  };
-  const sideCells = (entry, currentMoves, levelPoints, synthetic) => {
-    if (entry === void 0)
-      return { moves: "", done: "", bonus: "", points: "" };
-    if (entry === "current")
-      return { moves: String(currentMoves), done: "\u2026", bonus: "", points: "" };
-    if (entry === "skip")
-      return {
-        moves: synthetic !== void 0 ? String(synthetic) : "",
-        done: "\u2298",
-        bonus: "\u2014",
-        points: "0"
-      };
-    const pts = levelPoints ?? 1;
-    const bonus = pts - 1;
-    return {
-      moves: String(entry),
-      done: "\u2713",
-      bonus: bonus > 0 ? `+${String(bonus)}` : "\u2014",
-      points: String(pts)
-    };
-  };
-  const cell = (cls, label, value) => {
-    const el = document.createElement("div");
-    el.setAttribute("class", `vb-cell ${cls}`);
-    const lab = document.createElement("div");
-    lab.setAttribute("class", "vb-cell-label");
-    lab.textContent = label;
-    const val = document.createElement("div");
-    val.setAttribute("class", "vb-cell-value");
-    val.textContent = value;
-    el.appendChild(lab);
-    el.appendChild(val);
-    return el;
-  };
-  const par = (i88) => {
-    const solution87 = sharedChallenges[i88]?.challenge.solution;
-    if (solution87 === void 0) return "\u{1F480}";
-    const counts = countRuleUsage(solution87);
-    return String(Object.values(counts).reduce((a87, b) => a87 + b, 0));
-  };
-  const buildResultScreen = () => {
-    const ci1 = currentChallengeIdx1();
-    const ci2 = currentChallengeIdx2();
-    const maxIdx = Math.max(
-      ci1,
-      ci2,
-      ...Array.from(resolved1.keys()),
-      ...Array.from(resolved2.keys())
-    );
-    const moves1 = totalMoves(ws1);
-    const moves2 = totalMoves(ws2);
-    const overlay = document.createElement("div");
-    overlay.setAttribute("class", "versus-result");
-    const title = document.createElement("div");
-    title.setAttribute("class", "versus-breakdown-title");
-    title.textContent = score1 > score2 ? t("winsTemplate").replace("{player}", t("player1")) : score2 > score1 ? t("winsTemplate").replace("{player}", t("player2")) : t("tie");
-    overlay.appendChild(title);
-    const grid = document.createElement("div");
-    grid.setAttribute("class", "versus-breakdown-grid");
-    const header = document.createElement("div");
-    header.setAttribute("class", "vb-level vb-header");
-    const p1Name = document.createElement("div");
-    p1Name.setAttribute("class", "vb-title-name p1");
-    p1Name.textContent = t("player1");
-    const p1Score = document.createElement("div");
-    p1Score.setAttribute("class", "vb-title-score-cell p1");
-    p1Score.innerHTML = `<span class="vb-title-score">${String(score1)}</span>`;
-    const spacer = document.createElement("div");
-    spacer.setAttribute("class", "vb-title-spacer");
-    const p2Score = document.createElement("div");
-    p2Score.setAttribute("class", "vb-title-score-cell p2");
-    p2Score.innerHTML = `<span class="vb-title-score">${String(score2)}</span>`;
-    const p2Name = document.createElement("div");
-    p2Name.setAttribute("class", "vb-title-name p2");
-    p2Name.textContent = t("player2");
-    header.appendChild(p1Name);
-    header.appendChild(p1Score);
-    header.appendChild(spacer);
-    header.appendChild(p2Score);
-    header.appendChild(p2Name);
-    grid.appendChild(header);
-    const sub = document.createElement("div");
-    sub.setAttribute("class", "vb-level vb-subhead");
-    const subCols = [
-      t("moves"),
-      t("done"),
-      t("bonus"),
-      t("points"),
-      t("par"),
-      t("goal"),
-      t("points"),
-      t("bonus"),
-      t("done"),
-      t("moves")
-    ];
-    subCols.forEach((label, idx) => {
-      const c = document.createElement("div");
-      c.setAttribute(
-        "class",
-        "vb-cell vb-subcell" + (idx === 4 || idx === 6 ? " vb-sec-start" : "")
-      );
-      c.textContent = label;
-      sub.appendChild(c);
-    });
-    grid.appendChild(sub);
-    for (let i88 = 0; i88 <= maxIdx; i88 += 1) {
-      const e1 = breakdownEntry(resolved1, ci1, i88);
-      const e2 = breakdownEntry(resolved2, ci2, i88);
-      const s1 = sideCells(
-        e1,
-        moves1,
-        levelPoints1.get(i88),
-        skipSynthetic1.get(i88)
-      );
-      const s2 = sideCells(
-        e2,
-        moves2,
-        levelPoints2.get(i88),
-        skipSynthetic2.get(i88)
-      );
-      const row = document.createElement("div");
-      row.setAttribute("class", "vb-level");
-      row.appendChild(cell("p1 num", t("moves"), s1.moves));
-      row.appendChild(cell("p1 num", t("done"), s1.done));
-      row.appendChild(cell("p1 num", t("bonus"), s1.bonus));
-      row.appendChild(cell("p1 num pts", t("points"), s1.points));
-      const parCell = cell("vb-sec-start num", t("par"), par(i88));
-      row.appendChild(parCell);
-      const goalCell = document.createElement("div");
-      goalCell.setAttribute("class", "vb-cell vb-goal");
-      const goalLab = document.createElement("div");
-      goalLab.setAttribute("class", "vb-cell-label");
-      goalLab.textContent = t("goal");
-      const goalVal = document.createElement("div");
-      goalVal.setAttribute("class", "vb-cell-value");
-      const seq = sharedChallenges[i88]?.challenge.goal;
-      if (seq !== void 0) goalVal.innerHTML = html(fromSequent(seq)(basic));
-      goalCell.appendChild(goalLab);
-      goalCell.appendChild(goalVal);
-      row.appendChild(goalCell);
-      row.appendChild(cell("p2 num pts vb-sec-start", t("points"), s2.points));
-      row.appendChild(cell("p2 num", t("bonus"), s2.bonus));
-      row.appendChild(cell("p2 num", t("done"), s2.done));
-      row.appendChild(cell("p2 num", t("moves"), s2.moves));
-      grid.appendChild(row);
-    }
-    overlay.appendChild(grid);
-    const actions = document.createElement("div");
-    actions.setAttribute("class", "versus-breakdown-actions");
-    const cells = [];
-    const addButton = (label, activate) => {
-      const el = createButton(label, false, activate);
-      actions.appendChild(el);
-      cells.push({ btn: el, activate });
-    };
-    addButton(t("settings"), () => navigate2("versus-config"));
-    addButton(t("playAgain"), () => navigate2("versus"));
-    overlay.appendChild(actions);
-    const cursor = createButtonCursor([cells]);
-    return { el: overlay, onAction: cursor.onAction };
-  };
-  const commitScore1 = () => {
-    if (scoreCommitted1) return;
-    scoreCommitted1 = true;
-    const challengeIdx = currentChallengeIdx1();
-    const moves1 = totalMoves(ws1);
-    const isRetry = resolved1.get(challengeIdx) === "skip";
-    resolved1.set(challengeIdx, moves1);
-    score1 += 1;
-    levelPoints1.set(challengeIdx, 1);
-    if (isRetry) {
-      const p2Moves = resolved2.get(challengeIdx);
-      if (typeof p2Moves === "number") {
-        skipSynthetic1.delete(challengeIdx);
-        const diff = moves1 - p2Moves;
-        const bonus = Math.abs(diff);
-        if (moves1 < p2Moves) {
-          score1 += bonus;
-          levelPoints1.set(challengeIdx, 1 + bonus);
-        } else if (p2Moves < moves1) {
-          score2 += bonus;
-          levelPoints2.set(
-            challengeIdx,
-            (levelPoints2.get(challengeIdx) ?? 1) + bonus
-          );
-        }
-      }
-    } else {
-      const p2Entry = resolved2.get(challengeIdx);
-      if (typeof p2Entry === "number") {
-        const diff = moves1 - p2Entry;
-        const bonus = Math.abs(diff);
-        if (moves1 < p2Entry) {
-          score1 += bonus;
-          levelPoints1.set(challengeIdx, 1 + bonus);
-        } else if (p2Entry < moves1) {
-          score2 += bonus;
-          levelPoints2.set(
-            challengeIdx,
-            (levelPoints2.get(challengeIdx) ?? 1) + bonus
-          );
-        }
-      } else if (p2Entry === "skip") {
-        pending2 = [...pending2, challengeIdx];
-      }
-    }
-  };
-  const solvePlayer1 = () => {
-    commitScore1();
-    advancePlayer1();
-    rerenderHalf1();
-    rebuildThermo();
-  };
-  const commitScore2 = () => {
-    if (scoreCommitted2) return;
-    scoreCommitted2 = true;
-    const challengeIdx = currentChallengeIdx2();
-    const moves2 = totalMoves(ws2);
-    const isRetry = resolved2.get(challengeIdx) === "skip";
-    resolved2.set(challengeIdx, moves2);
-    score2 += 1;
-    levelPoints2.set(challengeIdx, 1);
-    if (isRetry) {
-      const p1Moves = resolved1.get(challengeIdx);
-      if (typeof p1Moves === "number") {
-        skipSynthetic2.delete(challengeIdx);
-        const diff = moves2 - p1Moves;
-        const bonus = Math.abs(diff);
-        if (moves2 < p1Moves) {
-          score2 += bonus;
-          levelPoints2.set(challengeIdx, 1 + bonus);
-        } else if (p1Moves < moves2) {
-          score1 += bonus;
-          levelPoints1.set(
-            challengeIdx,
-            (levelPoints1.get(challengeIdx) ?? 1) + bonus
-          );
-        }
-      }
-    } else {
-      const p1Entry = resolved1.get(challengeIdx);
-      if (typeof p1Entry === "number") {
-        const diff = moves2 - p1Entry;
-        const bonus = Math.abs(diff);
-        if (moves2 < p1Entry) {
-          score2 += bonus;
-          levelPoints2.set(challengeIdx, 1 + bonus);
-        } else if (p1Entry < moves2) {
-          score1 += bonus;
-          levelPoints1.set(
-            challengeIdx,
-            (levelPoints1.get(challengeIdx) ?? 1) + bonus
-          );
-        }
-      } else if (p1Entry === "skip") {
-        pending1 = [...pending1, challengeIdx];
-      }
-    }
-  };
-  const solvePlayer2 = () => {
-    commitScore2();
-    advancePlayer2();
-    rerenderHalf2();
-    rebuildThermo();
-  };
-  const skipPlayer1 = () => {
-    if (gameOver) return;
-    const challengeIdx = wsIdx1;
-    resolved1.set(challengeIdx, "skip");
-    const p2Entry = resolved2.get(challengeIdx);
-    if (typeof p2Entry === "number") {
-      const synthetic = 2 * p2Entry;
-      skipSynthetic1.set(challengeIdx, synthetic);
-      const bonus = p2Entry;
-      score2 += bonus;
-      levelPoints2.set(
-        challengeIdx,
-        (levelPoints2.get(challengeIdx) ?? 1) + bonus
-      );
-    }
-    advancePlayer1();
-    rerenderHalf1();
-    rebuildThermo();
-  };
-  const skipPlayer2 = () => {
-    if (gameOver) return;
-    const challengeIdx = wsIdx2;
-    resolved2.set(challengeIdx, "skip");
-    const p1Entry = resolved1.get(challengeIdx);
-    if (typeof p1Entry === "number") {
-      const synthetic = 2 * p1Entry;
-      skipSynthetic2.set(challengeIdx, synthetic);
-      const bonus = p1Entry;
-      score1 += bonus;
-      levelPoints1.set(
-        challengeIdx,
-        (levelPoints1.get(challengeIdx) ?? 1) + bonus
-      );
-    }
-    advancePlayer2();
-    rerenderHalf2();
-    rebuildThermo();
-  };
-  const rerenderHalf1 = () => {
-    if (half1El === null) return;
-    const fresh = buildHalf1();
-    half1El.replaceWith(fresh);
-    half1El = fresh;
-  };
-  const rerenderHalf2 = () => {
-    if (half2El === null) return;
-    const fresh = buildHalf2();
-    half2El.replaceWith(fresh);
-    half2El = fresh;
-  };
-  const rebuildThermo = () => {
-    if (thermoEl === null) return;
-    const fresh = buildThermo();
-    thermoEl.replaceWith(fresh);
-    thermoEl = fresh;
-  };
-  const refreshP1 = () => {
-    if (ws1.isSolved()) commitScore1();
-    rerenderHalf1();
-    rebuildThermo();
-  };
-  const refreshP2 = () => {
-    if (ws2.isSolved()) commitScore2();
-    rerenderHalf2();
-    rebuildThermo();
-  };
-  const onSolved1 = (action) => {
-    if (gameOver) return;
-    if (action === "menu") {
-      navigate2("menu");
-      return;
-    }
-    if (action === "axiom") {
-      solvePlayer1();
-      return;
-    }
-    rerenderHalf1();
-  };
-  const onSolved2 = (action) => {
-    if (gameOver) return;
-    if (action === "menu") {
-      navigate2("menu");
-      return;
-    }
-    if (action === "axiom") {
-      solvePlayer2();
-      return;
-    }
-    rerenderHalf2();
-  };
-  const onApplyReverse1 = (_key, onFormula) => {
-    if (closeEditor1 !== null) return;
-    const ed1 = makeVersusFormulaEditor(
-      "left",
-      (formula) => {
-        closeEditor1 = null;
-        tryUndoEditor1 = null;
-        onActionEditor1 = null;
-        onFormula(formula);
-      },
-      () => {
-        closeEditor1 = null;
-        tryUndoEditor1 = null;
-        onActionEditor1 = null;
-      }
-    );
-    closeEditor1 = ed1.close;
-    tryUndoEditor1 = ed1.tryUndo;
-    onActionEditor1 = ed1.onAction;
-  };
-  const onApplyReverse2 = (_key, onFormula) => {
-    if (closeEditor2 !== null) return;
-    const ed2 = makeVersusFormulaEditor(
-      "right",
-      (formula) => {
-        closeEditor2 = null;
-        tryUndoEditor2 = null;
-        onActionEditor2 = null;
-        onFormula(formula);
-      },
-      () => {
-        closeEditor2 = null;
-        tryUndoEditor2 = null;
-        onActionEditor2 = null;
-      }
-    );
-    closeEditor2 = ed2.close;
-    tryUndoEditor2 = ed2.tryUndo;
-    onActionEditor2 = ed2.onAction;
-  };
-  const dispatch1 = createDispatch(
-    () => ws1,
-    refreshP1,
-    navigate2,
-    onSolved1,
-    void 0,
-    void 0,
-    onApplyReverse1,
-    ctx1
-  );
-  const dispatch2 = createDispatch(
-    () => ws2,
-    refreshP2,
-    navigate2,
-    onSolved2,
-    void 0,
-    void 0,
-    onApplyReverse2,
-    ctx2
-  );
-  const makeCongratsP1 = () => {
-    const hurray = document.createElement("div");
-    const buttons = document.createElement("div");
-    buttons.appendChild(
-      createButton(t("continue"), false, () => dispatch1("axiom"))
-    );
-    return { hurray, buttons };
-  };
-  const makeCongratsP2 = () => {
-    const hurray = document.createElement("div");
-    const buttons = document.createElement("div");
-    buttons.appendChild(
-      createButton(t("continue"), false, () => dispatch2("axiom"))
-    );
-    return { hurray, buttons };
-  };
-  const ticker = setInterval(() => {
-    if (gameOver || paused) return;
-    timeLeft -= 1;
-    if (timeLeft <= 0) {
-      timeLeft = 0;
-      gameOver = true;
-      clearInterval(ticker);
-      closeEditor1?.();
-      closeEditor2?.();
-      rerender();
-      return;
-    }
-    if (timerEl !== null) {
-      timerEl.textContent = formatTime(timeLeft);
-    }
-  }, 1e3);
-  const connectedGamepadIndices = () => Array.from(navigator.getGamepads()).flatMap(
-    (gp, i88) => gp !== null ? [i88] : []
-  );
-  const gpIndex = (input) => {
-    const indices = connectedGamepadIndices();
-    return input === "gamepad2" ? indices[1] ?? 1 : indices[0] ?? 0;
-  };
-  const handleEditorInput1 = (action) => {
-    if (closeEditor1 === null) return false;
-    if (action === "undo") {
-      if (!(tryUndoEditor1?.() ?? false)) closeEditor1();
-    } else if (action === "menu") {
-      closeEditor1();
-    } else {
-      onActionEditor1?.(action);
-    }
-    return true;
-  };
-  const handleEditorInput2 = (action) => {
-    if (closeEditor2 === null) return false;
-    if (action === "undo") {
-      if (!(tryUndoEditor2?.() ?? false)) closeEditor2();
-    } else if (action === "menu") {
-      closeEditor2();
-    } else {
-      onActionEditor2?.(action);
-    }
-    return true;
-  };
-  const handleResultAction = (action) => {
-    if (action === "lemma") navigate2("versus-config");
-    else if (action === "skip") navigate2("versus");
-    else resultScreen?.onAction(action);
-  };
-  const handleControlAction = (action) => {
-    if (gameOver) {
-      handleResultAction(action);
-      return;
-    }
-    if (paused) {
-      if (action === "menu" || action === "undo") setPaused(false);
-      else if (action === "skip") navigate2("versus");
-      else if (action === "exit") navigate2("menu");
-      else pauseMenu?.onAction(action);
-      return;
-    }
-    if (action !== "menu") return;
-    if (closeEditor1 !== null || closeEditor2 !== null) {
-      closeEditor1?.();
-      closeEditor2?.();
-    } else {
-      setPaused(true);
-    }
-  };
-  const handleKey = (ev) => {
-    if (ev.ctrlKey || ev.metaKey || ev.altKey || gameOver || paused) return;
-    const action = qwertyKeyMap[ev.code];
-    if (action === void 0 || action === "menu") return;
-    markKeyboardInput();
-    if (handleEditorInput1(action)) return;
-    if (action === "skip") {
-      skipPlayer1();
-      return;
-    }
-    dispatch1(action);
-  };
-  const handleKey2 = (ev) => {
-    if (ev.ctrlKey || ev.metaKey || ev.altKey || gameOver || paused) return;
-    const action = qwertyKeyMap[ev.code];
-    if (action === void 0 || action === "menu") return;
-    markKeyboardInput();
-    if (handleEditorInput2(action)) return;
-    if (action === "skip") {
-      skipPlayer2();
-      return;
-    }
-    dispatch2(action);
-  };
-  let cleanupP1;
-  if (versusConfig.p1Input === "keyboard") {
-    document.addEventListener("keydown", handleKey);
-    cleanupP1 = () => document.removeEventListener("keydown", handleKey);
-  } else if (versusConfig.p1Input === "mouse") {
-    cleanupP1 = () => {
-    };
-  } else if (versusConfig.p1Input === "npc") {
-    const driver = createNpcDriver({
-      getWorkspace: () => ws1,
-      getChallengeIdx: () => wsIdx1,
-      getTotalMoves: () => totalMoves(ws1),
-      applyEvent: (ev) => {
-        ws1.applyEvent(ev);
-        if (ws1.isSolved()) {
-          solvePlayer1();
-        } else {
-          refreshP1();
-        }
-      },
-      skip: skipPlayer1,
-      knobs: versusConfig.npc1Knobs,
-      isGameOver: () => gameOver,
-      isPaused: () => paused
-    });
-    cleanupP1 = driver.cleanup;
-  } else {
-    cleanupP1 = setupGamepad((action) => {
-      if (gameOver || paused || action === "menu") return;
-      if (handleEditorInput1(action)) return;
-      if (action === "skip") {
-        skipPlayer1();
-        return;
-      }
-      dispatch1(action);
-    }, gpIndex(versusConfig.p1Input));
-  }
-  let cleanupP2;
-  if (versusConfig.p2Input === "keyboard") {
-    document.addEventListener("keydown", handleKey2);
-    cleanupP2 = () => document.removeEventListener("keydown", handleKey2);
-  } else if (versusConfig.p2Input === "mouse") {
-    cleanupP2 = () => {
-    };
-  } else if (versusConfig.p2Input === "npc") {
-    const driver = createNpcDriver({
-      getWorkspace: () => ws2,
-      getChallengeIdx: () => wsIdx2,
-      getTotalMoves: () => totalMoves(ws2),
-      applyEvent: (ev) => {
-        ws2.applyEvent(ev);
-        if (ws2.isSolved()) {
-          solvePlayer2();
-        } else {
-          refreshP2();
-        }
-      },
-      skip: skipPlayer2,
-      knobs: versusConfig.npc2Knobs,
-      isGameOver: () => gameOver,
-      isPaused: () => paused
-    });
-    cleanupP2 = driver.cleanup;
-  } else {
-    cleanupP2 = setupGamepad((action) => {
-      if (gameOver || paused || action === "menu") return;
-      if (handleEditorInput2(action)) return;
-      if (action === "skip") {
-        skipPlayer2();
-        return;
-      }
-      dispatch2(action);
-    }, gpIndex(versusConfig.p2Input));
-  }
-  const handleControlKey = (ev) => {
-    if (ev.ctrlKey || ev.metaKey || ev.altKey) return;
-    const action = qwertyKeyMap[ev.code];
-    if (action !== void 0) handleControlAction(action);
-  };
-  document.addEventListener("keydown", handleControlKey);
-  const controlPadIndices = [.../* @__PURE__ */ new Set([0, ...connectedGamepadIndices()])];
-  const cleanupControlPads = controlPadIndices.map(
-    (idx) => setupGamepad((action) => handleControlAction(action), idx)
-  );
-  const unsubGamepad = subscribeGamepad(rerender);
-  rerender();
-  return {
-    cleanup: () => {
-      clearInterval(ticker);
-      cleanupP1();
-      cleanupP2();
-      document.removeEventListener("keydown", handleControlKey);
-      cleanupControlPads.forEach((c) => c());
-      unsubGamepad();
-      closeEditor1?.();
-      closeEditor2?.();
-    },
-    rerender
   };
 };
 
@@ -9069,6 +8160,58 @@ var mountVersusConfig = (container, _navigate, onStart) => {
   };
 };
 
+// src/model/closure.ts
+var sidedRules = (p) => fold(p, {
+  atom: () => ({ left: [], right: [] }),
+  falsum: () => ({ left: ["f"], right: [] }),
+  verum: () => ({ left: [], right: ["v"] }),
+  negation: (body) => ({
+    left: ["nl", ...body.right],
+    right: ["nr", ...body.left]
+  }),
+  implication: (antecedent, consequent) => ({
+    left: ["il", ...antecedent.right, ...consequent.left],
+    right: ["ir", ...antecedent.left, ...consequent.right]
+  }),
+  conjunction: (leftConjunct, rightConjunct) => ({
+    left: ["cl", ...leftConjunct.left, ...rightConjunct.left],
+    right: ["cr", ...leftConjunct.right, ...rightConjunct.right]
+  }),
+  disjunction: (leftDisjunct, rightDisjunct) => ({
+    left: ["dl", ...leftDisjunct.left, ...rightDisjunct.left],
+    right: ["dr", ...leftDisjunct.right, ...rightDisjunct.right]
+  })
+});
+var reachableRules = (s) => uniq2([
+  ...s.antecedent.flatMap((p) => sidedRules(p).left),
+  ...s.succedent.flatMap((p) => sidedRules(p).right)
+]);
+
+// src/model/presolve.ts
+var CLOSINGS = /* @__PURE__ */ new Set(["i", "f", "v"]);
+var NON_STRUCTURAL = /* @__PURE__ */ new Set([
+  "nl",
+  "nr",
+  "cl",
+  "cr",
+  "dl",
+  "dr",
+  "il",
+  "ir",
+  "cut"
+]);
+var pruneClosings = (d) => {
+  if (d.kind === "premise") return d;
+  if (CLOSINGS.has(d.rule)) return premise(d.result);
+  return { ...d, deps: d.deps.map(pruneClosings) };
+};
+var containsNonStructural = (d) => d.kind === "transformation" && (NON_STRUCTURAL.has(d.rule) || d.deps.some(containsNonStructural));
+var pruneStructural = (d) => {
+  if (d.kind === "premise") return d;
+  if (!containsNonStructural(d)) return premise(d.result);
+  return { ...d, deps: d.deps.map(pruneStructural) };
+};
+
 // src/solver/bruteStructure0.ts
 var seqKey = (s) => JSON.stringify([s.antecedent, s.succedent]);
 var buildStructurePath = (d, rules3, p) => {
@@ -9317,6 +8460,13 @@ var tryAtDepth = (c, limit) => {
   const proofs = head2(brute0(premise(c.goal), c.rules, limit));
   return isNonEmptyArray(proofs) ? proofs[0] : void 0;
 };
+var bruteLimit = (c, maxLimit) => {
+  for (let limit = 0; limit <= maxLimit; limit += 1) {
+    const proof = tryAtDepth(c, limit);
+    if (proof) return [proof];
+  }
+  return [];
+};
 function* bruteSearch(c) {
   for (let limit = 0; ; limit += 1) {
     const proof = tryAtDepth(c, limit);
@@ -9502,6 +8652,1518 @@ function* randomConfiguredStep(config, getTimeout = () => 5e3) {
   }
 }
 
+// src/random/tutorial.ts
+var tutorialRules = rules2.filter((r) => r !== "cut");
+var ATOMS = {
+  p: 3,
+  q: 2,
+  r: 1,
+  s: 0,
+  u: 0,
+  v: 0,
+  falsum: 0,
+  verum: 0
+};
+var NONE = {
+  negation: 0,
+  implication: 0,
+  conjunction: 0,
+  disjunction: 0
+};
+var P = atom("p");
+var Q = atom("q");
+var logicNotches = [
+  {
+    // Same-side split: conjunction-left and disjunction-right — two pieces
+    // that stay put. With no gate-flipping connective in the weights, the
+    // per-side weights alone keep every candidate inside the clamp.
+    glyphs: "\u2227 \u2228",
+    featured: ["cl", "dr"],
+    taught: ["cl", "dr"],
+    anteConnectives: { ...NONE, conjunction: 1 },
+    succConnectives: { ...NONE, disjunction: 1 },
+    symbols: ATOMS,
+    maxFormulaSize: 2,
+    minAnte: 0,
+    fallback: sequent([conjunction(P, Q)], [P])
+  },
+  {
+    // Whole-formula gate-flip: negation on either side. From here on the
+    // flip means any taught connective can legally sit on either side when
+    // negations carry it to its legal polarity (e.g. ¬(A∧B) on the RIGHT
+    // flips the conjunction to the left, where cl is taught) — so both
+    // sides weight every taught connective and the closure filter rejects
+    // the wrong-polarity placements.
+    glyphs: "\xAC",
+    featured: ["nl", "nr"],
+    taught: ["cl", "dr", "nl", "nr"],
+    anteConnectives: { ...NONE, conjunction: 1, disjunction: 1, negation: 2 },
+    succConnectives: { ...NONE, conjunction: 1, disjunction: 1, negation: 2 },
+    symbols: ATOMS,
+    maxFormulaSize: 2,
+    minAnte: 0,
+    fallback: sequent([P], [negation(negation(P))])
+  },
+  {
+    // Cross-gate split: implication-right — split and one piece hops the
+    // gate. The bridge to real `⊢ A→B` goals (implication weight covers the
+    // antecedent too: ¬(A→B) on the left is legal via the flip).
+    glyphs: "\u2192",
+    featured: ["ir"],
+    taught: ["cl", "dr", "nl", "nr", "ir"],
+    anteConnectives: {
+      conjunction: 1,
+      disjunction: 1,
+      negation: 1,
+      implication: 1
+    },
+    succConnectives: {
+      conjunction: 1,
+      disjunction: 1,
+      negation: 1,
+      implication: 2
+    },
+    symbols: ATOMS,
+    maxFormulaSize: 2,
+    minAnte: 0,
+    fallback: sequent([], [implication(P, P)])
+  },
+  {
+    // Branching split: conjunction-right and disjunction-left — the proof
+    // forks. Same mirror as subchapter 1, now on the branching sides.
+    glyphs: "\u2227 \u2228",
+    featured: ["cr", "dl"],
+    taught: ["cl", "dr", "nl", "nr", "ir", "cr", "dl"],
+    anteConnectives: {
+      conjunction: 1,
+      disjunction: 1,
+      negation: 1,
+      implication: 1
+    },
+    succConnectives: {
+      conjunction: 1,
+      disjunction: 1,
+      negation: 1,
+      implication: 1
+    },
+    symbols: ATOMS,
+    maxFormulaSize: 2,
+    minAnte: 0,
+    fallback: sequent([disjunction(P, Q)], [disjunction(Q, P)])
+  },
+  {
+    // The capstone: implication-left — gate-crossing and branching combined.
+    // Its simplest isolating goals are the modus-ponens shape `p→q, p ⊢ q`.
+    glyphs: "\u2192",
+    featured: ["il"],
+    taught: ["cl", "dr", "nl", "nr", "ir", "cr", "dl", "il"],
+    anteConnectives: {
+      conjunction: 1,
+      disjunction: 1,
+      negation: 1,
+      implication: 3
+    },
+    succConnectives: {
+      conjunction: 1,
+      disjunction: 1,
+      negation: 1,
+      implication: 1
+    },
+    symbols: ATOMS,
+    maxFormulaSize: 2,
+    minAnte: 1,
+    fallback: sequent([implication(P, Q), P], [Q])
+  }
+];
+var constantsNotch = {
+  glyphs: "\u22A5 \u22A4",
+  featured: ["f", "v"],
+  taught: ["cl", "dr", "nl", "nr", "ir", "cr", "dl", "f", "v"],
+  anteConnectives: {
+    conjunction: 1,
+    disjunction: 1,
+    negation: 1,
+    implication: 1
+  },
+  succConnectives: {
+    conjunction: 1,
+    disjunction: 1,
+    negation: 1,
+    implication: 1
+  },
+  symbols: { ...ATOMS, falsum: 2, verum: 2 },
+  maxFormulaSize: 2,
+  minAnte: 0,
+  fallback: sequent([disjunction(falsum, P)], [P])
+};
+var MAX_LIMIT = 3;
+var MAX_TRIES = 1e3;
+var MAX_FORMULAS = 3;
+var randomCount = () => Math.floor(Math.random() * 3);
+var makeFormula = (weights, notch) => {
+  const size = Math.floor(Math.random() * (notch.maxFormulaSize + 1));
+  return randomWeighted(size, weights, notch.symbols)();
+};
+var subformulas = (f2) => {
+  switch (f2.kind) {
+    case "atom":
+    case "falsum":
+    case "verum":
+      return [f2];
+    case "negation":
+      return [f2, ...subformulas(f2.negand)];
+    case "implication":
+      return [f2, ...subformulas(f2.antecedent), ...subformulas(f2.consequent)];
+    case "conjunction":
+      return [
+        f2,
+        ...subformulas(f2.leftConjunct),
+        ...subformulas(f2.rightConjunct)
+      ];
+    case "disjunction":
+      return [
+        f2,
+        ...subformulas(f2.leftDisjunct),
+        ...subformulas(f2.rightDisjunct)
+      ];
+  }
+};
+var pick = (xs) => xs[Math.floor(Math.random() * xs.length)];
+var asResult = (solution87, formulasTried) => ({
+  challenge: { rules: tutorialRules, goal: solution87.result, solution: solution87 },
+  nonStructuralCount: countNonStructural(solution87),
+  bypassed: false,
+  formulasTried
+});
+var fallbackChallenge = (notch) => {
+  const [solution87] = brute({ goal: notch.fallback, rules: tutorialRules });
+  return asResult(solution87, 0);
+};
+var generateSequentChallenge = (notch) => {
+  for (let tries = 0; tries < MAX_TRIES; tries += 1) {
+    const nAnte = Math.max(notch.minAnte, randomCount());
+    const nSucc = randomCount();
+    if (nAnte + nSucc === 0 || nAnte + nSucc > MAX_FORMULAS) continue;
+    const antecedent = Array.from(
+      { length: nAnte },
+      () => makeFormula(notch.anteConnectives, notch)
+    );
+    const borrowPool = antecedent.flatMap(subformulas);
+    const succedent = Array.from({ length: nSucc }, () => {
+      const borrowed = borrowPool.length > 0 && Math.random() < 0.5 ? pick(borrowPool) : void 0;
+      return borrowed ?? makeFormula(notch.succConnectives, notch);
+    });
+    const goal87 = sequent(antecedent, succedent);
+    const closure = reachableRules(goal87);
+    if (!closure.every((r) => notch.taught.includes(r))) continue;
+    if (!notch.featured.some((r) => closure.includes(r))) continue;
+    if (!isTautology2(goal87)) continue;
+    const [solution87] = bruteLimit({ goal: goal87, rules: tutorialRules }, MAX_LIMIT);
+    if (solution87 === void 0) continue;
+    const dodgeRules = tutorialRules.filter((r) => !notch.featured.includes(r));
+    const [dodge] = bruteLimit({ goal: goal87, rules: dodgeRules }, MAX_LIMIT);
+    if (dodge !== void 0) continue;
+    return asResult(solution87, tries + 1);
+  }
+  return fallbackChallenge(notch);
+};
+var frontierLeaves = (start) => openBranches(start).flatMap((path) => {
+  const node = subDerivation(start, path);
+  return node === null ? [] : [node.result];
+});
+var isAtomic = (seq) => [...seq.antecedent, ...seq.succedent].every((f2) => f2.kind === "atom");
+var needsDrop = (seq) => seq.antecedent.length + seq.succedent.length > 2;
+var needsRotation = (seq) => {
+  const keepLeft = seq.antecedent[0];
+  const keepRight = seq.succedent[seq.succedent.length - 1];
+  if (keepLeft === void 0 || keepRight === void 0) return false;
+  return !equals(keepLeft, keepRight);
+};
+var BASICS_TRIES = 50;
+var isConstantClose = (seq) => seq.antecedent.length === 1 && seq.succedent.length === 0 && seq.antecedent[0]?.kind === "falsum" || seq.antecedent.length === 0 && seq.succedent.length === 1 && seq.succedent[0]?.kind === "verum";
+var isCompositeClose = (seq) => seq.antecedent.some((f2) => f2.kind !== "atom");
+var TEMPLATE_WEIGHTS = {
+  negation: 1,
+  implication: 0,
+  conjunction: 1,
+  disjunction: 1
+};
+var templateFormula = (notch, compound) => {
+  for (; ; ) {
+    const size = compound ? Math.floor(Math.random() * notch.maxFormulaSize) + 1 : Math.random() < 0.8 ? 0 : Math.floor(Math.random() * notch.maxFormulaSize) + 1;
+    const f2 = randomWeighted(size, TEMPLATE_WEIGHTS, notch.symbols)();
+    if (!compound || f2.kind !== "atom") return f2;
+  }
+};
+var identityTemplate = (notch) => {
+  const compound = templateFormula(notch, true);
+  const other = templateFormula(notch, false);
+  const [a87, b] = Math.random() < 0.5 ? [compound, other] : [other, compound];
+  const goal87 = Math.random() < 0.5 ? sequent([a87, b], [conjunction(a87, b)]) : sequent([disjunction(a87, b)], [a87, b]);
+  const closure = reachableRules(goal87);
+  if (!closure.every((r) => logicNotches[3].taught.includes(r))) return null;
+  const [solution87] = bruteLimit({ goal: goal87, rules: tutorialRules }, MAX_LIMIT);
+  return solution87 === void 0 ? null : asResult(solution87, 1);
+};
+var generateBasicsChallenge = (kind) => {
+  const source = kind === "constants" ? constantsNotch : logicNotches[3];
+  const prune = kind === "drop" ? pruneStructural : pruneClosings;
+  for (let tries = 0; tries < BASICS_TRIES; tries += 1) {
+    const res2 = kind === "identity" && Math.random() < 0.5 ? identityTemplate(source) : generateSequentChallenge(source);
+    if (res2 === null) continue;
+    const solution88 = res2.challenge.solution;
+    if (solution88 === void 0) continue;
+    const start = prune(solution88);
+    if (start.kind === "premise") continue;
+    const leaves = frontierLeaves(start);
+    if (leaves.length < 2) continue;
+    if (kind === "identity" && !leaves.some(isCompositeClose)) continue;
+    if (kind === "constants" && !leaves.some(isConstantClose)) continue;
+    if (kind === "drop") {
+      if (!leaves.every(isAtomic)) continue;
+      if (!leaves.some(needsDrop)) continue;
+      if (!leaves.some(needsRotation)) continue;
+    }
+    return { ...res2, challenge: { ...res2.challenge, start } };
+  }
+  const res = fallbackChallenge(source);
+  const solution87 = res.challenge.solution;
+  if (solution87 === void 0) return res;
+  return { ...res, challenge: { ...res.challenge, start: prune(solution87) } };
+};
+var LOGIC_NAME_IDS = [
+  "split",
+  "sideFlip",
+  "crossing",
+  "branching",
+  "branchingCrossing"
+];
+var tutorialCurriculum = [
+  {
+    chapter: "basics",
+    nameId: "close",
+    glyphs: "",
+    hideGaze: true,
+    generate: () => generateBasicsChallenge("identity")
+  },
+  {
+    // Same verb as the first beat (the ladder shows "Close ⊥ ⊤"), new
+    // winning conditions — still pure closing, so gaze stays hidden.
+    chapter: "basics",
+    nameId: "close",
+    glyphs: "\u22A5 \u22A4",
+    hideGaze: true,
+    generate: () => generateBasicsChallenge("constants")
+  },
+  {
+    chapter: "basics",
+    nameId: "drop",
+    glyphs: "",
+    hideGaze: false,
+    generate: () => generateBasicsChallenge("drop")
+  },
+  // No glyphs on the Logic rows: the behavior names are unique there, and
+  // ladder rows should carry symbols only where the name alone is ambiguous
+  // (the two Close beats).
+  ...logicNotches.map((notch, i88) => ({
+    chapter: "logic",
+    nameId: LOGIC_NAME_IDS[i88] ?? "split",
+    glyphs: "",
+    hideGaze: false,
+    generate: () => generateSequentChallenge(notch)
+  }))
+];
+var beatAt = (i88) => {
+  const clamped = Math.max(0, Math.min(i88, tutorialCurriculum.length - 1));
+  return tutorialCurriculum[clamped] ?? tutorialCurriculum[0] ?? beatFail();
+};
+var beatFail = () => {
+  throw new Error("empty tutorial curriculum");
+};
+
+// src/web/versus.ts
+var formatTime = (s) => {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+};
+var totalMoves = (ws) => {
+  const counts = countRuleUsage(ws.currentConjecture().derivation);
+  return Object.values(counts).reduce((a87, b) => a87 + b, 0);
+};
+var reopenPauseMenu = false;
+var makeVersusFormulaEditor = (side, onFormula, onCancel) => {
+  let modalEl = null;
+  const close = () => {
+    modalEl?.remove();
+    modalEl = null;
+    onCancel();
+  };
+  const { el, tryUndo, onAction } = createFormulaEditor(
+    t("lemmaTitle"),
+    t("lemmaConfirm"),
+    (formula) => {
+      modalEl?.remove();
+      modalEl = null;
+      onFormula(formula);
+    },
+    close
+  );
+  modalEl = el;
+  if (side === "left") {
+    el.style.right = "calc(50% + 2.5em)";
+  } else {
+    el.style.left = "calc(50% + 2.5em)";
+  }
+  document.body.appendChild(el);
+  return { close, tryUndo, onAction };
+};
+var mountVersus = (container, navigate2, pool2, versusConfig) => {
+  container.innerHTML = "";
+  const root = document.createElement("div");
+  container.appendChild(root);
+  const isTutorial2 = versusConfig.tutorial !== void 0;
+  const untimed = isTutorial2;
+  let beatIdx = versusConfig.tutorial?.startBeat ?? 0;
+  const takeChallenge = () => isTutorial2 ? beatAt(beatIdx).generate() : pool2.take();
+  const sharedChallenges = [];
+  const ensureChallenge = (i88) => {
+    while (sharedChallenges.length <= i88 + 2)
+      sharedChallenges.push(takeChallenge());
+  };
+  ensureChallenge(0);
+  let wsIdx1 = 0;
+  let index1 = 1;
+  let score1 = 0;
+  const resolved1 = /* @__PURE__ */ new Map();
+  const levelPoints1 = /* @__PURE__ */ new Map();
+  const skipSynthetic1 = /* @__PURE__ */ new Map();
+  let pending1 = [];
+  let scoreCommitted1 = false;
+  let wsIdx2 = 0;
+  let index2 = 1;
+  let score2 = 0;
+  const resolved2 = /* @__PURE__ */ new Map();
+  const levelPoints2 = /* @__PURE__ */ new Map();
+  const skipSynthetic2 = /* @__PURE__ */ new Map();
+  let pending2 = [];
+  let scoreCommitted2 = false;
+  const currentChallengeIdx1 = () => wsIdx1;
+  const currentChallengeIdx2 = () => wsIdx2;
+  const makeWorkspace = (i88) => {
+    ensureChallenge(i88);
+    const item = sharedChallenges[i88];
+    if (item === void 0)
+      throw new Error("no challenge at index " + String(i88));
+    return new Workspace({ challenge: item.challenge });
+  };
+  const advancePlayer1 = () => {
+    scoreCommitted1 = false;
+    const [next1, ...rest1] = pending1;
+    if (next1 !== void 0) {
+      wsIdx1 = next1;
+      pending1 = rest1;
+    } else {
+      wsIdx1 = index1;
+      index1 += 1;
+    }
+    ws1 = makeWorkspace(wsIdx1);
+  };
+  const advancePlayer2 = () => {
+    scoreCommitted2 = false;
+    const [next2, ...rest2] = pending2;
+    if (next2 !== void 0) {
+      wsIdx2 = next2;
+      pending2 = rest2;
+    } else {
+      wsIdx2 = index2;
+      index2 += 1;
+    }
+    ws2 = makeWorkspace(wsIdx2);
+  };
+  let ws1 = makeWorkspace(0);
+  let ws2 = makeWorkspace(0);
+  const makeCtx = (input) => {
+    const base = createBenchCtx(input !== "keyboard", true, false, false, 1);
+    if (input !== "mouse") return base;
+    return { ...base, getActionHint: () => void 0 };
+  };
+  const ctx1 = makeCtx(versusConfig.p1Input);
+  const ctx2 = makeCtx(versusConfig.p2Input);
+  let timeLeft = versusConfig.gameDurationSeconds;
+  let gameOver = false;
+  let paused = false;
+  if (isTutorial2 && reopenPauseMenu) {
+    reopenPauseMenu = false;
+    paused = true;
+  }
+  let pauseMenu = null;
+  let resultScreen = null;
+  let timerEl = null;
+  let closeEditor1 = null;
+  let tryUndoEditor1 = null;
+  let onActionEditor1 = null;
+  let closeEditor2 = null;
+  let tryUndoEditor2 = null;
+  let onActionEditor2 = null;
+  const isNpc1 = versusConfig.p1Input === "npc";
+  const isNpc2 = versusConfig.p2Input === "npc";
+  const hideControls1 = versusConfig.p1Input !== "mouse" && !isNpc1;
+  const hideControls2 = versusConfig.p2Input !== "mouse" && !isNpc2;
+  let half1El = null;
+  let half2El = null;
+  let thermoEl = null;
+  const makeUndoControls = (ws, ctx, refresh) => {
+    const el = document.createElement("div");
+    el.setAttribute("class", "controls");
+    const canUndo2 = ws.canUndo();
+    const enabled = canUndo2 || ctx.isGazeModeActive();
+    const undoBtn = createButton(t("undo"), !enabled, () => {
+      if (canUndo2) {
+        ws.applyEvent(undo2());
+      } else {
+        ctx.setGazeModeActive(false);
+      }
+      refresh();
+    });
+    undoBtn.classList.add("mutating");
+    el.appendChild(undoBtn);
+    return el;
+  };
+  const buildHalf1 = () => {
+    const half2 = document.createElement("div");
+    half2.setAttribute(
+      "class",
+      "versus-half" + (isNpc1 ? " versus-half-npc" : "") + (hideControls1 ? " versus-half-keys" : "")
+    );
+    half2.appendChild(
+      createBench(
+        ws1,
+        makeCongratsP1,
+        makeUndoControls(ws1, ctx1, refreshP1),
+        refreshP1,
+        void 0,
+        onApplyReverse1,
+        // The tutorial hides Lemma outright (Cut belongs to the Input chapter);
+        // a permanently-disabled button would only draw the learner's eye.
+        isTutorial2,
+        ctx1,
+        isTutorial2 ? void 0 : skipPlayer1,
+        isTutorial2 && beatAt(beatIdx).hideGaze,
+        isTutorial2
+      )
+    );
+    return half2;
+  };
+  const buildHalf2 = () => {
+    const half2 = document.createElement("div");
+    half2.setAttribute(
+      "class",
+      "versus-half" + (isNpc2 ? " versus-half-npc" : "") + (hideControls2 ? " versus-half-keys" : "")
+    );
+    half2.appendChild(
+      createBench(
+        ws2,
+        makeCongratsP2,
+        makeUndoControls(ws2, ctx2, refreshP2),
+        refreshP2,
+        void 0,
+        onApplyReverse2,
+        isTutorial2,
+        ctx2,
+        isTutorial2 ? void 0 : skipPlayer2,
+        isTutorial2 && beatAt(beatIdx).hideGaze,
+        isTutorial2
+      )
+    );
+    return half2;
+  };
+  const buildThermo = () => {
+    if (isTutorial2) return buildTutorialThermo();
+    const thermo = document.createElement("div");
+    thermo.setAttribute("class", "versus-thermo");
+    const clock = document.createElement("div");
+    clock.setAttribute("class", "versus-thermo-clock");
+    clock.textContent = formatTime(timeLeft);
+    timerEl = clock;
+    thermo.appendChild(clock);
+    const thermoRows = document.createElement("div");
+    thermoRows.setAttribute("class", "versus-thermo-rows");
+    const ci1 = currentChallengeIdx1();
+    const ci2 = currentChallengeIdx2();
+    const allKeys = [
+      ci1,
+      ci2,
+      ...Array.from(resolved1.keys()),
+      ...Array.from(resolved2.keys())
+    ];
+    const maxIdx = Math.max(...allKeys);
+    const currentMoves1 = totalMoves(ws1);
+    const currentMoves2 = totalMoves(ws2);
+    const displayEntry = (resolved, ci, i88) => {
+      if (i88 !== ci) return resolved.get(i88);
+      const entry = resolved.get(ci);
+      return typeof entry === "number" ? entry : "current";
+    };
+    const entryMoves = (e, cur, synthetic) => {
+      if (e === void 0) return "";
+      if (e === "current") return String(cur);
+      if (e === "skip")
+        return synthetic !== void 0 ? `(${String(synthetic)})` : "\u2013";
+      return String(e);
+    };
+    const entryPts = (e, pts) => {
+      if (e === void 0 || e === "current" || e === "skip") return "";
+      const bonus = (pts ?? 1) - 1;
+      return bonus > 0 ? `+${String(bonus)}` : "";
+    };
+    const makeCell = (entry, cur, pts, synthetic, playerClass) => {
+      const cell2 = document.createElement("div");
+      cell2.setAttribute(
+        "class",
+        `versus-thermo-cell ${playerClass}${entry === "current" ? " current" : ""}`
+      );
+      const movesEl = document.createElement("div");
+      movesEl.setAttribute("class", "versus-thermo-moves");
+      movesEl.textContent = entryMoves(entry, cur, synthetic);
+      const ptsEl = document.createElement("div");
+      ptsEl.setAttribute("class", "versus-thermo-points");
+      ptsEl.textContent = entryPts(entry, pts);
+      cell2.appendChild(movesEl);
+      cell2.appendChild(ptsEl);
+      return cell2;
+    };
+    for (let i88 = maxIdx; i88 >= 0; i88 -= 1) {
+      const row = document.createElement("div");
+      row.setAttribute("class", "versus-thermo-row");
+      row.appendChild(
+        makeCell(
+          displayEntry(resolved1, ci1, i88),
+          currentMoves1,
+          levelPoints1.get(i88),
+          skipSynthetic1.get(i88),
+          "p1"
+        )
+      );
+      row.appendChild(
+        makeCell(
+          displayEntry(resolved2, ci2, i88),
+          currentMoves2,
+          levelPoints2.get(i88),
+          skipSynthetic2.get(i88),
+          "p2"
+        )
+      );
+      thermoRows.appendChild(row);
+    }
+    const thermoTotal = document.createElement("div");
+    thermoTotal.setAttribute("class", "versus-thermo-total");
+    const totalCell1 = document.createElement("div");
+    totalCell1.setAttribute("class", "versus-thermo-cell p1 total");
+    totalCell1.textContent = String(score1);
+    const totalCell2 = document.createElement("div");
+    totalCell2.setAttribute("class", "versus-thermo-cell p2 total");
+    totalCell2.textContent = String(score2);
+    thermoTotal.appendChild(totalCell1);
+    thermoTotal.appendChild(totalCell2);
+    thermo.appendChild(thermoTotal);
+    thermo.appendChild(thermoRows);
+    const menuBtn = createButton("\u22EE", false, () => setPaused(true));
+    menuBtn.classList.add("versus-menu-btn");
+    menuBtn.setAttribute("aria-label", t("menu"));
+    thermo.appendChild(menuBtn);
+    return thermo;
+  };
+  const setPaused = (v2) => {
+    paused = v2;
+    rerender();
+  };
+  const buildPauseMenu = () => {
+    const shroud = document.createElement("div");
+    shroud.setAttribute("class", "shroud pause-shroud");
+    shroud.onclick = (ev) => {
+      if (ev.target === shroud) {
+        ev.preventDefault();
+        setPaused(false);
+      }
+    };
+    const panel = document.createElement("div");
+    panel.setAttribute("class", "pause-popup");
+    panel.onclick = (ev) => {
+      ev.stopPropagation();
+    };
+    const title = document.createElement("div");
+    title.setAttribute("class", "pause-title");
+    title.textContent = t("paused");
+    panel.appendChild(title);
+    const buttons = document.createElement("div");
+    buttons.setAttribute("class", "pause-buttons");
+    const cells = [];
+    const addButton = (label, activate) => {
+      const el = createButton(label, false, activate);
+      buttons.appendChild(el);
+      cells.push({ btn: el, activate });
+    };
+    addButton(t("resumeGame"), () => setPaused(false));
+    if (isTutorial2) {
+      addButton(
+        `${t("player1")}: ${inputLabel(versusConfig.p1Input)}`,
+        () => applyTutorialInputs(
+          nextHumanInput(versusConfig.p1Input, versusConfig.p2Input),
+          versusConfig.p2Input
+        )
+      );
+      addButton(
+        `${t("player2")}: ${inputLabel(versusConfig.p2Input)}`,
+        () => applyTutorialInputs(
+          versusConfig.p1Input,
+          nextHumanInput(versusConfig.p2Input, versusConfig.p1Input)
+        )
+      );
+    } else {
+      addButton(t("playAgain"), () => navigate2("versus"));
+      addButton(t("matchSetup"), () => navigate2("versus-config"));
+    }
+    addButton(t("exitToMainMenu"), () => navigate2("menu"));
+    panel.appendChild(buttons);
+    shroud.appendChild(panel);
+    shroud.appendChild(createLangSwitcher());
+    const cursor = createButtonCursor(cells.map((c) => [c]));
+    return { el: shroud, onAction: cursor.onAction };
+  };
+  const HUMAN_INPUTS = [
+    "mouse",
+    "keyboard",
+    "gamepad1",
+    "gamepad2"
+  ];
+  const nextHumanInput = (current2, other) => {
+    const start = HUMAN_INPUTS.indexOf(current2);
+    for (let step = 1; step <= HUMAN_INPUTS.length; step += 1) {
+      const candidate = HUMAN_INPUTS[(start + step) % HUMAN_INPUTS.length];
+      if (candidate === void 0) continue;
+      if (!isInputAvailable(candidate)) continue;
+      if (candidate === other && candidate !== "mouse") continue;
+      return candidate;
+    }
+    return current2;
+  };
+  const applyTutorialInputs = (p1, p2) => {
+    const params = new URLSearchParams(window.location.search);
+    params.set("tutorial_beat", String(beatIdx));
+    params.set("tutorial_p1", p1);
+    params.set("tutorial_p2", p2);
+    history.replaceState(history.state, "", `?${params.toString()}`);
+    reopenPauseMenu = true;
+    navigate2("tutorial");
+  };
+  const rerender = () => {
+    if (ws1.isSolved()) commitScore1();
+    if (ws2.isSolved()) commitScore2();
+    root.innerHTML = "";
+    timerEl = null;
+    const screen = document.createElement("div");
+    screen.setAttribute("class", "versus-screen");
+    const arena = document.createElement("div");
+    arena.setAttribute("class", "versus-arena");
+    half1El = buildHalf1();
+    half2El = buildHalf2();
+    thermoEl = buildThermo();
+    arena.appendChild(half1El);
+    arena.appendChild(thermoEl);
+    arena.appendChild(half2El);
+    screen.appendChild(arena);
+    root.appendChild(screen);
+    if (gameOver) {
+      if (!resultScreen) resultScreen = buildResultScreen();
+      root.appendChild(resultScreen.el);
+    } else if (paused) {
+      if (!pauseMenu) pauseMenu = buildPauseMenu();
+      root.appendChild(pauseMenu.el);
+    } else {
+      pauseMenu = null;
+    }
+  };
+  const breakdownEntry = (resolved, ci, i88) => {
+    if (i88 !== ci) return resolved.get(i88);
+    const entry = resolved.get(ci);
+    return typeof entry === "number" ? entry : "current";
+  };
+  const sideCells = (entry, currentMoves, levelPoints, synthetic) => {
+    if (entry === void 0)
+      return { moves: "", done: "", bonus: "", points: "" };
+    if (entry === "current")
+      return { moves: String(currentMoves), done: "\u2026", bonus: "", points: "" };
+    if (entry === "skip")
+      return {
+        moves: synthetic !== void 0 ? String(synthetic) : "",
+        done: "\u2298",
+        bonus: "\u2014",
+        points: "0"
+      };
+    const pts = levelPoints ?? 1;
+    const bonus = pts - 1;
+    return {
+      moves: String(entry),
+      done: "\u2713",
+      bonus: bonus > 0 ? `+${String(bonus)}` : "\u2014",
+      points: String(pts)
+    };
+  };
+  const cell = (cls, label, value) => {
+    const el = document.createElement("div");
+    el.setAttribute("class", `vb-cell ${cls}`);
+    const lab = document.createElement("div");
+    lab.setAttribute("class", "vb-cell-label");
+    lab.textContent = label;
+    const val = document.createElement("div");
+    val.setAttribute("class", "vb-cell-value");
+    val.textContent = value;
+    el.appendChild(lab);
+    el.appendChild(val);
+    return el;
+  };
+  const par = (i88) => {
+    const solution87 = sharedChallenges[i88]?.challenge.solution;
+    if (solution87 === void 0) return "\u{1F480}";
+    const counts = countRuleUsage(solution87);
+    return String(Object.values(counts).reduce((a87, b) => a87 + b, 0));
+  };
+  const buildResultScreen = () => {
+    const ci1 = currentChallengeIdx1();
+    const ci2 = currentChallengeIdx2();
+    const maxIdx = Math.max(
+      ci1,
+      ci2,
+      ...Array.from(resolved1.keys()),
+      ...Array.from(resolved2.keys())
+    );
+    const moves1 = totalMoves(ws1);
+    const moves2 = totalMoves(ws2);
+    const overlay = document.createElement("div");
+    overlay.setAttribute("class", "versus-result");
+    const title = document.createElement("div");
+    title.setAttribute("class", "versus-breakdown-title");
+    title.textContent = score1 > score2 ? t("winsTemplate").replace("{player}", t("player1")) : score2 > score1 ? t("winsTemplate").replace("{player}", t("player2")) : t("tie");
+    overlay.appendChild(title);
+    const grid = document.createElement("div");
+    grid.setAttribute("class", "versus-breakdown-grid");
+    const header = document.createElement("div");
+    header.setAttribute("class", "vb-level vb-header");
+    const p1Name = document.createElement("div");
+    p1Name.setAttribute("class", "vb-title-name p1");
+    p1Name.textContent = t("player1");
+    const p1Score = document.createElement("div");
+    p1Score.setAttribute("class", "vb-title-score-cell p1");
+    p1Score.innerHTML = `<span class="vb-title-score">${String(score1)}</span>`;
+    const spacer = document.createElement("div");
+    spacer.setAttribute("class", "vb-title-spacer");
+    const p2Score = document.createElement("div");
+    p2Score.setAttribute("class", "vb-title-score-cell p2");
+    p2Score.innerHTML = `<span class="vb-title-score">${String(score2)}</span>`;
+    const p2Name = document.createElement("div");
+    p2Name.setAttribute("class", "vb-title-name p2");
+    p2Name.textContent = t("player2");
+    header.appendChild(p1Name);
+    header.appendChild(p1Score);
+    header.appendChild(spacer);
+    header.appendChild(p2Score);
+    header.appendChild(p2Name);
+    grid.appendChild(header);
+    const sub = document.createElement("div");
+    sub.setAttribute("class", "vb-level vb-subhead");
+    const subCols = [
+      t("moves"),
+      t("done"),
+      t("bonus"),
+      t("points"),
+      t("par"),
+      t("goal"),
+      t("points"),
+      t("bonus"),
+      t("done"),
+      t("moves")
+    ];
+    subCols.forEach((label, idx) => {
+      const c = document.createElement("div");
+      c.setAttribute(
+        "class",
+        "vb-cell vb-subcell" + (idx === 4 || idx === 6 ? " vb-sec-start" : "")
+      );
+      c.textContent = label;
+      sub.appendChild(c);
+    });
+    grid.appendChild(sub);
+    for (let i88 = 0; i88 <= maxIdx; i88 += 1) {
+      const e1 = breakdownEntry(resolved1, ci1, i88);
+      const e2 = breakdownEntry(resolved2, ci2, i88);
+      const s1 = sideCells(
+        e1,
+        moves1,
+        levelPoints1.get(i88),
+        skipSynthetic1.get(i88)
+      );
+      const s2 = sideCells(
+        e2,
+        moves2,
+        levelPoints2.get(i88),
+        skipSynthetic2.get(i88)
+      );
+      const row = document.createElement("div");
+      row.setAttribute("class", "vb-level");
+      row.appendChild(cell("p1 num", t("moves"), s1.moves));
+      row.appendChild(cell("p1 num", t("done"), s1.done));
+      row.appendChild(cell("p1 num", t("bonus"), s1.bonus));
+      row.appendChild(cell("p1 num pts", t("points"), s1.points));
+      const parCell = cell("vb-sec-start num", t("par"), par(i88));
+      row.appendChild(parCell);
+      const goalCell = document.createElement("div");
+      goalCell.setAttribute("class", "vb-cell vb-goal");
+      const goalLab = document.createElement("div");
+      goalLab.setAttribute("class", "vb-cell-label");
+      goalLab.textContent = t("goal");
+      const goalVal = document.createElement("div");
+      goalVal.setAttribute("class", "vb-cell-value");
+      const seq = sharedChallenges[i88]?.challenge.goal;
+      if (seq !== void 0) goalVal.innerHTML = html(fromSequent(seq)(basic));
+      goalCell.appendChild(goalLab);
+      goalCell.appendChild(goalVal);
+      row.appendChild(goalCell);
+      row.appendChild(cell("p2 num pts vb-sec-start", t("points"), s2.points));
+      row.appendChild(cell("p2 num", t("bonus"), s2.bonus));
+      row.appendChild(cell("p2 num", t("done"), s2.done));
+      row.appendChild(cell("p2 num", t("moves"), s2.moves));
+      grid.appendChild(row);
+    }
+    overlay.appendChild(grid);
+    const actions = document.createElement("div");
+    actions.setAttribute("class", "versus-breakdown-actions");
+    const cells = [];
+    const addButton = (label, activate) => {
+      const el = createButton(label, false, activate);
+      actions.appendChild(el);
+      cells.push({ btn: el, activate });
+    };
+    addButton(t("matchSetup"), () => navigate2("versus-config"));
+    addButton(t("playAgain"), () => navigate2("versus"));
+    overlay.appendChild(actions);
+    const cursor = createButtonCursor([cells]);
+    return { el: overlay, onAction: cursor.onAction };
+  };
+  const commitScore1 = () => {
+    if (isTutorial2) return;
+    if (scoreCommitted1) return;
+    scoreCommitted1 = true;
+    const challengeIdx = currentChallengeIdx1();
+    const moves1 = totalMoves(ws1);
+    const isRetry = resolved1.get(challengeIdx) === "skip";
+    resolved1.set(challengeIdx, moves1);
+    score1 += 1;
+    levelPoints1.set(challengeIdx, 1);
+    if (isRetry) {
+      const p2Moves = resolved2.get(challengeIdx);
+      if (typeof p2Moves === "number") {
+        skipSynthetic1.delete(challengeIdx);
+        const diff = moves1 - p2Moves;
+        const bonus = Math.abs(diff);
+        if (moves1 < p2Moves) {
+          score1 += bonus;
+          levelPoints1.set(challengeIdx, 1 + bonus);
+        } else if (p2Moves < moves1) {
+          score2 += bonus;
+          levelPoints2.set(
+            challengeIdx,
+            (levelPoints2.get(challengeIdx) ?? 1) + bonus
+          );
+        }
+      }
+    } else {
+      const p2Entry = resolved2.get(challengeIdx);
+      if (typeof p2Entry === "number") {
+        const diff = moves1 - p2Entry;
+        const bonus = Math.abs(diff);
+        if (moves1 < p2Entry) {
+          score1 += bonus;
+          levelPoints1.set(challengeIdx, 1 + bonus);
+        } else if (p2Entry < moves1) {
+          score2 += bonus;
+          levelPoints2.set(
+            challengeIdx,
+            (levelPoints2.get(challengeIdx) ?? 1) + bonus
+          );
+        }
+      } else if (p2Entry === "skip") {
+        pending2 = [...pending2, challengeIdx];
+      }
+    }
+  };
+  const solvePlayer1 = () => {
+    commitScore1();
+    advancePlayer1();
+    rerenderHalf1();
+    rebuildThermo();
+  };
+  const commitScore2 = () => {
+    if (isTutorial2) return;
+    if (scoreCommitted2) return;
+    scoreCommitted2 = true;
+    const challengeIdx = currentChallengeIdx2();
+    const moves2 = totalMoves(ws2);
+    const isRetry = resolved2.get(challengeIdx) === "skip";
+    resolved2.set(challengeIdx, moves2);
+    score2 += 1;
+    levelPoints2.set(challengeIdx, 1);
+    if (isRetry) {
+      const p1Moves = resolved1.get(challengeIdx);
+      if (typeof p1Moves === "number") {
+        skipSynthetic2.delete(challengeIdx);
+        const diff = moves2 - p1Moves;
+        const bonus = Math.abs(diff);
+        if (moves2 < p1Moves) {
+          score2 += bonus;
+          levelPoints2.set(challengeIdx, 1 + bonus);
+        } else if (p1Moves < moves2) {
+          score1 += bonus;
+          levelPoints1.set(
+            challengeIdx,
+            (levelPoints1.get(challengeIdx) ?? 1) + bonus
+          );
+        }
+      }
+    } else {
+      const p1Entry = resolved1.get(challengeIdx);
+      if (typeof p1Entry === "number") {
+        const diff = moves2 - p1Entry;
+        const bonus = Math.abs(diff);
+        if (moves2 < p1Entry) {
+          score2 += bonus;
+          levelPoints2.set(challengeIdx, 1 + bonus);
+        } else if (p1Entry < moves2) {
+          score1 += bonus;
+          levelPoints1.set(
+            challengeIdx,
+            (levelPoints1.get(challengeIdx) ?? 1) + bonus
+          );
+        }
+      } else if (p1Entry === "skip") {
+        pending1 = [...pending1, challengeIdx];
+      }
+    }
+  };
+  const solvePlayer2 = () => {
+    commitScore2();
+    advancePlayer2();
+    rerenderHalf2();
+    rebuildThermo();
+  };
+  const skipPlayer1 = () => {
+    if (gameOver) return;
+    if (isTutorial2) return;
+    const challengeIdx = wsIdx1;
+    resolved1.set(challengeIdx, "skip");
+    const p2Entry = resolved2.get(challengeIdx);
+    if (typeof p2Entry === "number") {
+      const synthetic = 2 * p2Entry;
+      skipSynthetic1.set(challengeIdx, synthetic);
+      const bonus = p2Entry;
+      score2 += bonus;
+      levelPoints2.set(
+        challengeIdx,
+        (levelPoints2.get(challengeIdx) ?? 1) + bonus
+      );
+    }
+    advancePlayer1();
+    rerenderHalf1();
+    rebuildThermo();
+  };
+  const skipPlayer2 = () => {
+    if (gameOver) return;
+    if (isTutorial2) return;
+    const challengeIdx = wsIdx2;
+    resolved2.set(challengeIdx, "skip");
+    const p1Entry = resolved1.get(challengeIdx);
+    if (typeof p1Entry === "number") {
+      const synthetic = 2 * p1Entry;
+      skipSynthetic2.set(challengeIdx, synthetic);
+      const bonus = p1Entry;
+      score1 += bonus;
+      levelPoints1.set(
+        challengeIdx,
+        (levelPoints1.get(challengeIdx) ?? 1) + bonus
+      );
+    }
+    advancePlayer2();
+    rerenderHalf2();
+    rebuildThermo();
+  };
+  const rerenderHalf1 = () => {
+    if (half1El === null) return;
+    const fresh = buildHalf1();
+    half1El.replaceWith(fresh);
+    half1El = fresh;
+  };
+  const rerenderHalf2 = () => {
+    if (half2El === null) return;
+    const fresh = buildHalf2();
+    half2El.replaceWith(fresh);
+    half2El = fresh;
+  };
+  const rebuildThermo = () => {
+    if (thermoEl === null) return;
+    const fresh = buildThermo();
+    thermoEl.replaceWith(fresh);
+    thermoEl = fresh;
+  };
+  const jumpToBeat = (target) => {
+    const clamped = Math.max(0, Math.min(target, tutorialCurriculum.length - 1));
+    if (clamped === beatIdx) return;
+    beatIdx = clamped;
+    ctx1.setGazeModeActive(false);
+    ctx2.setGazeModeActive(false);
+    const fresh = Math.max(index1, index2, wsIdx1 + 1, wsIdx2 + 1);
+    sharedChallenges.splice(fresh);
+    pending1 = [];
+    pending2 = [];
+    scoreCommitted1 = false;
+    scoreCommitted2 = false;
+    wsIdx1 = fresh;
+    index1 = fresh + 1;
+    wsIdx2 = fresh;
+    index2 = fresh + 1;
+    ws1 = makeWorkspace(fresh);
+    ws2 = makeWorkspace(fresh);
+    rerenderHalf1();
+    rerenderHalf2();
+    rebuildThermo();
+  };
+  const beatNameKey = {
+    close: "axiom",
+    drop: "drop",
+    split: "tutorialShape1",
+    sideFlip: "tutorialShape2",
+    crossing: "tutorialShape3",
+    branching: "tutorialShape4",
+    branchingCrossing: "tutorialShape5"
+  };
+  const chapterKey = {
+    basics: "tutorialBasics",
+    logic: "tutorialLogic"
+  };
+  const buildTutorialThermo = () => {
+    const thermo = document.createElement("div");
+    thermo.setAttribute("class", "versus-thermo versus-thermo-tutorial");
+    const ladder = document.createElement("div");
+    ladder.setAttribute("class", "tutorial-ladder");
+    let lastChapter = null;
+    let chapterNo = 0;
+    let beatNo = 0;
+    tutorialCurriculum.forEach((beat, i88) => {
+      if (beat.chapter !== lastChapter) {
+        lastChapter = beat.chapter;
+        chapterNo += 1;
+        beatNo = 0;
+        const header = document.createElement("div");
+        header.setAttribute("class", "tutorial-ladder-chapter");
+        header.textContent = `${chapterNo} \xB7 ${t(chapterKey[beat.chapter])}`;
+        ladder.appendChild(header);
+      }
+      beatNo += 1;
+      const row = document.createElement("div");
+      row.setAttribute(
+        "class",
+        "tutorial-ladder-row" + (i88 === beatIdx ? " current" : "")
+      );
+      const number = document.createElement("span");
+      number.setAttribute("class", "tutorial-ladder-number");
+      number.textContent = `${chapterNo}.${beatNo}`;
+      row.appendChild(number);
+      row.appendChild(document.createTextNode(t(beatNameKey[beat.nameId])));
+      if (beat.glyphs !== "") {
+        const glyphs = document.createElement("span");
+        glyphs.setAttribute("class", "tutorial-ladder-glyphs");
+        glyphs.textContent = beat.glyphs;
+        row.appendChild(glyphs);
+      }
+      row.onclick = () => jumpToBeat(i88);
+      ladder.appendChild(row);
+    });
+    thermo.appendChild(ladder);
+    const menuBtn = createButton("\u22EE", false, () => setPaused(true));
+    menuBtn.classList.add("versus-menu-btn");
+    menuBtn.setAttribute("aria-label", t("menu"));
+    thermo.appendChild(menuBtn);
+    return thermo;
+  };
+  const refreshP1 = () => {
+    if (ws1.isSolved()) commitScore1();
+    rerenderHalf1();
+    rebuildThermo();
+  };
+  const refreshP2 = () => {
+    if (ws2.isSolved()) commitScore2();
+    rerenderHalf2();
+    rebuildThermo();
+  };
+  let congrats1 = null;
+  let congrats2 = null;
+  const onSolved1 = (action) => {
+    if (gameOver) return;
+    if (action === "menu") {
+      navigate2("menu");
+      return;
+    }
+    if (action === "axiom") {
+      solvePlayer1();
+      return;
+    }
+    rerenderHalf1();
+  };
+  const onSolved2 = (action) => {
+    if (gameOver) return;
+    if (action === "menu") {
+      navigate2("menu");
+      return;
+    }
+    if (action === "axiom") {
+      solvePlayer2();
+      return;
+    }
+    rerenderHalf2();
+  };
+  const onApplyReverse1 = (_key, onFormula) => {
+    if (closeEditor1 !== null) return;
+    const ed1 = makeVersusFormulaEditor(
+      "left",
+      (formula) => {
+        closeEditor1 = null;
+        tryUndoEditor1 = null;
+        onActionEditor1 = null;
+        onFormula(formula);
+      },
+      () => {
+        closeEditor1 = null;
+        tryUndoEditor1 = null;
+        onActionEditor1 = null;
+      }
+    );
+    closeEditor1 = ed1.close;
+    tryUndoEditor1 = ed1.tryUndo;
+    onActionEditor1 = ed1.onAction;
+  };
+  const onApplyReverse2 = (_key, onFormula) => {
+    if (closeEditor2 !== null) return;
+    const ed2 = makeVersusFormulaEditor(
+      "right",
+      (formula) => {
+        closeEditor2 = null;
+        tryUndoEditor2 = null;
+        onActionEditor2 = null;
+        onFormula(formula);
+      },
+      () => {
+        closeEditor2 = null;
+        tryUndoEditor2 = null;
+        onActionEditor2 = null;
+      }
+    );
+    closeEditor2 = ed2.close;
+    tryUndoEditor2 = ed2.tryUndo;
+    onActionEditor2 = ed2.onAction;
+  };
+  const gazeBlocked = () => isTutorial2 && beatAt(beatIdx).hideGaze;
+  const makeCursorDispatch = (base, getWs, getCursor) => (action) => {
+    const cursor = getCursor();
+    if (getWs().isSolved() && cursor !== null) {
+      if (cursorNavActions.has(action)) {
+        cursor.onAction(action);
+        return;
+      }
+      if (action === "axiom" && cursor.isEngaged()) {
+        cursor.onAction("axiom");
+        return;
+      }
+    }
+    base(action);
+  };
+  const dispatch1 = makeCursorDispatch(
+    createDispatch(
+      () => ws1,
+      refreshP1,
+      navigate2,
+      onSolved1,
+      void 0,
+      void 0,
+      onApplyReverse1,
+      ctx1,
+      void 0,
+      gazeBlocked
+    ),
+    () => ws1,
+    () => congrats1
+  );
+  const dispatch2 = makeCursorDispatch(
+    createDispatch(
+      () => ws2,
+      refreshP2,
+      navigate2,
+      onSolved2,
+      void 0,
+      void 0,
+      onApplyReverse2,
+      ctx2,
+      void 0,
+      gazeBlocked
+    ),
+    () => ws2,
+    () => congrats2
+  );
+  const makeCongrats = (onContinue, setCursor) => () => {
+    const hurray = document.createElement("div");
+    const buttons = document.createElement("div");
+    const cells = [];
+    const add = (label, disabled, activate) => {
+      const el = createButton(label, disabled, activate);
+      buttons.appendChild(el);
+      cells.push({ btn: el, activate, isEnabled: () => !disabled });
+    };
+    if (isTutorial2) {
+      add(t("tutorialPrevious"), beatIdx <= 0, () => jumpToBeat(beatIdx - 1));
+    }
+    add(isTutorial2 ? t("tutorialOneMore") : t("continue"), false, onContinue);
+    if (isTutorial2) {
+      add(
+        t("tutorialAdvance"),
+        beatIdx >= tutorialCurriculum.length - 1,
+        () => jumpToBeat(beatIdx + 1)
+      );
+    }
+    const continueCol = isTutorial2 ? 1 : 0;
+    const cursor = createButtonCursor([cells], {
+      startCol: continueCol,
+      moveOnReveal: true
+    });
+    setCursor({ onAction: cursor.onAction, isEngaged: cursor.isEngaged });
+    return { hurray, buttons };
+  };
+  const makeCongratsP1 = makeCongrats(
+    () => solvePlayer1(),
+    (c) => {
+      congrats1 = c;
+    }
+  );
+  const makeCongratsP2 = makeCongrats(
+    () => solvePlayer2(),
+    (c) => {
+      congrats2 = c;
+    }
+  );
+  const ticker = setInterval(() => {
+    if (untimed || gameOver || paused) return;
+    timeLeft -= 1;
+    if (timeLeft <= 0) {
+      timeLeft = 0;
+      gameOver = true;
+      clearInterval(ticker);
+      closeEditor1?.();
+      closeEditor2?.();
+      rerender();
+      return;
+    }
+    if (timerEl !== null) {
+      timerEl.textContent = formatTime(timeLeft);
+    }
+  }, 1e3);
+  const connectedGamepadIndices = () => Array.from(navigator.getGamepads()).flatMap(
+    (gp, i88) => gp !== null ? [i88] : []
+  );
+  const gpIndex = (input) => {
+    const indices = connectedGamepadIndices();
+    return input === "gamepad2" ? indices[1] ?? 1 : indices[0] ?? 0;
+  };
+  const handleEditorInput1 = (action) => {
+    if (closeEditor1 === null) return false;
+    if (action === "undo") {
+      if (!(tryUndoEditor1?.() ?? false)) closeEditor1();
+    } else if (action === "menu") {
+      closeEditor1();
+    } else {
+      onActionEditor1?.(action);
+    }
+    return true;
+  };
+  const handleEditorInput2 = (action) => {
+    if (closeEditor2 === null) return false;
+    if (action === "undo") {
+      if (!(tryUndoEditor2?.() ?? false)) closeEditor2();
+    } else if (action === "menu") {
+      closeEditor2();
+    } else {
+      onActionEditor2?.(action);
+    }
+    return true;
+  };
+  const handleResultAction = (action) => {
+    if (action === "lemma") navigate2("versus-config");
+    else if (action === "skip") navigate2("versus");
+    else resultScreen?.onAction(action);
+  };
+  const handleControlAction = (action) => {
+    if (gameOver) {
+      handleResultAction(action);
+      return;
+    }
+    if (paused) {
+      if (action === "menu" || action === "undo") setPaused(false);
+      else if (action === "skip") navigate2("versus");
+      else if (action === "exit") navigate2("menu");
+      else pauseMenu?.onAction(action);
+      return;
+    }
+    if (action !== "menu") return;
+    if (closeEditor1 !== null || closeEditor2 !== null) {
+      closeEditor1?.();
+      closeEditor2?.();
+    } else {
+      setPaused(true);
+    }
+  };
+  const handleKey = (ev) => {
+    if (ev.ctrlKey || ev.metaKey || ev.altKey || gameOver || paused) return;
+    const action = qwertyKeyMap[ev.code];
+    if (action === void 0 || action === "menu") return;
+    markKeyboardInput();
+    if (handleEditorInput1(action)) return;
+    if (action === "skip") {
+      skipPlayer1();
+      return;
+    }
+    dispatch1(action);
+  };
+  const handleKey2 = (ev) => {
+    if (ev.ctrlKey || ev.metaKey || ev.altKey || gameOver || paused) return;
+    const action = qwertyKeyMap[ev.code];
+    if (action === void 0 || action === "menu") return;
+    markKeyboardInput();
+    if (handleEditorInput2(action)) return;
+    if (action === "skip") {
+      skipPlayer2();
+      return;
+    }
+    dispatch2(action);
+  };
+  let cleanupP1;
+  if (versusConfig.p1Input === "keyboard") {
+    document.addEventListener("keydown", handleKey);
+    cleanupP1 = () => document.removeEventListener("keydown", handleKey);
+  } else if (versusConfig.p1Input === "mouse") {
+    cleanupP1 = () => {
+    };
+  } else if (versusConfig.p1Input === "npc") {
+    const driver = createNpcDriver({
+      getWorkspace: () => ws1,
+      getChallengeIdx: () => wsIdx1,
+      getTotalMoves: () => totalMoves(ws1),
+      applyEvent: (ev) => {
+        ws1.applyEvent(ev);
+        if (ws1.isSolved()) {
+          solvePlayer1();
+        } else {
+          refreshP1();
+        }
+      },
+      skip: skipPlayer1,
+      knobs: versusConfig.npc1Knobs,
+      isGameOver: () => gameOver,
+      isPaused: () => paused
+    });
+    cleanupP1 = driver.cleanup;
+  } else {
+    cleanupP1 = setupGamepad((action) => {
+      if (gameOver || paused || action === "menu") return;
+      if (handleEditorInput1(action)) return;
+      if (action === "skip") {
+        skipPlayer1();
+        return;
+      }
+      dispatch1(action);
+    }, gpIndex(versusConfig.p1Input));
+  }
+  let cleanupP2;
+  if (versusConfig.p2Input === "keyboard") {
+    document.addEventListener("keydown", handleKey2);
+    cleanupP2 = () => document.removeEventListener("keydown", handleKey2);
+  } else if (versusConfig.p2Input === "mouse") {
+    cleanupP2 = () => {
+    };
+  } else if (versusConfig.p2Input === "npc") {
+    const driver = createNpcDriver({
+      getWorkspace: () => ws2,
+      getChallengeIdx: () => wsIdx2,
+      getTotalMoves: () => totalMoves(ws2),
+      applyEvent: (ev) => {
+        ws2.applyEvent(ev);
+        if (ws2.isSolved()) {
+          solvePlayer2();
+        } else {
+          refreshP2();
+        }
+      },
+      skip: skipPlayer2,
+      knobs: versusConfig.npc2Knobs,
+      isGameOver: () => gameOver,
+      isPaused: () => paused
+    });
+    cleanupP2 = driver.cleanup;
+  } else {
+    cleanupP2 = setupGamepad((action) => {
+      if (gameOver || paused || action === "menu") return;
+      if (handleEditorInput2(action)) return;
+      if (action === "skip") {
+        skipPlayer2();
+        return;
+      }
+      dispatch2(action);
+    }, gpIndex(versusConfig.p2Input));
+  }
+  const handleControlKey = (ev) => {
+    if (ev.ctrlKey || ev.metaKey || ev.altKey) return;
+    const action = qwertyKeyMap[ev.code];
+    if (action !== void 0) handleControlAction(action);
+  };
+  document.addEventListener("keydown", handleControlKey);
+  const controlPadIndices = [.../* @__PURE__ */ new Set([0, ...connectedGamepadIndices()])];
+  const cleanupControlPads = controlPadIndices.map(
+    (idx) => setupGamepad((action) => handleControlAction(action), idx)
+  );
+  const unsubGamepad = subscribeGamepad(rerender);
+  rerender();
+  return {
+    cleanup: () => {
+      clearInterval(ticker);
+      cleanupP1();
+      cleanupP2();
+      document.removeEventListener("keydown", handleControlKey);
+      cleanupControlPads.forEach((c) => c());
+      unsubGamepad();
+      closeEditor1?.();
+      closeEditor2?.();
+    },
+    rerender
+  };
+};
+
+// src/web/tutorial.ts
+var mountTutorial = (container, navigate2, pool2, startBeat, p1Input, p2Input) => {
+  const beat = Math.max(0, Math.min(startBeat, tutorialCurriculum.length - 1));
+  const config = {
+    ...defaultVersusConfig(),
+    p1Input,
+    p2Input,
+    tutorial: { startBeat: beat }
+  };
+  return mountVersus(container, navigate2, pool2, config);
+};
+
 // src/web/challenge-pool.ts
 var POOL_TARGET = 5;
 var FALLBACK_SIZE = 5;
@@ -9630,6 +10292,12 @@ var current = { cleanup: () => {
 var enterMode = (mode) => {
   session.enter(mode, factory[mode]());
 };
+var pickHumanInput = (params, key, fallback) => {
+  const raw2 = params.get(key);
+  if (raw2 === "mouse" || raw2 === "keyboard" || raw2 === "gamepad1" || raw2 === "gamepad2")
+    return raw2;
+  return fallback;
+};
 var navigate = (screen) => {
   current.cleanup();
   if (screen === "menu") {
@@ -9679,6 +10347,12 @@ var navigate = (screen) => {
         if (val !== null) nextParams.set(key, val);
       }
     }
+    if (screen === "tutorial") {
+      for (const key of ["tutorial_beat", "tutorial_p1", "tutorial_p2"]) {
+        const val = currentParams.get(key);
+        if (val !== null) nextParams.set(key, val);
+      }
+    }
     url = `?${nextParams.toString()}`;
   }
   history.pushState({ screen }, "", url);
@@ -9712,6 +10386,20 @@ var mount = (screen) => {
       );
       pool.configure(vConfig.randomConfig);
       current = mountVersus(body, navigate, pool, vConfig);
+      break;
+    }
+    case "tutorial": {
+      const params = new URLSearchParams(window.location.search);
+      const raw2 = parseInt(params.get("tutorial_beat") ?? "0", 10);
+      const beat = Number.isFinite(raw2) ? raw2 : 0;
+      current = mountTutorial(
+        body,
+        navigate,
+        pool,
+        beat,
+        pickHumanInput(params, "tutorial_p1", "mouse"),
+        pickHumanInput(params, "tutorial_p2", "keyboard")
+      );
       break;
     }
     case "versus-config":
@@ -9762,6 +10450,8 @@ var init3 = () => {
     mount("system");
   } else if (mode === "versus") {
     mount("versus");
+  } else if (mode === "tutorial") {
+    mount("tutorial");
   } else if (mode === "versus-config") {
     mount("versus-config");
   } else if (params.get("level") !== null) {
