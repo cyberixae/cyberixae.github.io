@@ -1634,6 +1634,82 @@ html.mode-single:not(.input-pointer) .bench-topbar .bench-zoom {
 .versus-half-npc .controls {
   visibility: hidden;
 }
+/* Tutorial with the tutor rig off: the half is fully idle, so hide the
+   proof tree too (versus-half-npc leaves the playarea visible because an
+   NPC's board is worth watching; an unmanned board is just confusing).
+   visibility keeps the half's footprint, so enabling the tutor later
+   doesn't reflow the learner's side. */
+.versus-half-off .playarea {
+  visibility: hidden;
+}
+/* The tutorial's owl tutor: a portrait (bigger than the proposition birds)
+   pinned to the tutor half's lower-right corner, speech bubble above it
+   with the current chapter's message. Sits outside .bench so the NPC-half
+   treatment of a tutor-less half doesn't hide it; pointer-events off so it
+   never eats the tutor board's clicks. */
+.tutor-owl {
+  position: absolute;
+  right: 0.8em;
+  bottom: 0.8em;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.4em;
+  max-width: 18em;
+  pointer-events: none;
+  /* Above the bench's bottom fade gradient (z-index 3), below popups. */
+  z-index: 4;
+}
+.tutor-owl-bubble {
+  background-color: #fff;
+  border: 2px solid #964;
+  border-radius: 12px;
+  border-bottom-right-radius: 2px;
+  padding: 0.5em 0.8em;
+  font-size: 0.8em;
+  /* Shift the bubble left of the portrait so its sharp corner points at
+     the owl's mouth — reads more like the owl is talking. */
+  margin-right: 5em;
+}
+.tutor-owl-para + .tutor-owl-para {
+  margin-top: 0.5em;
+}
+/* Chapter intro page: no board, just the topic navigation centered in the
+   learner half. */
+.tutorial-intro {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1em;
+}
+/* Injected bind labels render as chips. Each chip exists once per device
+   as a latent variant; the html input-* class shows the one matching the
+   device the learner last touched, so switching device swaps the labels
+   without a re-render. Key / pad glyphs get a keycap look, button words a
+   button look. */
+.owl-bind {
+  display: none;
+  border: 1px solid #964;
+  border-radius: 5px;
+  padding: 0 0.3em;
+  background-color: #ffeedd;
+  white-space: nowrap;
+}
+html.input-pointer .owl-bind.for-pointer,
+html.input-keyboard .owl-bind.for-keyboard,
+html.input-gamepad .owl-bind.for-gamepad {
+  display: inline-block;
+}
+.owl-bind.for-pointer {
+  border-radius: 999px;
+  background-color: #fff;
+  box-shadow: 0 1px 0 #964;
+}
+.tutor-owl-face {
+  font-size: 3.5em;
+  line-height: 1;
+}
 /* Keyboard/gamepad slots: hide the pointer/touch control bar and topbar */
 /* buttons (rule cards stay visible). Congrats buttons remain visible. */
 .versus-half-keys .controls:not(:has(.congrabuttons)) {
@@ -1774,6 +1850,16 @@ html.mode-single:not(.input-pointer) .bench-topbar .bench-zoom {
   text-transform: uppercase;
   letter-spacing: 0.12em;
   opacity: 0.45;
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 0.12em 0.2em;
+}
+.tutorial-ladder-chapter:hover {
+  opacity: 0.85;
+}
+.tutorial-ladder-chapter.current {
+  opacity: 1;
+  font-weight: bold;
 }
 .tutorial-ladder-chapter:first-child {
   margin-top: 0;

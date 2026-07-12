@@ -3496,18 +3496,36 @@ var en = {
   gamepad1: "Gamepad 1",
   gamepad2: "Gamepad 2",
   npc: "NPC",
+  tutor: "Tutor",
+  inputOff: "Off",
   tutorial: "Tutorial",
-  tutorialBasics: "Must Know",
-  tutorialLogic: "Good to Know",
+  tutorialBasics: "Basics",
+  tutorialLogic: "Destruct Rules",
   tutorialPart: "Part",
   tutorialAdvance: "Next Topic",
   tutorialPrevious: "Previous Topic",
   tutorialOneMore: "One More Challenge",
-  tutorialShape1: "Split",
+  tutorialIdentity: "Identity",
+  tutorialConstants: "Constants",
+  tutorialExtras: "Extras",
+  tutorialShape1: "Splitting",
   tutorialShape2: "Side flip",
-  tutorialShape3: "Crossing",
+  tutorialShape3: "Dividing",
   tutorialShape4: "Branching",
-  tutorialShape5: "Branching crossing"
+  tutorialShape5: "Shattering",
+  tutorialOwlBasics: "Welcome to LK! In its challenges you close derivation trees built out of sequents. This first chapter teaches the essentials you need to play.",
+  tutorialOwlLogic: "The second chapter is about dropping the extra connectives ( \u2192 \u2227 \u2228 \xAC ). If you would rather jump straight into the deep end, you can head for the real game as soon as you have found the {destruct} button. The subchapters walk through the consequences of dropping each connective in different situations, one at a time.",
+  tutorialOwlClose: "A branch of the tree can be closed when the same sentence sits on both sides of the gate ( \u22A2 ) \u2014 this situation is called an identity. You can switch branches with the {branch} buttons and close the chosen branch with the {close} button.",
+  tutorialOwlCloseConstants: "Constant sentences can sometimes close a branch on their own \u2014 Falsum ( \u22A5 ) when it sits alone on the left side of the gate, and Verum ( \u22A4 ) when it sits alone on the right.",
+  tutorialOwlDrop: "Any extra sentences on a branch must always be dropped before the branch can close. Remove them by picking the sentence to drop with the {pick} buttons, then pressing the {drop} button repeatedly until the picked sentence falls off the tree. If you drop a sentence the branch needs for closing, you can undo your move by pressing {undo}.",
+  tutorialOwlSplit: "You can drop a connective by picking a sentence with the {pick} buttons, then pressing {destruct} repeatedly until the outermost connective of the picked sentence falls off the tree. Dropping a Conjunction ( \u2227 ) on the left side of the gate, or a Disjunction ( \u2228 ) on the right, causes no further consequences \u2014 the pieces stay where they were.",
+  tutorialOwlSideFlip: "Dropping a Negation ( \xAC ) makes the remaining sentence move to the other side of the gate.",
+  tutorialOwlCrossing: "Dropping an Implication ( \u2192 ) on the right side of the gate divides its parts across the two sides of the gate.",
+  tutorialOwlBranching: "Dropping a Conjunction ( \u2227 ) on the right side of the gate, or a Disjunction ( \u2228 ) on the left, makes the tree branch.",
+  tutorialOwlBranchingCrossing: "Dropping an Implication ( \u2192 ) on the left side of the gate shatters the sentence: the most intricate of the rules combines both the parts dividing across the gate and the tree branching.",
+  tutorialComplete: "Graduation",
+  tutorialStart: "Start",
+  tutorialOwlDone: "The tutorial is complete! You now know everything you need to play. Have fun!"
 };
 var fi = {
   title: "LK",
@@ -3583,18 +3601,36 @@ var fi = {
   gamepad1: "Ohjain 1",
   gamepad2: "Ohjain 2",
   npc: "NPC",
+  tutor: "Tuutori",
+  inputOff: "Pois",
   tutorial: "Opastus",
-  tutorialBasics: "Pakko tiet\xE4\xE4",
-  tutorialLogic: "Hyv\xE4 tiet\xE4\xE4",
+  tutorialBasics: "Perusteet",
+  tutorialLogic: "Purkus\xE4\xE4nn\xF6t",
   tutorialPart: "Osa",
   tutorialAdvance: "Seuraava aihe",
   tutorialPrevious: "Edellinen aihe",
   tutorialOneMore: "Viel\xE4 yksi haaste",
-  tutorialShape1: "Halkaisu",
+  tutorialIdentity: "Identiteetti",
+  tutorialConstants: "Vakiot",
+  tutorialExtras: "Ylim\xE4\xE4r\xE4iset",
+  tutorialShape1: "Halkeaminen",
   tutorialShape2: "Puolenvaihto",
-  tutorialShape3: "Ylitys",
+  tutorialShape3: "Jakautuminen",
   tutorialShape4: "Haarautuminen",
-  tutorialShape5: "Haarautuva ylitys"
+  tutorialShape5: "Sirpaloituminen",
+  tutorialOwlBasics: "Tervetuloa pelaamaan LK:ta! Pelin haasteissa suljetaan sekventeist\xE4 koostuvia p\xE4\xE4ttelypuita. Ensimm\xE4isess\xE4 luvussa opimme pelaamisen kannalta v\xE4ltt\xE4m\xE4tt\xF6mi\xE4 perusasioita.",
+  tutorialOwlLogic: "Toisessa luvussa k\xE4sittelemme ylim\xE4\xE4r\xE4isten konnektiivien ( \u2192 \u2227 \u2228 \xAC ) pudottamista. Mik\xE4li haluat hyp\xE4t\xE4 suoraan syv\xE4\xE4n p\xE4\xE4tyyn, voit v\xE4litt\xF6m\xE4sti {destruct} painikkeen l\xF6ydetty\xE4si siirty\xE4 pelaamaan varsinaista peli\xE4. T\xE4m\xE4n luvun aliluvuissa k\xE4yd\xE4\xE4n yksitellen l\xE4pi eri konnektiivien pudottamisen seuraamuksia eri tilanteissa.",
+  tutorialOwlClose: "P\xE4\xE4ttelypuun oksa on suljettavissa silloin, kun portin ( \u22A2 ) kummallakin puolella on sama lause \u2014 t\xE4llaista tilannetta kutsutaan identiteetiksi. Voit vaihtaa oksaa {branch} painikkeilla ja sulkea valitun oksan {close} painikkeella.",
+  tutorialOwlCloseConstants: "Vakiolauseet mahdollistavat joskus oksan sulkemisen yksin\xE4\xE4n \u2014 Falsum ( \u22A5 ) ollessaan yksin portin vasemmalla puolella, ja Verum ( \u22A4 ) ollessaan yksin portin oikealla puolella.",
+  tutorialOwlDrop: "Oksan sis\xE4lt\xE4m\xE4t ylim\xE4\xE4r\xE4iset lauseet on aina pudotettava ennen kuin oksan voi sulkea. Saat ylim\xE4\xE4r\xE4iset lauseet poistettua valitsemalla pudotettavan lauseen {pick} painikkeilla, ja painamalla sen j\xE4lkeen {drop} painiketta toistuvasti, kunnes valittu lause putoaa puusta. Mik\xE4li pudotat oksan sulkemiseen tarvittavan lauseen, voit perua siirtosi painamalla {undo} painiketta.",
+  tutorialOwlSplit: "Voit pudottaa konnektiivin valitsemalla lauseen {pick} painikkeilla, ja painamalla sen j\xE4lkeen {destruct} toistuvasti, kunnes valitun lauseen uloin konnektiivi putoaa puusta. Konjunktion ( \u2227 ) pudottaminen portin vasemmalla puolella tai Disjunktion ( \u2228 ) pudottaminen portin oikealla puolella ei aiheuta sen kummempia seuraamuksia \u2014 osat j\xE4\xE4v\xE4t paikoilleen.",
+  tutorialOwlSideFlip: "Negaation ( \xAC ) pudottaminen aiheuttaa j\xE4ljelle j\xE4\xE4v\xE4n lauseen siirtymisen portin toiselle puolelle.",
+  tutorialOwlCrossing: "Implikaation ( \u2192 ) pudottaminen portin oikealta puolelta aiheuttaa lauseen osien jakautumisen kahdelle puolelle porttia.",
+  tutorialOwlBranching: "Konjunktion ( \u2227 ) pudottaminen portin oikealla puolella tai Disjunktion ( \u2228 ) pudottaminen portin vasemmalla puolella aiheuttaa puun haarautumisen.",
+  tutorialOwlBranchingCrossing: "Implikaation ( \u2192 ) pudottaminen portin vasemmalta puolelta sirpaloittaa lauseen: s\xE4\xE4nn\xF6ist\xE4 monimutkaisin yhdist\xE4\xE4 sek\xE4 osien jakautumisen portin eri puolille ett\xE4 puun haarautumisen.",
+  tutorialComplete: "Valmistujaiset",
+  tutorialStart: "Aloita",
+  tutorialOwlDone: "Opastus on suoritettu! Tied\xE4t nyt kaiken, mit\xE4 pelaamiseen tarvitaan. Pid\xE4 hauskaa!"
 };
 var es = {
   title: "LK",
@@ -3670,18 +3706,36 @@ var es = {
   gamepad1: "Mando 1",
   gamepad2: "Mando 2",
   npc: "NPC",
+  tutor: "Tutor",
+  inputOff: "Desactivado",
   tutorial: "Tutorial",
-  tutorialBasics: "Imprescindible",
-  tutorialLogic: "Recomendado",
+  tutorialBasics: "Fundamentos",
+  tutorialLogic: "Reglas de destrucci\xF3n",
   tutorialPart: "Parte",
   tutorialAdvance: "Siguiente tema",
   tutorialPrevious: "Tema anterior",
   tutorialOneMore: "Un desaf\xEDo m\xE1s",
-  tutorialShape1: "Divisi\xF3n",
+  tutorialIdentity: "Identidad",
+  tutorialConstants: "Constantes",
+  tutorialExtras: "Sobrantes",
+  tutorialShape1: "Partici\xF3n",
   tutorialShape2: "Cambio de lado",
-  tutorialShape3: "Cruce",
+  tutorialShape3: "Reparto",
   tutorialShape4: "Ramificaci\xF3n",
-  tutorialShape5: "Cruce con ramas"
+  tutorialShape5: "Fragmentaci\xF3n",
+  tutorialOwlBasics: "\xA1Bienvenido a LK! En los desaf\xEDos del juego se cierran \xE1rboles de deducci\xF3n compuestos de secuentes. En este primer cap\xEDtulo aprendemos lo b\xE1sico imprescindible para jugar.",
+  tutorialOwlLogic: "En el segundo cap\xEDtulo tratamos c\xF3mo soltar los conectivos sobrantes ( \u2192 \u2227 \u2228 \xAC ). Si prefieres lanzarte a lo hondo, en cuanto encuentres el bot\xF3n {destruct} puedes pasar directamente al juego de verdad. Los subcap\xEDtulos repasan una a una las consecuencias de soltar cada conectivo en distintas situaciones.",
+  tutorialOwlClose: "Una rama del \xE1rbol se puede cerrar cuando a ambos lados de la puerta ( \u22A2 ) est\xE1 la misma oraci\xF3n \u2014 esta situaci\xF3n se llama identidad. Puedes cambiar de rama con los botones {branch} y cerrar la rama elegida con el bot\xF3n {close}.",
+  tutorialOwlCloseConstants: "Las oraciones constantes a veces permiten cerrar una rama por s\xED solas: Falsum ( \u22A5 ) cuando est\xE1 solo a la izquierda de la puerta, y Verum ( \u22A4 ) cuando est\xE1 solo a la derecha.",
+  tutorialOwlDrop: "Las oraciones sobrantes de una rama deben soltarse siempre antes de poder cerrarla. Elim\xEDnalas eligiendo la oraci\xF3n a soltar con los botones {pick} y pulsando despu\xE9s el bot\xF3n {drop} repetidamente, hasta que la oraci\xF3n elegida caiga del \xE1rbol. Si sueltas una oraci\xF3n necesaria para cerrar la rama, puedes deshacer el movimiento pulsando {undo}.",
+  tutorialOwlSplit: "Puedes soltar un conectivo eligiendo una oraci\xF3n con los botones {pick} y pulsando despu\xE9s {destruct} repetidamente, hasta que el conectivo m\xE1s externo de la oraci\xF3n elegida caiga del \xE1rbol. Soltar una Conjunci\xF3n ( \u2227 ) en el lado izquierdo de la puerta, o una Disyunci\xF3n ( \u2228 ) en el derecho, no tiene mayores consecuencias: las piezas se quedan donde estaban.",
+  tutorialOwlSideFlip: "Soltar una Negaci\xF3n ( \xAC ) hace que la oraci\xF3n restante pase al otro lado de la puerta.",
+  tutorialOwlCrossing: "Soltar una Implicaci\xF3n ( \u2192 ) en el lado derecho de la puerta reparte sus partes entre los dos lados de la puerta.",
+  tutorialOwlBranching: "Soltar una Conjunci\xF3n ( \u2227 ) en el lado derecho de la puerta, o una Disyunci\xF3n ( \u2228 ) en el izquierdo, ramifica el \xE1rbol.",
+  tutorialOwlBranchingCrossing: "Soltar una Implicaci\xF3n ( \u2192 ) en el lado izquierdo de la puerta fragmenta la oraci\xF3n: la regla m\xE1s compleja combina el reparto de las partes entre ambos lados y la ramificaci\xF3n del \xE1rbol.",
+  tutorialComplete: "Graduaci\xF3n",
+  tutorialStart: "Empezar",
+  tutorialOwlDone: "\xA1Tutorial completado! Ya sabes todo lo que necesitas para jugar. \xA1Divi\xE9rtete!"
 };
 var cs = {
   title: "LK",
@@ -3757,18 +3811,36 @@ var cs = {
   gamepad1: "Ovlada\u010D 1",
   gamepad2: "Ovlada\u010D 2",
   npc: "NPC",
+  tutor: "Tutor",
+  inputOff: "Vypnuto",
   tutorial: "N\xE1vod",
-  tutorialBasics: "Nutn\xE9 v\u011Bd\u011Bt",
-  tutorialLogic: "Dobr\xE9 v\u011Bd\u011Bt",
+  tutorialBasics: "Z\xE1klady",
+  tutorialLogic: "Pravidla ni\u010Den\xED",
   tutorialPart: "\u010C\xE1st",
   tutorialAdvance: "Dal\u0161\xED t\xE9ma",
   tutorialPrevious: "P\u0159edchoz\xED t\xE9ma",
   tutorialOneMore: "Je\u0161t\u011B jedna v\xFDzva",
-  tutorialShape1: "Rozd\u011Blen\xED",
+  tutorialIdentity: "Identita",
+  tutorialConstants: "Konstanty",
+  tutorialExtras: "P\u0159ebytky",
+  tutorialShape1: "Roz\u0161t\u011Bpen\xED",
   tutorialShape2: "Zm\u011Bna strany",
-  tutorialShape3: "P\u0159echod",
+  tutorialShape3: "Rozd\u011Blen\xED",
   tutorialShape4: "V\u011Btven\xED",
-  tutorialShape5: "V\u011Btven\xFD p\u0159echod"
+  tutorialShape5: "T\u0159\xED\u0161t\u011Bn\xED",
+  tutorialOwlBasics: "V\xEDtej ve h\u0159e LK! V jej\xEDch v\xFDzv\xE1ch se zav\xEDraj\xED odvozovac\xED stromy slo\u017Een\xE9 ze sekvent\u016F. V t\xE9to prvn\xED kapitole se nau\u010D\xEDme z\xE1klady, bez kter\xFDch se hr\xE1t ned\xE1.",
+  tutorialOwlLogic: "Ve druh\xE9 kapitole se v\u011Bnujeme pou\u0161t\u011Bn\xED p\u0159ebyte\u010Dn\xFDch spojek ( \u2192 \u2227 \u2228 \xAC ). Chce\u0161-li sko\u010Dit rovnou do hlubin, m\u016F\u017Ee\u0161 hned po nalezen\xED tla\u010D\xEDtka {destruct} p\u0159ej\xEDt ke skute\u010Dn\xE9 h\u0159e. Podkapitoly prob\xEDraj\xED jednu po druh\xE9 d\u016Fsledky pu\u0161t\u011Bn\xED jednotliv\xFDch spojek v r\u016Fzn\xFDch situac\xEDch.",
+  tutorialOwlClose: "V\u011Btev stromu lze zav\u0159\xEDt, kdy\u017E na obou stran\xE1ch br\xE1ny ( \u22A2 ) stoj\xED stejn\xE1 v\u011Bta \u2014 takov\xE9 situaci se \u0159\xEDk\xE1 identita. V\u011Btev p\u0159epne\u0161 tla\u010D\xEDtky {branch} a vybranou v\u011Btev zav\u0159e\u0161 tla\u010D\xEDtkem {close}.",
+  tutorialOwlCloseConstants: "Konstantn\xED v\u011Bty n\u011Bkdy dok\xE1\u017Eou zav\u0159\xEDt v\u011Btev samy \u2014 Falsum ( \u22A5 ), kdy\u017E stoj\xED samo vlevo od br\xE1ny, a Verum ( \u22A4 ), kdy\u017E stoj\xED samo vpravo.",
+  tutorialOwlDrop: "P\u0159ebyte\u010Dn\xE9 v\u011Bty na v\u011Btvi je v\u017Edy nutn\xE9 pustit, ne\u017E ji lze zav\u0159\xEDt. Odstran\xED\u0161 je tak, \u017Ee tla\u010D\xEDtky {pick} vybere\u0161 v\u011Btu k pu\u0161t\u011Bn\xED a pak opakovan\u011B ma\u010Dk\xE1\u0161 tla\u010D\xEDtko {drop}, dokud vybran\xE1 v\u011Bta nespadne ze stromu. Pokud pust\xED\u0161 v\u011Btu pot\u0159ebnou k zav\u0159en\xED v\u011Btve, m\u016F\u017Ee\u0161 tah vr\xE1tit tla\u010D\xEDtkem {undo}.",
+  tutorialOwlSplit: "Spojku pust\xED\u0161 tak, \u017Ee tla\u010D\xEDtky {pick} vybere\u0161 v\u011Btu a pak opakovan\u011B ma\u010Dk\xE1\u0161 {destruct}, dokud vn\u011Bj\u0161\xED spojka vybran\xE9 v\u011Bty nespadne ze stromu. Pu\u0161t\u011Bn\xED Konjunkce ( \u2227 ) na lev\xE9 stran\u011B br\xE1ny nebo Disjunkce ( \u2228 ) na prav\xE9 nem\xE1 \u017E\xE1dn\xE9 zvl\xE1\u0161tn\xED n\xE1sledky \u2014 \u010D\xE1sti z\u016Fst\xE1vaj\xED na m\xEDst\u011B.",
+  tutorialOwlSideFlip: "Pu\u0161t\u011Bn\xED Negace ( \xAC ) p\u0159esune zb\xFDvaj\xEDc\xED v\u011Btu na druhou stranu br\xE1ny.",
+  tutorialOwlCrossing: "Pu\u0161t\u011Bn\xED Implikace ( \u2192 ) na prav\xE9 stran\u011B br\xE1ny rozd\u011Bl\xED jej\xED \u010D\xE1sti na ob\u011B strany br\xE1ny.",
+  tutorialOwlBranching: "Pu\u0161t\u011Bn\xED Konjunkce ( \u2227 ) na prav\xE9 stran\u011B br\xE1ny nebo Disjunkce ( \u2228 ) na lev\xE9 rozv\u011Btv\xED strom.",
+  tutorialOwlBranchingCrossing: "Pu\u0161t\u011Bn\xED Implikace ( \u2192 ) na lev\xE9 stran\u011B br\xE1ny v\u011Btu rozt\u0159\xED\u0161t\xED: nejslo\u017Eit\u011Bj\u0161\xED z pravidel spojuje jak rozd\u011Blen\xED \u010D\xE1st\xED na ob\u011B strany br\xE1ny, tak v\u011Btven\xED stromu.",
+  tutorialComplete: "Promoce",
+  tutorialStart: "Za\u010D\xEDt",
+  tutorialOwlDone: "N\xE1vod je u konce! Te\u010F v\xED\u0161 v\u0161e, co ke hran\xED pot\u0159ebuje\u0161. Bav se!"
 };
 var pl = {
   title: "LK",
@@ -3844,18 +3916,36 @@ var pl = {
   gamepad1: "Pad 1",
   gamepad2: "Pad 2",
   npc: "NPC",
+  tutor: "Tutor",
+  inputOff: "Wy\u0142\u0105czony",
   tutorial: "Samouczek",
-  tutorialBasics: "Trzeba wiedzie\u0107",
-  tutorialLogic: "Warto wiedzie\u0107",
+  tutorialBasics: "Podstawy",
+  tutorialLogic: "Zasady niszczenia",
   tutorialPart: "Cz\u0119\u015B\u0107",
   tutorialAdvance: "Nast\u0119pny temat",
   tutorialPrevious: "Poprzedni temat",
   tutorialOneMore: "Jeszcze jedno wyzwanie",
-  tutorialShape1: "Podzia\u0142",
+  tutorialIdentity: "To\u017Csamo\u015B\u0107",
+  tutorialConstants: "Sta\u0142e",
+  tutorialExtras: "Zb\u0119dne",
+  tutorialShape1: "Rozszczepienie",
   tutorialShape2: "Zmiana strony",
-  tutorialShape3: "Przej\u015Bcie",
+  tutorialShape3: "Rozdzielenie",
   tutorialShape4: "Rozga\u0142\u0119zienie",
-  tutorialShape5: "Rozga\u0142\u0119zione przej\u015Bcie"
+  tutorialShape5: "Rozbicie",
+  tutorialOwlBasics: "Witaj w grze LK! W jej wyzwaniach zamyka si\u0119 drzewa wnioskowania zbudowane z sekwent\xF3w. W tym pierwszym rozdziale poznajemy podstawy niezb\u0119dne do gry.",
+  tutorialOwlLogic: "W drugim rozdziale zajmujemy si\u0119 upuszczaniem zb\u0119dnych sp\xF3jnik\xF3w ( \u2192 \u2227 \u2228 \xAC ). Je\u015Bli wolisz skoczy\u0107 na g\u0142\u0119bok\u0105 wod\u0119, zaraz po znalezieniu przycisku {destruct} mo\u017Cesz przej\u015B\u0107 do w\u0142a\u015Bciwej gry. Podrozdzia\u0142y omawiaj\u0105 po kolei skutki upuszczania poszczeg\xF3lnych sp\xF3jnik\xF3w w r\xF3\u017Cnych sytuacjach.",
+  tutorialOwlClose: "Ga\u0142\u0105\u017A drzewa mo\u017Cna zamkn\u0105\u0107, gdy po obu stronach bramy ( \u22A2 ) stoi to samo zdanie \u2014 tak\u0105 sytuacj\u0119 nazywamy to\u017Csamo\u015Bci\u0105. Ga\u0142\u0105\u017A zmieniasz przyciskami {branch}, a wybran\u0105 ga\u0142\u0105\u017A zamykasz przyciskiem {close}.",
+  tutorialOwlCloseConstants: "Zdania sta\u0142e czasem pozwalaj\u0105 zamkn\u0105\u0107 ga\u0142\u0105\u017A samodzielnie \u2014 Falsum ( \u22A5 ), gdy stoi samo po lewej stronie bramy, i Verum ( \u22A4 ), gdy stoi samo po prawej.",
+  tutorialOwlDrop: "Zb\u0119dne zdania na ga\u0142\u0119zi trzeba zawsze upu\u015Bci\u0107, zanim da si\u0119 j\u0105 zamkn\u0105\u0107. Usuniesz je, wybieraj\u0105c zdanie do upuszczenia przyciskami {pick}, a nast\u0119pnie naciskaj\u0105c przycisk {drop} wielokrotnie, a\u017C wybrane zdanie spadnie z drzewa. Je\u015Bli upu\u015Bcisz zdanie potrzebne do zamkni\u0119cia ga\u0142\u0119zi, mo\u017Cesz cofn\u0105\u0107 ruch przyciskiem {undo}.",
+  tutorialOwlSplit: "Sp\xF3jnik upuszczasz, wybieraj\u0105c zdanie przyciskami {pick}, a nast\u0119pnie naciskaj\u0105c {destruct} wielokrotnie, a\u017C zewn\u0119trzny sp\xF3jnik wybranego zdania spadnie z drzewa. Upuszczenie Koniunkcji ( \u2227 ) po lewej stronie bramy lub Alternatywy ( \u2228 ) po prawej nie ma szczeg\xF3lnych nast\u0119pstw \u2014 cz\u0119\u015Bci zostaj\u0105 na miejscu.",
+  tutorialOwlSideFlip: "Upuszczenie Negacji ( \xAC ) przenosi pozosta\u0142e zdanie na drug\u0105 stron\u0119 bramy.",
+  tutorialOwlCrossing: "Upuszczenie Implikacji ( \u2192 ) po prawej stronie bramy rozdziela jej cz\u0119\u015Bci na obie strony bramy.",
+  tutorialOwlBranching: "Upuszczenie Koniunkcji ( \u2227 ) po prawej stronie bramy lub Alternatywy ( \u2228 ) po lewej rozga\u0142\u0119zia drzewo.",
+  tutorialOwlBranchingCrossing: "Upuszczenie Implikacji ( \u2192 ) po lewej stronie bramy rozbija zdanie: najbardziej z\u0142o\u017Cona z regu\u0142 \u0142\u0105czy rozdzielenie cz\u0119\u015Bci na obie strony bramy i rozga\u0142\u0119zienie drzewa.",
+  tutorialComplete: "Zako\u0144czenie",
+  tutorialStart: "Rozpocznij",
+  tutorialOwlDone: "Samouczek uko\u0144czony! Wiesz ju\u017C wszystko, czego potrzeba do gry. Mi\u0142ej zabawy!"
 };
 var messages = {
   cs,
@@ -4782,6 +4872,20 @@ for (const [code, action] of Object.entries(qwertyKeyMap)) {
     actionKeyHint[action] = codeToLabel(code);
   }
 }
+var gazeKeyFamily = /* @__PURE__ */ new Set([
+  "ArrowLeft",
+  "ArrowRight",
+  "ArrowUp",
+  "ArrowDown",
+  "Enter",
+  "Backspace"
+]);
+var gazeKeyHint = (action) => {
+  for (const [code, a87] of Object.entries(qwertyKeyMap)) {
+    if (a87 === action && gazeKeyFamily.has(code)) return codeToLabel(code);
+  }
+  return actionKeyHint[action];
+};
 var ps5SharedKeyMap = {
   4: "prevBranch",
   // L1
@@ -4859,6 +4963,7 @@ var buildActionPadHint = (keyMap) => {
 };
 var actionPadHintGaze = buildActionPadHint(ps5GazeKeyMap);
 var actionPadHintHot = buildActionPadHint(ps5HotKeyMap);
+var gazePadHint = (action) => actionPadHintGaze[action];
 var activeInput = "pointer";
 var hotMode = false;
 var gazeModeActive = false;
@@ -5997,10 +6102,6 @@ var setupGamepad = (dispatch, gamepadIndex = 0) => {
 };
 
 // src/web/menu.ts
-var modeLabel = {
-  random: () => t("random"),
-  campaign: () => t("campaign")
-};
 var mountMenu = (container, navigate2) => {
   let clicks = 0;
   let cursor = null;
@@ -6020,22 +6121,17 @@ var mountMenu = (container, navigate2) => {
     const modes = document.createElement("div");
     modes.setAttribute("class", "menu-modes");
     const cells = [];
-    const versusBtn = document.createElement("div");
-    versusBtn.setAttribute("class", "button menu-mode");
-    versusBtn.textContent = t("versus");
-    const versusActivate = () => navigate2("versus-config");
-    versusBtn.onclick = versusActivate;
-    modes.appendChild(versusBtn);
-    cells.push({ btn: versusBtn, activate: versusActivate });
-    for (const mode of gameModes) {
+    const addMode = (label, activate) => {
       const btn = document.createElement("div");
       btn.setAttribute("class", "button menu-mode");
-      btn.innerHTML = modeLabel[mode]();
-      const activate = () => navigate2(mode);
+      btn.textContent = label;
       btn.onclick = activate;
       modes.appendChild(btn);
       cells.push({ btn, activate });
-    }
+    };
+    addMode(t("versus"), () => navigate2("versus-config"));
+    addMode(t("random"), () => navigate2("random"));
+    addMode(t("tutorial"), () => navigate2("tutorial"));
     panel.appendChild(modes);
     container.appendChild(panel);
     cursor = createButtonCursor(cells.map((c) => [c]));
@@ -7008,11 +7104,11 @@ var mountSecret = (container, navigate2) => {
     systemsBtn.innerHTML = t("systems");
     systemsBtn.onclick = () => navigate2("system");
     modes.appendChild(systemsBtn);
-    const tutorialBtn = document.createElement("div");
-    tutorialBtn.setAttribute("class", "button menu-mode");
-    tutorialBtn.innerHTML = t("tutorial");
-    tutorialBtn.onclick = () => navigate2("tutorial");
-    modes.appendChild(tutorialBtn);
+    const campaignBtn = document.createElement("div");
+    campaignBtn.setAttribute("class", "button menu-mode");
+    campaignBtn.innerHTML = t("campaign");
+    campaignBtn.onclick = () => navigate2("campaign");
+    modes.appendChild(campaignBtn);
     panel.appendChild(modes);
     const backBtn = document.createElement("div");
     backBtn.setAttribute("class", "button menu-mode");
@@ -8941,17 +9037,17 @@ var LOGIC_NAME_IDS = [
 var tutorialCurriculum = [
   {
     chapter: "basics",
-    nameId: "close",
+    nameId: "identity",
     glyphs: "",
     hideGaze: true,
     generate: () => generateBasicsChallenge("identity")
   },
   {
-    // Same verb as the first beat (the ladder shows "Close ⊥ ⊤"), new
-    // winning conditions — still pure closing, so gaze stays hidden.
+    // Same verb as the first beat, new winning conditions — still pure
+    // closing, so gaze stays hidden.
     chapter: "basics",
-    nameId: "close",
-    glyphs: "\u22A5 \u22A4",
+    nameId: "constants",
+    glyphs: "",
     hideGaze: true,
     generate: () => generateBasicsChallenge("constants")
   },
@@ -8980,6 +9076,26 @@ var beatAt = (i88) => {
 var beatFail = () => {
   throw new Error("empty tutorial curriculum");
 };
+var tutorialStops = (() => {
+  const stops = [];
+  let lastChapter = null;
+  tutorialCurriculum.forEach((beat, i88) => {
+    if (beat.chapter !== lastChapter) {
+      lastChapter = beat.chapter;
+      stops.push({ kind: "intro", chapter: beat.chapter });
+    }
+    stops.push({ kind: "beat", beatIdx: i88 });
+  });
+  stops.push({ kind: "intro", chapter: "done" });
+  return stops;
+})();
+var stopAt = (i88) => {
+  const clamped = Math.max(0, Math.min(i88, tutorialStops.length - 1));
+  return tutorialStops[clamped] ?? tutorialStops[0] ?? stopFail();
+};
+var stopFail = () => {
+  throw new Error("empty tutorial stop list");
+};
 
 // src/web/versus.ts
 var formatTime = (s) => {
@@ -8991,7 +9107,6 @@ var totalMoves = (ws) => {
   const counts = countRuleUsage(ws.currentConjecture().derivation);
   return Object.values(counts).reduce((a87, b) => a87 + b, 0);
 };
-var reopenPauseMenu = false;
 var makeVersusFormulaEditor = (side, onFormula, onCancel) => {
   let modalEl = null;
   const close = () => {
@@ -9024,7 +9139,17 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
   container.appendChild(root);
   const isTutorial2 = versusConfig.tutorial !== void 0;
   const untimed = isTutorial2;
-  let beatIdx = versusConfig.tutorial?.startBeat ?? 0;
+  let stopIdx = versusConfig.tutorial?.startStop ?? 0;
+  const beatForStop = (s) => {
+    for (let i88 = s; i88 < tutorialStops.length; i88 += 1) {
+      const stop = tutorialStops[i88];
+      if (stop !== void 0 && stop.kind === "beat") return stop.beatIdx;
+    }
+    return tutorialCurriculum.length - 1;
+  };
+  let beatIdx = isTutorial2 ? beatForStop(stopIdx) : 0;
+  const onIntro = () => isTutorial2 && stopAt(stopIdx).kind === "intro";
+  let tutorInput = versusConfig.tutorial?.tutorInput ?? "off";
   const takeChallenge = () => isTutorial2 ? beatAt(beatIdx).generate() : pool2.take();
   const sharedChallenges = [];
   const ensureChallenge = (i88) => {
@@ -9088,15 +9213,23 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     if (input !== "mouse") return base;
     return { ...base, getActionHint: () => void 0 };
   };
-  const ctx1 = makeCtx(versusConfig.p1Input);
-  const ctx2 = makeCtx(versusConfig.p2Input);
+  const noRulesToggle = { toggleRulesVisible: () => {
+  } };
+  const learnerCtx = () => ({
+    ...createBenchCtx(false, true, false, false, 1),
+    ...noRulesToggle,
+    getActionHint
+  });
+  const tutorCtx = () => ({
+    ...createBenchCtx(false, true, false, false, 1),
+    ...noRulesToggle,
+    getActionHint: (action) => tutorInput === "off" || tutorInput === "mouse" ? void 0 : getActionHintPure(action, tutorInput !== "keyboard")
+  });
+  const ctx1 = isTutorial2 ? learnerCtx() : makeCtx(versusConfig.p1Input);
+  const ctx2 = isTutorial2 ? tutorCtx() : makeCtx(versusConfig.p2Input);
   let timeLeft = versusConfig.gameDurationSeconds;
   let gameOver = false;
   let paused = false;
-  if (isTutorial2 && reopenPauseMenu) {
-    reopenPauseMenu = false;
-    paused = true;
-  }
   let pauseMenu = null;
   let resultScreen = null;
   let timerEl = null;
@@ -9106,10 +9239,11 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
   let closeEditor2 = null;
   let tryUndoEditor2 = null;
   let onActionEditor2 = null;
-  const isNpc1 = versusConfig.p1Input === "npc";
-  const isNpc2 = versusConfig.p2Input === "npc";
-  const hideControls1 = versusConfig.p1Input !== "mouse" && !isNpc1;
-  const hideControls2 = versusConfig.p2Input !== "mouse" && !isNpc2;
+  const isNpc1 = !isTutorial2 && versusConfig.p1Input === "npc";
+  const isNpc2 = !isTutorial2 && versusConfig.p2Input === "npc";
+  const tutorOff = () => isTutorial2 && tutorInput === "off";
+  const hideControls1 = isTutorial2 ? false : versusConfig.p1Input !== "mouse" && !isNpc1;
+  const hideControls2 = () => isTutorial2 ? tutorInput === "keyboard" || tutorInput === "gamepad1" || tutorInput === "gamepad2" : versusConfig.p2Input !== "mouse" && !isNpc2;
   let half1El = null;
   let half2El = null;
   let thermoEl = null;
@@ -9130,7 +9264,37 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     el.appendChild(undoBtn);
     return el;
   };
+  const buildIntroPage = () => {
+    const half2 = document.createElement("div");
+    half2.setAttribute("class", "versus-half");
+    const page = document.createElement("div");
+    page.setAttribute("class", "tutorial-intro");
+    const cells = [];
+    const add = (label, activate) => {
+      const el = createButton(label, false, activate);
+      page.appendChild(el);
+      cells.push({ btn: el, activate });
+    };
+    const stop = stopAt(stopIdx);
+    if (stopIdx <= 0) {
+      add(t("tutorialStart"), () => jumpToStop(stopIdx + 1));
+    } else if (stop.kind === "intro" && stop.chapter === "done") {
+      add(t("exitToMainMenu"), () => navigate2("menu"));
+    } else {
+      add(t("tutorialPrevious"), () => jumpToStop(stopIdx - 1));
+      add(t("tutorialAdvance"), () => jumpToStop(stopIdx + 1));
+    }
+    const cursor = createButtonCursor([cells], {
+      startCol: cells.length - 1,
+      moveOnReveal: true
+    });
+    introCursor = { onAction: cursor.onAction, isEngaged: cursor.isEngaged };
+    introDefault = cells[cells.length - 1]?.activate ?? null;
+    half2.appendChild(page);
+    return half2;
+  };
   const buildHalf1 = () => {
+    if (onIntro()) return buildIntroPage();
     const half2 = document.createElement("div");
     half2.setAttribute(
       "class",
@@ -9155,11 +9319,99 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     );
     return half2;
   };
+  const owlChapterKey = {
+    basics: "tutorialOwlBasics",
+    logic: "tutorialOwlLogic",
+    done: "tutorialOwlDone"
+  };
+  const owlBeatKey = [
+    "tutorialOwlClose",
+    "tutorialOwlCloseConstants",
+    "tutorialOwlDrop",
+    "tutorialOwlSplit",
+    "tutorialOwlSideFlip",
+    "tutorialOwlCrossing",
+    "tutorialOwlBranching",
+    "tutorialOwlBranchingCrossing"
+  ];
+  const owlDevices = [
+    "pointer",
+    "keyboard",
+    "gamepad"
+  ];
+  const owlBindLabels = (device) => {
+    if (device === "pointer") {
+      return /* @__PURE__ */ new Map([
+        ["pick", `${t("left")} / ${t("right")}`],
+        ["drop", t("drop")],
+        ["close", t("axiom")],
+        ["undo", t("undo")],
+        ["destruct", t("destruct")],
+        ["branch", `${t("prevBranch")} / ${t("nextBranch")}`]
+      ]);
+    }
+    const hint = device === "keyboard" ? gazeKeyHint : gazePadHint;
+    const label = (action) => hint(action) ?? "?";
+    return /* @__PURE__ */ new Map([
+      ["pick", `${label("gazeLeft")} ${label("gazeRight")}`],
+      ["drop", label("gazeWeakening")],
+      ["close", label("axiom")],
+      ["undo", label("undo")],
+      ["destruct", label("gazeConnective")],
+      ["branch", `${label("prevBranch")} / ${label("nextBranch")}`]
+    ]);
+  };
+  const appendOwlTemplate = (into, template) => {
+    const binds = owlDevices.map((device) => [device, owlBindLabels(device)]);
+    for (const part of template.split(/(\{\w+\})/)) {
+      if (part === "") continue;
+      const token = part.startsWith("{") && part.endsWith("}") ? part.slice(1, -1) : null;
+      if (token === null || !(binds[0]?.[1].has(token) ?? false)) {
+        into.appendChild(document.createTextNode(part));
+        continue;
+      }
+      for (const [device, labels] of binds) {
+        const label = labels.get(token);
+        if (label === void 0) continue;
+        const chip = document.createElement("span");
+        chip.setAttribute("class", `owl-bind for-${device}`);
+        chip.textContent = label;
+        into.appendChild(chip);
+      }
+    }
+  };
+  const buildOwl = () => {
+    const owl = document.createElement("div");
+    owl.setAttribute("class", "tutor-owl");
+    const bubble = document.createElement("div");
+    bubble.setAttribute("class", "tutor-owl-bubble");
+    const stop = stopAt(stopIdx);
+    const beatKey = stop.kind === "beat" ? owlBeatKey[stop.beatIdx] : void 0;
+    const paragraphs = stop.kind === "intro" ? [t(owlChapterKey[stop.chapter])] : beatKey === void 0 ? [] : [t(beatKey)];
+    for (const text of paragraphs) {
+      const para = document.createElement("div");
+      para.setAttribute("class", "tutor-owl-para");
+      appendOwlTemplate(para, text);
+      bubble.appendChild(para);
+    }
+    const face = document.createElement("div");
+    face.setAttribute("class", "tutor-owl-face");
+    face.textContent = "\u{1F989}";
+    owl.appendChild(bubble);
+    owl.appendChild(face);
+    return owl;
+  };
   const buildHalf2 = () => {
+    if (onIntro()) {
+      const half3 = document.createElement("div");
+      half3.setAttribute("class", "versus-half versus-half-npc versus-half-off");
+      half3.appendChild(buildOwl());
+      return half3;
+    }
     const half2 = document.createElement("div");
     half2.setAttribute(
       "class",
-      "versus-half" + (isNpc2 ? " versus-half-npc" : "") + (hideControls2 ? " versus-half-keys" : "")
+      "versus-half" + (isNpc2 || tutorOff() ? " versus-half-npc" : "") + (tutorOff() ? " versus-half-off" : "") + (hideControls2() ? " versus-half-keys" : "")
     );
     half2.appendChild(
       createBench(
@@ -9176,6 +9428,7 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
         isTutorial2
       )
     );
+    if (isTutorial2) half2.appendChild(buildOwl());
     return half2;
   };
   const buildThermo = () => {
@@ -9306,19 +9559,10 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     };
     addButton(t("resumeGame"), () => setPaused(false));
     if (isTutorial2) {
+      const tutorLabel = tutorInput === "off" ? t("inputOff") : inputLabel(tutorInput);
       addButton(
-        `${t("player1")}: ${inputLabel(versusConfig.p1Input)}`,
-        () => applyTutorialInputs(
-          nextHumanInput(versusConfig.p1Input, versusConfig.p2Input),
-          versusConfig.p2Input
-        )
-      );
-      addButton(
-        `${t("player2")}: ${inputLabel(versusConfig.p2Input)}`,
-        () => applyTutorialInputs(
-          versusConfig.p1Input,
-          nextHumanInput(versusConfig.p2Input, versusConfig.p1Input)
-        )
+        `${t("tutor")}: ${tutorLabel}`,
+        () => applyTutorialTutor(nextTutorInput(tutorInput))
       );
     } else {
       addButton(t("playAgain"), () => navigate2("versus"));
@@ -9331,31 +9575,31 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     const cursor = createButtonCursor(cells.map((c) => [c]));
     return { el: shroud, onAction: cursor.onAction };
   };
-  const HUMAN_INPUTS = [
+  const TUTOR_INPUTS = [
+    "off",
     "mouse",
     "keyboard",
     "gamepad1",
     "gamepad2"
   ];
-  const nextHumanInput = (current2, other) => {
-    const start = HUMAN_INPUTS.indexOf(current2);
-    for (let step = 1; step <= HUMAN_INPUTS.length; step += 1) {
-      const candidate = HUMAN_INPUTS[(start + step) % HUMAN_INPUTS.length];
+  const nextTutorInput = (current2) => {
+    const start = TUTOR_INPUTS.indexOf(current2);
+    for (let step = 1; step <= TUTOR_INPUTS.length; step += 1) {
+      const candidate = TUTOR_INPUTS[(start + step) % TUTOR_INPUTS.length];
       if (candidate === void 0) continue;
-      if (!isInputAvailable(candidate)) continue;
-      if (candidate === other && candidate !== "mouse") continue;
+      if (candidate !== "off" && !isInputAvailable(candidate)) continue;
       return candidate;
     }
     return current2;
   };
-  const applyTutorialInputs = (p1, p2) => {
+  const applyTutorialTutor = (tutor) => {
+    tutorInput = tutor;
     const params = new URLSearchParams(window.location.search);
-    params.set("tutorial_beat", String(beatIdx));
-    params.set("tutorial_p1", p1);
-    params.set("tutorial_p2", p2);
+    params.set("tutorial_stop", String(stopIdx));
+    params.set("tutorial_tutor", tutor);
     history.replaceState(history.state, "", `?${params.toString()}`);
-    reopenPauseMenu = true;
-    navigate2("tutorial");
+    pauseMenu = null;
+    rerender();
   };
   const rerender = () => {
     if (ws1.isSolved()) commitScore1();
@@ -9714,7 +9958,7 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     thermoEl.replaceWith(fresh);
     thermoEl = fresh;
   };
-  const jumpToBeat = (target) => {
+  const rerootAtBeat = (target) => {
     const clamped = Math.max(0, Math.min(target, tutorialCurriculum.length - 1));
     if (clamped === beatIdx) return;
     beatIdx = clamped;
@@ -9732,13 +9976,27 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     index2 = fresh + 1;
     ws1 = makeWorkspace(fresh);
     ws2 = makeWorkspace(fresh);
+  };
+  const jumpToStop = (target) => {
+    const clamped = Math.max(0, Math.min(target, tutorialStops.length - 1));
+    if (clamped === stopIdx) return;
+    stopIdx = clamped;
+    const stop = stopAt(stopIdx);
+    if (stop.kind === "beat") {
+      rerootAtBeat(stop.beatIdx);
+    } else {
+      rerootAtBeat(beatForStop(stopIdx));
+    }
     rerenderHalf1();
     rerenderHalf2();
     rebuildThermo();
   };
+  const stopIndexOfBeat = (beat) => tutorialStops.findIndex((s) => s.kind === "beat" && s.beatIdx === beat);
+  const stopIndexOfIntro = (chapter) => tutorialStops.findIndex((s) => s.kind === "intro" && s.chapter === chapter);
   const beatNameKey = {
-    close: "axiom",
-    drop: "drop",
+    identity: "tutorialIdentity",
+    constants: "tutorialConstants",
+    drop: "tutorialExtras",
     split: "tutorialShape1",
     sideFlip: "tutorialShape2",
     crossing: "tutorialShape3",
@@ -9762,16 +10020,24 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
         lastChapter = beat.chapter;
         chapterNo += 1;
         beatNo = 0;
+        const chapter = beat.chapter;
+        const introIdx = stopIndexOfIntro(chapter);
         const header = document.createElement("div");
-        header.setAttribute("class", "tutorial-ladder-chapter");
-        header.textContent = `${chapterNo} \xB7 ${t(chapterKey[beat.chapter])}`;
+        header.setAttribute(
+          "class",
+          "tutorial-ladder-chapter" + (introIdx === stopIdx ? " current" : "")
+        );
+        header.textContent = `${chapterNo} \xB7 ${t(chapterKey[chapter])}`;
+        header.onclick = () => jumpToStop(introIdx);
         ladder.appendChild(header);
       }
       beatNo += 1;
+      const currentStop = stopAt(stopIdx);
+      const isCurrent = currentStop.kind === "beat" && currentStop.beatIdx === i88;
       const row = document.createElement("div");
       row.setAttribute(
         "class",
-        "tutorial-ladder-row" + (i88 === beatIdx ? " current" : "")
+        "tutorial-ladder-row" + (isCurrent ? " current" : "")
       );
       const number = document.createElement("span");
       number.setAttribute("class", "tutorial-ladder-number");
@@ -9784,9 +10050,18 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
         glyphs.textContent = beat.glyphs;
         row.appendChild(glyphs);
       }
-      row.onclick = () => jumpToBeat(i88);
+      row.onclick = () => jumpToStop(stopIndexOfBeat(i88));
       ladder.appendChild(row);
     });
+    const doneIdx = stopIndexOfIntro("done");
+    const doneHeader = document.createElement("div");
+    doneHeader.setAttribute(
+      "class",
+      "tutorial-ladder-chapter" + (doneIdx === stopIdx ? " current" : "")
+    );
+    doneHeader.textContent = `${chapterNo + 1} \xB7 ${t("tutorialComplete")}`;
+    doneHeader.onclick = () => jumpToStop(doneIdx);
+    ladder.appendChild(doneHeader);
     thermo.appendChild(ladder);
     const menuBtn = createButton("\u22EE", false, () => setPaused(true));
     menuBtn.classList.add("versus-menu-btn");
@@ -9806,6 +10081,8 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
   };
   let congrats1 = null;
   let congrats2 = null;
+  let introCursor = null;
+  let introDefault = null;
   const onSolved1 = (action) => {
     if (gameOver) return;
     if (action === "menu") {
@@ -9872,6 +10149,24 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
   };
   const gazeBlocked = () => isTutorial2 && beatAt(beatIdx).hideGaze;
   const makeCursorDispatch = (base, getWs, getCursor) => (action) => {
+    if (onIntro()) {
+      const cursor2 = introCursor;
+      if (cursor2 !== null) {
+        if (cursorNavActions.has(action)) {
+          cursor2.onAction(action);
+          return;
+        }
+        if (action === "axiom") {
+          if (cursor2.isEngaged()) {
+            cursor2.onAction("axiom");
+          } else {
+            introDefault?.();
+          }
+          return;
+        }
+      }
+      return;
+    }
     const cursor = getCursor();
     if (getWs().isSolved() && cursor !== null) {
       if (cursorNavActions.has(action)) {
@@ -9927,14 +10222,14 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
       cells.push({ btn: el, activate, isEnabled: () => !disabled });
     };
     if (isTutorial2) {
-      add(t("tutorialPrevious"), beatIdx <= 0, () => jumpToBeat(beatIdx - 1));
+      add(t("tutorialPrevious"), stopIdx <= 0, () => jumpToStop(stopIdx - 1));
     }
     add(isTutorial2 ? t("tutorialOneMore") : t("continue"), false, onContinue);
     if (isTutorial2) {
       add(
         t("tutorialAdvance"),
-        beatIdx >= tutorialCurriculum.length - 1,
-        () => jumpToBeat(beatIdx + 1)
+        stopIdx >= tutorialStops.length - 1,
+        () => jumpToStop(stopIdx + 1)
       );
     }
     const continueCol = isTutorial2 ? 1 : 0;
@@ -10052,33 +10347,9 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     dispatch2(action);
   };
   let cleanupP1;
-  if (versusConfig.p1Input === "keyboard") {
-    document.addEventListener("keydown", handleKey);
-    cleanupP1 = () => document.removeEventListener("keydown", handleKey);
-  } else if (versusConfig.p1Input === "mouse") {
-    cleanupP1 = () => {
-    };
-  } else if (versusConfig.p1Input === "npc") {
-    const driver = createNpcDriver({
-      getWorkspace: () => ws1,
-      getChallengeIdx: () => wsIdx1,
-      getTotalMoves: () => totalMoves(ws1),
-      applyEvent: (ev) => {
-        ws1.applyEvent(ev);
-        if (ws1.isSolved()) {
-          solvePlayer1();
-        } else {
-          refreshP1();
-        }
-      },
-      skip: skipPlayer1,
-      knobs: versusConfig.npc1Knobs,
-      isGameOver: () => gameOver,
-      isPaused: () => paused
-    });
-    cleanupP1 = driver.cleanup;
-  } else {
-    cleanupP1 = setupGamepad((action) => {
+  let cleanupP2;
+  if (isTutorial2) {
+    const padHandler1 = (action) => {
       if (gameOver || paused || action === "menu") return;
       if (handleEditorInput1(action)) return;
       if (action === "skip") {
@@ -10086,36 +10357,8 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
         return;
       }
       dispatch1(action);
-    }, gpIndex(versusConfig.p1Input));
-  }
-  let cleanupP2;
-  if (versusConfig.p2Input === "keyboard") {
-    document.addEventListener("keydown", handleKey2);
-    cleanupP2 = () => document.removeEventListener("keydown", handleKey2);
-  } else if (versusConfig.p2Input === "mouse") {
-    cleanupP2 = () => {
     };
-  } else if (versusConfig.p2Input === "npc") {
-    const driver = createNpcDriver({
-      getWorkspace: () => ws2,
-      getChallengeIdx: () => wsIdx2,
-      getTotalMoves: () => totalMoves(ws2),
-      applyEvent: (ev) => {
-        ws2.applyEvent(ev);
-        if (ws2.isSolved()) {
-          solvePlayer2();
-        } else {
-          refreshP2();
-        }
-      },
-      skip: skipPlayer2,
-      knobs: versusConfig.npc2Knobs,
-      isGameOver: () => gameOver,
-      isPaused: () => paused
-    });
-    cleanupP2 = driver.cleanup;
-  } else {
-    cleanupP2 = setupGamepad((action) => {
+    const padHandler2 = (action) => {
       if (gameOver || paused || action === "menu") return;
       if (handleEditorInput2(action)) return;
       if (action === "skip") {
@@ -10123,7 +10366,98 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
         return;
       }
       dispatch2(action);
-    }, gpIndex(versusConfig.p2Input));
+    };
+    const tutorPadIdx = () => tutorInput === "gamepad1" || tutorInput === "gamepad2" ? gpIndex(tutorInput) : null;
+    const routeKey = (ev) => {
+      if (tutorInput === "keyboard") handleKey2(ev);
+      else handleKey(ev);
+    };
+    document.addEventListener("keydown", routeKey);
+    const cleanups = [
+      () => document.removeEventListener("keydown", routeKey),
+      ...[0, 1, 2, 3].map(
+        (idx) => setupGamepad((action) => {
+          if (idx === tutorPadIdx()) padHandler2(action);
+          else padHandler1(action);
+        }, idx)
+      )
+    ];
+    cleanupP1 = () => cleanups.forEach((c) => c());
+    cleanupP2 = () => {
+    };
+  } else {
+    if (versusConfig.p1Input === "keyboard") {
+      document.addEventListener("keydown", handleKey);
+      cleanupP1 = () => document.removeEventListener("keydown", handleKey);
+    } else if (versusConfig.p1Input === "mouse") {
+      cleanupP1 = () => {
+      };
+    } else if (versusConfig.p1Input === "npc") {
+      const driver = createNpcDriver({
+        getWorkspace: () => ws1,
+        getChallengeIdx: () => wsIdx1,
+        getTotalMoves: () => totalMoves(ws1),
+        applyEvent: (ev) => {
+          ws1.applyEvent(ev);
+          if (ws1.isSolved()) {
+            solvePlayer1();
+          } else {
+            refreshP1();
+          }
+        },
+        skip: skipPlayer1,
+        knobs: versusConfig.npc1Knobs,
+        isGameOver: () => gameOver,
+        isPaused: () => paused
+      });
+      cleanupP1 = driver.cleanup;
+    } else {
+      cleanupP1 = setupGamepad((action) => {
+        if (gameOver || paused || action === "menu") return;
+        if (handleEditorInput1(action)) return;
+        if (action === "skip") {
+          skipPlayer1();
+          return;
+        }
+        dispatch1(action);
+      }, gpIndex(versusConfig.p1Input));
+    }
+    if (versusConfig.p2Input === "keyboard") {
+      document.addEventListener("keydown", handleKey2);
+      cleanupP2 = () => document.removeEventListener("keydown", handleKey2);
+    } else if (versusConfig.p2Input === "mouse") {
+      cleanupP2 = () => {
+      };
+    } else if (versusConfig.p2Input === "npc") {
+      const driver = createNpcDriver({
+        getWorkspace: () => ws2,
+        getChallengeIdx: () => wsIdx2,
+        getTotalMoves: () => totalMoves(ws2),
+        applyEvent: (ev) => {
+          ws2.applyEvent(ev);
+          if (ws2.isSolved()) {
+            solvePlayer2();
+          } else {
+            refreshP2();
+          }
+        },
+        skip: skipPlayer2,
+        knobs: versusConfig.npc2Knobs,
+        isGameOver: () => gameOver,
+        isPaused: () => paused
+      });
+      cleanupP2 = driver.cleanup;
+    } else {
+      cleanupP2 = setupGamepad((action) => {
+        if (gameOver || paused || action === "menu") return;
+        if (handleEditorInput2(action)) return;
+        if (action === "skip") {
+          skipPlayer2();
+          return;
+        }
+        dispatch2(action);
+      }, gpIndex(versusConfig.p2Input));
+    }
   }
   const handleControlKey = (ev) => {
     if (ev.ctrlKey || ev.metaKey || ev.altKey) return;
@@ -10153,13 +10487,15 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
 };
 
 // src/web/tutorial.ts
-var mountTutorial = (container, navigate2, pool2, startBeat, p1Input, p2Input) => {
-  const beat = Math.max(0, Math.min(startBeat, tutorialCurriculum.length - 1));
+var mountTutorial = (container, navigate2, pool2, startStop, tutorInput) => {
+  const stop = Math.max(0, Math.min(startStop, tutorialStops.length - 1));
   const config = {
     ...defaultVersusConfig(),
-    p1Input,
-    p2Input,
-    tutorial: { startBeat: beat }
+    // Neutralize the Versus defaults (p2 would be an NPC); the tutorial's
+    // input wiring never consults these.
+    p1Input: "mouse",
+    p2Input: "mouse",
+    tutorial: { startStop: stop, tutorInput }
   };
   return mountVersus(container, navigate2, pool2, config);
 };
@@ -10292,11 +10628,11 @@ var current = { cleanup: () => {
 var enterMode = (mode) => {
   session.enter(mode, factory[mode]());
 };
-var pickHumanInput = (params, key, fallback) => {
-  const raw2 = params.get(key);
+var pickTutorInput = (params) => {
+  const raw2 = params.get("tutorial_tutor");
   if (raw2 === "mouse" || raw2 === "keyboard" || raw2 === "gamepad1" || raw2 === "gamepad2")
     return raw2;
-  return fallback;
+  return "off";
 };
 var navigate = (screen) => {
   current.cleanup();
@@ -10348,7 +10684,7 @@ var navigate = (screen) => {
       }
     }
     if (screen === "tutorial") {
-      for (const key of ["tutorial_beat", "tutorial_p1", "tutorial_p2"]) {
+      for (const key of ["tutorial_stop", "tutorial_tutor"]) {
         const val = currentParams.get(key);
         if (val !== null) nextParams.set(key, val);
       }
@@ -10390,15 +10726,14 @@ var mount = (screen) => {
     }
     case "tutorial": {
       const params = new URLSearchParams(window.location.search);
-      const raw2 = parseInt(params.get("tutorial_beat") ?? "0", 10);
-      const beat = Number.isFinite(raw2) ? raw2 : 0;
+      const raw2 = parseInt(params.get("tutorial_stop") ?? "0", 10);
+      const stop = Number.isFinite(raw2) ? raw2 : 0;
       current = mountTutorial(
         body,
         navigate,
         pool,
-        beat,
-        pickHumanInput(params, "tutorial_p1", "mouse"),
-        pickHumanInput(params, "tutorial_p2", "keyboard")
+        stop,
+        pickTutorInput(params)
       );
       break;
     }
