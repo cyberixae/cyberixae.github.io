@@ -3477,9 +3477,8 @@ var en = {
   goal: "Goal",
   statsTemplate: "Generated {formulas} formulas ({rate}/s), {tautologies} tautologies, {solved} solved. Updated {sinceUpdate}s ago.",
   challengeSetup: "Challenge Setup",
-  lemmaTitle: "Build Lemma",
   lemmaConfirm: "Confirm",
-  lemma: "Lemma",
+  lemma: "Claim",
   secret: "Secret",
   prevBranch: "Prev",
   nextBranch: "Next",
@@ -3582,9 +3581,8 @@ var fi = {
   goal: "Tavoite",
   statsTemplate: "Tuotettu {formulas} kaavaa ({rate}/s), {tautologies} tautologiaa, {solved} ratkaisua. P\xE4ivitetty {sinceUpdate}s sitten.",
   challengeSetup: "Haasteen asetukset",
-  lemmaTitle: "Rakenna lemma",
   lemmaConfirm: "Vahvista",
-  lemma: "Lemma",
+  lemma: "V\xE4it\xE4",
   secret: "Salainen",
   prevBranch: "Edellinen",
   nextBranch: "Seuraava",
@@ -3687,9 +3685,8 @@ var es = {
   goal: "Objetivo",
   statsTemplate: "Generadas {formulas} f\xF3rmulas ({rate}/s), {tautologies} tautolog\xEDas, {solved} resueltas. Actualizado hace {sinceUpdate}s.",
   challengeSetup: "Configuraci\xF3n del desaf\xEDo",
-  lemmaTitle: "Construir lema",
   lemmaConfirm: "Confirmar",
-  lemma: "Lema",
+  lemma: "Afirmar",
   secret: "Secreto",
   prevBranch: "Anterior",
   nextBranch: "Siguiente",
@@ -3792,9 +3789,8 @@ var cs = {
   goal: "C\xEDl",
   statsTemplate: "Vygenerov\xE1no {formulas} formul\xED ({rate}/s), {tautologies} tautologi\xED, {solved} vy\u0159e\u0161eno. Aktualizov\xE1no p\u0159ed {sinceUpdate}s.",
   challengeSetup: "Nastaven\xED v\xFDzvy",
-  lemmaTitle: "Sestavit lemma",
   lemmaConfirm: "Potvrdit",
-  lemma: "Lemma",
+  lemma: "Tvrdit",
   secret: "Tajn\xE9",
   prevBranch: "P\u0159edchoz\xED",
   nextBranch: "Dal\u0161\xED",
@@ -3897,9 +3893,8 @@ var pl = {
   goal: "Cel",
   statsTemplate: "Wygenerowano {formulas} formu\u0142 ({rate}/s), {tautologies} tautologii, {solved} rozwi\u0105zanych. Zaktualizowano {sinceUpdate}s temu.",
   challengeSetup: "Ustawienia wyzwania",
-  lemmaTitle: "Zbuduj lemat",
   lemmaConfirm: "Zatwierd\u017A",
-  lemma: "Lemat",
+  lemma: "Twierd\u017A",
   secret: "Tajne",
   prevBranch: "Poprzedni",
   nextBranch: "Nast\u0119pny",
@@ -4303,6 +4298,9 @@ function paren(text) {
 function turnstile(text) {
   return { text, active: false, connective: false, turnstile: true };
 }
+function hole(text) {
+  return { text, active: false, connective: false, hole: true };
+}
 function raw(html2) {
   return { text: html2, active: false, connective: false, raw: true };
 }
@@ -4326,6 +4324,9 @@ function html(segments) {
     }
     if (s.turnstile === true) {
       return `<span class="turnstile">${escape(s.text)}</span>`;
+    }
+    if (s.hole === true) {
+      return `<span class="hole">${escape(s.text)}</span>`;
     }
     return escape(s.text);
   }).join("");
@@ -4354,7 +4355,8 @@ function trim(segments) {
 // src/render/print.ts
 var NullaryTemplateId = {
   falsum: null,
-  verum: null
+  verum: null,
+  hole: null
 };
 var isNullaryTemplateId = (s) => s in NullaryTemplateId;
 var UnaryTemplateId = {
@@ -4375,6 +4377,7 @@ var isBinaryTemplateId = (s) => s in BinaryTemplateId;
 var basic = {
   falsum: ["\u22A5"],
   verum: ["\u22A4"],
+  hole: ["\u25A2"],
   atom: ["", ""],
   optional: ["", ""],
   parenthesis: ["(", ")"],
@@ -4621,6 +4624,80 @@ function fromMeta(meta2) {
   );
 }
 
+// src/render/draft.ts
+var precedence2 = (d) => {
+  switch (d.kind) {
+    case "hole":
+    case "atom":
+    case "falsum":
+    case "verum":
+      return 4;
+    case "negation":
+      return 3;
+    case "conjunction":
+    case "disjunction":
+      return 2;
+    case "implication":
+      return 1;
+  }
+};
+var fromHole = () => (theme) => {
+  const [s0] = theme.hole;
+  return [hole(s0)];
+};
+var expand2 = (minPrec, operand) => {
+  if (operand.kind === "atom" || operand.kind === "hole")
+    return fromDraft(operand);
+  return precedence2(operand) >= minPrec ? print("optional")(fromDraft(operand)) : print("parenthesis")(fromDraft(operand));
+};
+function fromDraft(d) {
+  switch (d.kind) {
+    case "hole":
+      return fromHole();
+    case "atom":
+      return fromAtom(d);
+    case "falsum":
+      return fromFalsum(d);
+    case "verum":
+      return fromVerum(d);
+    case "negation":
+      return printUnary("negation", false, true)(expand2(3, d.negand));
+    case "conjunction":
+      return printBinary(
+        "conjunction",
+        false,
+        true
+      )(expand2(3, d.leftConjunct), expand2(3, d.rightConjunct));
+    case "disjunction":
+      return printBinary(
+        "disjunction",
+        false,
+        true
+      )(expand2(3, d.leftDisjunct), expand2(3, d.rightDisjunct));
+    case "implication":
+      return printBinary(
+        "implication",
+        false,
+        true
+      )(expand2(2, d.antecedent), expand2(2, d.consequent));
+  }
+}
+var spliceSequent = (ant, suc) => {
+  const p = print("sequent")(
+    printArray("formulas")(ant),
+    printArray("formulas")(suc)
+  );
+  return (theme) => trim(p(theme));
+};
+var lemmaGhostPremises = (goal87, d) => {
+  const ant = goal87.antecedent.map((f2) => fromProp(f2));
+  const suc = goal87.succedent.map((f2) => fromProp(f2));
+  return [
+    spliceSequent(ant, [...suc, fromDraft(d)]),
+    spliceSequent([fromDraft(d), ...ant], suc)
+  ];
+};
+
 // src/web/tree.ts
 var equalPaths = (a87, b) => a87.length === b.length && a87.every((v2, i88) => v2 === b[i88]);
 var startsWith = (path, prefix) => path.length >= prefix.length && prefix.every((v2, i88) => v2 === path[i88]);
@@ -4643,7 +4720,7 @@ var renderInferenceLine = (ruleId, ghost = false) => {
   container.appendChild(label);
   return container;
 };
-var renderDerivation = (derivation, activePath2, gaze = null, currentPath = [], ghostPath = null, start = null) => {
+var renderDerivation = (derivation, activePath2, gaze = null, currentPath = [], ghostPath = null, start = null, draftPremises = null) => {
   const isGhostBoundary = ghostPath !== null && equalPaths(currentPath, ghostPath);
   const isGhostNode = ghostPath !== null && currentPath.length > ghostPath.length && startsWith(currentPath, ghostPath);
   const isActive = equalPaths(currentPath, activePath2) || isGhostBoundary;
@@ -4670,7 +4747,8 @@ var renderDerivation = (derivation, activePath2, gaze = null, currentPath = [], 
         gaze,
         [...currentPath, i88],
         ghostPath,
-        start
+        start,
+        draftPremises
       );
       const childDepth = Number(child.dataset["leafDepth"] ?? "0");
       if (childDepth > maxChildDepth) maxChildDepth = childDepth;
@@ -4689,6 +4767,23 @@ var renderDerivation = (derivation, activePath2, gaze = null, currentPath = [], 
         isGhostNode
       )
     );
+  } else if (draftPremises !== null && isOpenActive) {
+    const premises = document.createElement("div");
+    premises.setAttribute("class", "tree-premises");
+    for (const printer of draftPremises) {
+      const child = document.createElement("div");
+      child.setAttribute("class", "tree-node ghost-node");
+      const seqEl = document.createElement("div");
+      seqEl.setAttribute("class", "tree-sequent ghost");
+      seqEl.innerHTML = html(printer(basic));
+      child.appendChild(seqEl);
+      child.dataset["leafDepth"] = "0";
+      premises.appendChild(child);
+    }
+    node.appendChild(premises);
+    node.appendChild(renderInferenceLine("cut", true));
+    node.appendChild(renderSequent(derivation, true, null, false));
+    leafDepth = 1;
   } else {
     node.appendChild(renderSequent(derivation, isOpenActive, gaze, isGhostNode));
   }
@@ -4760,6 +4855,312 @@ var layoutTree = (root, opts = {}) => {
       inline: "nearest"
     });
   }
+};
+
+// src/model/draft.ts
+var hole2 = { kind: "hole" };
+var draftNegation = (negand) => ({
+  kind: "negation",
+  negand
+});
+var draftImplication = (antecedent, consequent) => ({
+  kind: "implication",
+  antecedent,
+  consequent
+});
+var draftConjunction = (leftConjunct, rightConjunct) => ({
+  kind: "conjunction",
+  leftConjunct,
+  rightConjunct
+});
+var draftDisjunction = (leftDisjunct, rightDisjunct) => ({
+  kind: "disjunction",
+  leftDisjunct,
+  rightDisjunct
+});
+var fillLeftmost = (d, filler) => {
+  switch (d.kind) {
+    case "hole":
+      return filler;
+    case "atom":
+    case "falsum":
+    case "verum":
+      return null;
+    case "negation": {
+      const negand = fillLeftmost(d.negand, filler);
+      return negand === null ? null : draftNegation(negand);
+    }
+    case "implication": {
+      const antecedent = fillLeftmost(d.antecedent, filler);
+      if (antecedent !== null) return draftImplication(antecedent, d.consequent);
+      const consequent = fillLeftmost(d.consequent, filler);
+      return consequent === null ? null : draftImplication(d.antecedent, consequent);
+    }
+    case "conjunction": {
+      const leftConjunct = fillLeftmost(d.leftConjunct, filler);
+      if (leftConjunct !== null)
+        return draftConjunction(leftConjunct, d.rightConjunct);
+      const rightConjunct = fillLeftmost(d.rightConjunct, filler);
+      return rightConjunct === null ? null : draftConjunction(d.leftConjunct, rightConjunct);
+    }
+    case "disjunction": {
+      const leftDisjunct = fillLeftmost(d.leftDisjunct, filler);
+      if (leftDisjunct !== null)
+        return draftDisjunction(leftDisjunct, d.rightDisjunct);
+      const rightDisjunct = fillLeftmost(d.rightDisjunct, filler);
+      return rightDisjunct === null ? null : draftDisjunction(d.leftDisjunct, rightDisjunct);
+    }
+  }
+};
+var fillOrWrap = (d, piece) => {
+  const filled = fillLeftmost(d, piece);
+  return filled !== null ? filled : fillLeftmost(piece, d);
+};
+var toProp = (d) => {
+  switch (d.kind) {
+    case "hole":
+      return null;
+    case "atom":
+    case "falsum":
+    case "verum":
+      return d;
+    case "negation": {
+      const negand = toProp(d.negand);
+      return negand === null ? null : negation(negand);
+    }
+    case "implication": {
+      const antecedent = toProp(d.antecedent);
+      const consequent = toProp(d.consequent);
+      return antecedent === null || consequent === null ? null : implication(antecedent, consequent);
+    }
+    case "conjunction": {
+      const leftConjunct = toProp(d.leftConjunct);
+      const rightConjunct = toProp(d.rightConjunct);
+      return leftConjunct === null || rightConjunct === null ? null : conjunction(leftConjunct, rightConjunct);
+    }
+    case "disjunction": {
+      const leftDisjunct = toProp(d.leftDisjunct);
+      const rightDisjunct = toProp(d.rightDisjunct);
+      return leftDisjunct === null || rightDisjunct === null ? null : disjunction(leftDisjunct, rightDisjunct);
+    }
+  }
+};
+var isComplete = (d) => toProp(d) !== null;
+
+// src/web/lemma-editor.ts
+var atomNames = ["p", "q", "r", "s", "u", "v"];
+var cellSpecs = [
+  { kind: "cancel", group: 0 },
+  ...atomNames.map(
+    (name2) => ({
+      kind: "fill",
+      group: 1,
+      label: html(fromAtom(atom(name2))(basic)),
+      piece: () => atom(name2),
+      leaf: true
+    })
+  ),
+  { kind: "fill", group: 2, label: "\u22A5", piece: () => falsum, leaf: true },
+  { kind: "fill", group: 2, label: "\u22A4", piece: () => verum, leaf: true },
+  {
+    kind: "fill",
+    group: 3,
+    label: "\xAC",
+    piece: () => draftNegation(hole2),
+    leaf: false
+  },
+  {
+    kind: "fill",
+    group: 4,
+    label: "\u2227",
+    piece: () => draftConjunction(hole2, hole2),
+    leaf: false
+  },
+  {
+    kind: "fill",
+    group: 4,
+    label: "\u2228",
+    piece: () => draftDisjunction(hole2, hole2),
+    leaf: false
+  },
+  {
+    kind: "fill",
+    group: 4,
+    label: "\u2192",
+    piece: () => draftImplication(hole2, hole2),
+    leaf: false
+  },
+  { kind: "undo", group: 5 },
+  { kind: "confirm", group: 6 }
+];
+var REVEAL_INDEX = 1;
+var lastGroup = cellSpecs[cellSpecs.length - 1]?.group ?? 0;
+var firstIndexOfGroup = (g) => {
+  const i88 = cellSpecs.findIndex((c) => c.group === g);
+  return i88 < 0 ? 0 : i88;
+};
+var clamp2 = (v2, lo, hi) => Math.max(lo, Math.min(hi, v2));
+var editorKeyPieces = {
+  Digit1: () => atom("p"),
+  Digit2: () => atom("q"),
+  Digit3: () => atom("r"),
+  Digit4: () => atom("s"),
+  Digit5: () => atom("u"),
+  Digit6: () => atom("v"),
+  KeyS: () => draftNegation(hole2),
+  KeyF: () => draftConjunction(hole2, hole2),
+  KeyG: () => falsum,
+  KeyH: () => verum,
+  KeyJ: () => draftDisjunction(hole2, hole2),
+  KeyL: () => draftImplication(hole2, hole2)
+};
+var createLemmaEditorSession = (onConfirm, onCancel) => {
+  let current2 = hole2;
+  let history2 = [];
+  let cursorIndex = null;
+  const fill = (piece) => {
+    const next2 = fillOrWrap(current2, piece);
+    if (next2 === null) return false;
+    history2 = [...history2, current2];
+    current2 = next2;
+    return true;
+  };
+  const undo3 = () => {
+    const prev2 = history2[history2.length - 1];
+    if (prev2 === void 0) return false;
+    current2 = prev2;
+    history2 = history2.slice(0, -1);
+    return true;
+  };
+  const confirm = () => {
+    const formula = toProp(current2);
+    if (formula === null) return false;
+    onConfirm(formula);
+    return true;
+  };
+  const reveal = () => {
+    if (cursorIndex !== null) return false;
+    cursorIndex = REVEAL_INDEX;
+    return true;
+  };
+  const moveCursor = (delta) => {
+    if (reveal()) return true;
+    if (cursorIndex === null) return false;
+    cursorIndex = clamp2(cursorIndex + delta, 0, cellSpecs.length - 1);
+    return true;
+  };
+  const groupJump = (dir) => {
+    if (reveal()) return true;
+    if (cursorIndex === null) return false;
+    const g = cellSpecs[cursorIndex]?.group ?? 0;
+    cursorIndex = firstIndexOfGroup(clamp2(g + dir, 0, lastGroup));
+    return true;
+  };
+  const activate = () => {
+    if (reveal()) return true;
+    if (cursorIndex === null) return false;
+    const spec = cellSpecs[cursorIndex];
+    if (spec === void 0) return false;
+    switch (spec.kind) {
+      case "cancel":
+        onCancel();
+        return false;
+      case "fill":
+        return fill(spec.piece());
+      case "undo":
+        return undo3();
+      case "confirm":
+        confirm();
+        return false;
+    }
+  };
+  const handleAction = (action) => {
+    switch (action) {
+      case "gazeLeft":
+      case "leftRotateLeft":
+        return moveCursor(-1);
+      case "gazeRight":
+      case "leftRotateRight":
+        return moveCursor(1);
+      case "prevBranch":
+        return groupJump(-1);
+      case "nextBranch":
+        return groupJump(1);
+      case "axiom":
+        return activate();
+      default:
+        return false;
+    }
+  };
+  return {
+    draft: () => current2,
+    canUndo: () => history2.length > 0,
+    fill,
+    undo: undo3,
+    confirm,
+    cancel: onCancel,
+    cursor: () => cursorIndex,
+    handleAction
+  };
+};
+var makeButton = (label, disabled, onClick) => {
+  const btn = document.createElement("pre");
+  btn.setAttribute("class", "button" + (disabled ? " disabled" : ""));
+  btn.innerHTML = label;
+  if (!disabled) btn.onclick = onClick;
+  return btn;
+};
+var createLemmaEditorBar = (session2, rerender) => {
+  const bar = document.createElement("div");
+  bar.setAttribute("class", "controls lemma-editor");
+  const full2 = isComplete(session2.draft());
+  const cursor = session2.cursor();
+  let groupEl = null;
+  let groupNo = -1;
+  cellSpecs.forEach((spec, i88) => {
+    if (spec.group !== groupNo) {
+      groupNo = spec.group;
+      groupEl = document.createElement("div");
+      const palette = spec.kind === "fill" ? " lemma-palette" : "";
+      groupEl.setAttribute("class", "controls-group" + palette);
+      bar.appendChild(groupEl);
+    }
+    const btn = (() => {
+      switch (spec.kind) {
+        case "cancel": {
+          const b = makeButton(t("back"), false, () => {
+            session2.cancel();
+          });
+          b.classList.add("inert");
+          return b;
+        }
+        case "fill": {
+          const b = makeButton(spec.label, spec.leaf && full2, () => {
+            if (session2.fill(spec.piece())) rerender();
+          });
+          b.classList.add("inert");
+          return b;
+        }
+        case "undo": {
+          const b = makeButton(t("undo"), !session2.canUndo(), () => {
+            if (session2.undo()) rerender();
+          });
+          b.classList.add("inert");
+          return b;
+        }
+        case "confirm": {
+          const b = makeButton(t("lemmaConfirm"), !full2, () => {
+            session2.confirm();
+          });
+          b.classList.add("mutating");
+          return b;
+        }
+      }
+    })();
+    if (cursor === i88) btn.classList.add("cursor");
+    groupEl?.appendChild(btn);
+  });
+  return bar;
 };
 
 // src/interactive/ghost.ts
@@ -5230,7 +5631,7 @@ var runProofCheckSweep = (tree2) => {
 };
 var lastScrollTop = 0;
 var lastScrollLeft = 0;
-var createPlayArea = (workspace, ctx) => {
+var createPlayArea = (workspace, ctx, draftPremises = null) => {
   const panel = document.createElement("div");
   const solvedClass = workspace.isSolved() ? " solved" : "";
   panel.setAttribute("class", "playarea" + solvedClass);
@@ -5265,7 +5666,8 @@ var createPlayArea = (workspace, ctx) => {
     gaze,
     [],
     ghostPath,
-    workspace.currentStart() ?? null
+    workspace.currentStart() ?? null,
+    draftPremises
   );
   const isFresh = focus2.derivation.kind === "premise";
   tree2.style.visibility = "hidden";
@@ -5453,7 +5855,7 @@ var formatHudCounts = (counts) => {
   const total = order.reduce((sum, cat) => sum + counts[cat], 0);
   return `<b>${total}</b>`;
 };
-var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onApplyReverse1, hideLemma, ctx = defaultCtx, onSkip, hideGaze, hideRulesButton) => {
+var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onApplyReverse1, hideLemma, ctx = defaultCtx, onSkip, hideGaze, hideRulesButton, lemmaEditor = null) => {
   const ls = workspace.applicableRules();
   const rules3 = workspace.availableRules();
   const solved = workspace.isSolved();
@@ -5646,7 +6048,9 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
   sheetSides.appendChild(rightCol);
   rulesSheet.appendChild(sheetSides);
   panel.appendChild(rulesSheet);
-  panel.appendChild(createPlayArea(workspace, ctx));
+  const editing = lemmaEditor !== null && !solved;
+  const draftPremises = editing ? lemmaGhostPremises(seq, lemmaEditor.draft()) : null;
+  panel.appendChild(createPlayArea(workspace, ctx, draftPremises));
   const zoomOut = createButton("\u2212", false, () => {
     ctx.setTreeZoom(Math.max(ZOOM_MIN, ctx.getTreeZoom() - ZOOM_STEP));
     rerender();
@@ -5770,6 +6174,10 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
   navGroup.appendChild(controlsEl);
   navGroup.appendChild(axiomBtn);
   navGroup.appendChild(nextBranchBtn);
+  if (editing) {
+    panel.appendChild(createLemmaEditorBar(lemmaEditor, rerender));
+    return panel;
+  }
   const controlsBar = document.createElement("div");
   controlsBar.setAttribute("class", "controls");
   if (congrats) {
@@ -6154,205 +6562,6 @@ var mountMenu = (container, navigate2) => {
   };
 };
 
-// src/web/formula-editor.ts
-var makeBtn = (label, handler) => {
-  const btn = document.createElement("pre");
-  btn.setAttribute("class", "button");
-  btn.textContent = label;
-  btn.onclick = handler;
-  return btn;
-};
-var setDisabled = (btn, disabled, handler) => {
-  btn.setAttribute("class", disabled ? "button disabled" : "button");
-  btn.onclick = disabled ? null : handler;
-};
-var createFormulaEditor = (title, confirmLabel, onConfirm, onCancel) => {
-  let stack = [];
-  let history2 = [];
-  const saveAndSet = (next2) => {
-    history2 = [...history2, stack];
-    stack = next2;
-    renderState();
-  };
-  const pushProp = (p) => {
-    saveAndSet([...stack, p]);
-  };
-  const applyNeg = () => {
-    const top = stack[stack.length - 1];
-    if (top === void 0) return;
-    saveAndSet([...stack.slice(0, -1), negation(top)]);
-  };
-  const applyBin = (op) => {
-    const right3 = stack[stack.length - 1];
-    const left4 = stack[stack.length - 2];
-    if (right3 === void 0 || left4 === void 0) return;
-    const result = op === "conjunction" ? conjunction(left4, right3) : op === "disjunction" ? disjunction(left4, right3) : implication(left4, right3);
-    saveAndSet([...stack.slice(0, -2), result]);
-  };
-  const doUndo = () => {
-    const prev2 = history2[history2.length - 1];
-    if (prev2 === void 0) return;
-    stack = prev2;
-    history2 = history2.slice(0, -1);
-    renderState();
-  };
-  const confirmCurrent = () => {
-    const formula = stack.length === 1 ? stack[0] : void 0;
-    if (formula !== void 0) onConfirm(formula);
-  };
-  const shroud = document.createElement("div");
-  shroud.setAttribute("class", "shroud pause-shroud");
-  shroud.onclick = (ev) => {
-    if (ev.target === shroud) {
-      ev.preventDefault();
-      onCancel();
-    }
-  };
-  const popup = document.createElement("div");
-  popup.setAttribute("class", "formula-editor-popup");
-  popup.onclick = (ev) => {
-    ev.stopPropagation();
-  };
-  const titleEl = document.createElement("div");
-  titleEl.setAttribute("class", "formula-editor-title");
-  titleEl.textContent = title;
-  popup.appendChild(titleEl);
-  const stackDisplay = document.createElement("div");
-  stackDisplay.setAttribute("class", "formula-editor-stack");
-  popup.appendChild(stackDisplay);
-  const atomRow = document.createElement("div");
-  atomRow.setAttribute("class", "config-toggles");
-  const atomNames = ["p", "q", "r", "s", "u", "v"];
-  const atomCells = [];
-  for (const name2 of atomNames) {
-    const a87 = atom(name2);
-    const btn = document.createElement("pre");
-    btn.setAttribute("class", "button");
-    btn.innerHTML = html(fromAtom(a87)(basic));
-    const activate = () => {
-      pushProp(a87);
-    };
-    btn.onclick = activate;
-    atomRow.appendChild(btn);
-    atomCells.push({ btn, activate, isEnabled: () => true });
-  }
-  popup.appendChild(atomRow);
-  const connRow = document.createElement("div");
-  connRow.setAttribute("class", "config-toggles");
-  const implBtn = makeBtn("\u2192", () => {
-    applyBin("implication");
-  });
-  const conjBtn = makeBtn("\u2227", () => {
-    applyBin("conjunction");
-  });
-  const disjBtn = makeBtn("\u2228", () => {
-    applyBin("disjunction");
-  });
-  const negBtn = makeBtn("\xAC", () => {
-    applyNeg();
-  });
-  const falsumBtn = makeBtn("\u22A5", () => {
-    pushProp(falsum);
-  });
-  const verumBtn = makeBtn("\u22A4", () => {
-    pushProp(verum);
-  });
-  connRow.appendChild(implBtn);
-  connRow.appendChild(conjBtn);
-  connRow.appendChild(disjBtn);
-  connRow.appendChild(negBtn);
-  connRow.appendChild(falsumBtn);
-  connRow.appendChild(verumBtn);
-  popup.appendChild(connRow);
-  const connCells = [
-    {
-      btn: implBtn,
-      activate: () => applyBin("implication"),
-      isEnabled: () => stack.length >= 2
-    },
-    {
-      btn: conjBtn,
-      activate: () => applyBin("conjunction"),
-      isEnabled: () => stack.length >= 2
-    },
-    {
-      btn: disjBtn,
-      activate: () => applyBin("disjunction"),
-      isEnabled: () => stack.length >= 2
-    },
-    { btn: negBtn, activate: applyNeg, isEnabled: () => stack.length >= 1 },
-    { btn: falsumBtn, activate: () => pushProp(falsum), isEnabled: () => true },
-    { btn: verumBtn, activate: () => pushProp(verum), isEnabled: () => true }
-  ];
-  const controls = document.createElement("div");
-  controls.setAttribute("class", "formula-editor-controls");
-  const cancelBtn = document.createElement("pre");
-  cancelBtn.setAttribute("class", "button");
-  cancelBtn.textContent = t("back");
-  cancelBtn.onclick = onCancel;
-  controls.appendChild(cancelBtn);
-  const undoBtn = document.createElement("pre");
-  undoBtn.setAttribute("class", "button");
-  undoBtn.textContent = t("undo");
-  controls.appendChild(undoBtn);
-  const confirmBtn = document.createElement("pre");
-  confirmBtn.setAttribute("class", "button");
-  confirmBtn.textContent = confirmLabel;
-  controls.appendChild(confirmBtn);
-  popup.appendChild(controls);
-  shroud.appendChild(popup);
-  const controlCells = [
-    { btn: cancelBtn, activate: onCancel, isEnabled: () => true },
-    { btn: undoBtn, activate: doUndo, isEnabled: () => history2.length > 0 },
-    {
-      btn: confirmBtn,
-      activate: confirmCurrent,
-      isEnabled: () => stack.length === 1
-    }
-  ];
-  const rows = [
-    atomCells,
-    connCells,
-    controlCells
-  ];
-  const cursor = createButtonCursor(rows);
-  const renderState = () => {
-    stackDisplay.innerHTML = stack.length === 0 ? "" : stack.map((p) => html(fromProp(p)(basic))).join(" ");
-    setDisabled(negBtn, stack.length === 0, () => {
-      applyNeg();
-    });
-    setDisabled(implBtn, stack.length < 2, () => {
-      applyBin("implication");
-    });
-    setDisabled(conjBtn, stack.length < 2, () => {
-      applyBin("conjunction");
-    });
-    setDisabled(disjBtn, stack.length < 2, () => {
-      applyBin("disjunction");
-    });
-    setDisabled(undoBtn, history2.length === 0, () => {
-      doUndo();
-    });
-    const formula = stack.length === 1 ? stack[0] : void 0;
-    confirmBtn.setAttribute(
-      "class",
-      formula !== void 0 ? "button" : "button disabled"
-    );
-    confirmBtn.onclick = formula !== void 0 ? confirmCurrent : null;
-    cursor.refresh();
-  };
-  renderState();
-  return {
-    el: shroud,
-    onAction: cursor.onAction,
-    tryUndo: () => {
-      if (history2.length === 0) return false;
-      doUndo();
-      return true;
-    }
-  };
-};
-
 // src/web/campaign.ts
 var rulesUsedIn = (d) => {
   if (d.kind === "premise") return /* @__PURE__ */ new Set();
@@ -6492,6 +6701,7 @@ var mountCampaign = (container, navigate2, session2) => {
     if (ws.isConjectureId(id)) {
       ws.selectConjecture(id);
       setGazeModeActive(false);
+      lemmaSession = null;
       history.pushState(
         { screen: "campaign", selected: id },
         "",
@@ -6516,41 +6726,21 @@ var mountCampaign = (container, navigate2, session2) => {
     pausePopupOpen = false;
     navigate2("menu");
   };
-  let formulaEditorOpen = false;
-  let closeFormulaEditor = null;
-  let tryUndoInEditor = null;
-  let editorOnAction = null;
+  let lemmaSession = null;
   const onApplyReverse1 = (_key, onFormula) => {
-    if (formulaEditorOpen) return;
-    formulaEditorOpen = true;
-    const cancel = () => {
-      formulaEditorOpen = false;
-      closeFormulaEditor = null;
-      tryUndoInEditor = null;
-      editorOnAction = null;
-      container.removeChild(modal);
-    };
-    const {
-      el: modal,
-      tryUndo,
-      onAction
-    } = createFormulaEditor(
-      t("lemmaTitle"),
-      t("lemmaConfirm"),
+    if (lemmaSession !== null) return;
+    setGazeModeActive(false);
+    lemmaSession = createLemmaEditorSession(
       (formula) => {
-        formulaEditorOpen = false;
-        closeFormulaEditor = null;
-        tryUndoInEditor = null;
-        editorOnAction = null;
-        container.removeChild(modal);
+        lemmaSession = null;
         onFormula(formula);
       },
-      cancel
+      () => {
+        lemmaSession = null;
+        rerender();
+      }
     );
-    closeFormulaEditor = cancel;
-    tryUndoInEditor = tryUndo;
-    editorOnAction = onAction;
-    container.appendChild(modal);
+    rerender();
   };
   const rerender = () => {
     container.innerHTML = "";
@@ -6576,7 +6766,12 @@ var mountCampaign = (container, navigate2, session2) => {
         rerender,
         togglePausePopup,
         onApplyReverse1,
-        true
+        true,
+        void 0,
+        void 0,
+        void 0,
+        void 0,
+        lemmaSession
       )
     );
     if (pausePopupOpen) {
@@ -6614,13 +6809,15 @@ var mountCampaign = (container, navigate2, session2) => {
     onApplyReverse1
   );
   const dispatch = (action) => {
-    if (formulaEditorOpen) {
+    if (lemmaSession !== null) {
+      const session3 = lemmaSession;
       if (action === "undo") {
-        if (!(tryUndoInEditor?.() ?? false)) closeFormulaEditor?.();
+        if (session3.undo()) rerender();
+        else session3.cancel();
       } else if (action === "menu" || action === "exit") {
-        closeFormulaEditor?.();
-      } else {
-        editorOnAction?.(action);
+        session3.cancel();
+      } else if (session3.handleAction(action)) {
+        rerender();
       }
       return;
     }
@@ -6657,7 +6854,13 @@ var mountCampaign = (container, navigate2, session2) => {
   const handleKey = (ev) => {
     if (ev.ctrlKey || ev.metaKey || ev.altKey) return;
     markKeyboardInput();
-    console.log(ev.code);
+    if (lemmaSession !== null) {
+      const piece = editorKeyPieces[ev.code];
+      if (piece !== void 0) {
+        if (lemmaSession.fill(piece())) rerender();
+        return;
+      }
+    }
     if (ev.code === "KeyP" && ws.isSolved()) {
       selectLevel(ws.previousConjectureId());
       return;
@@ -6743,6 +6946,7 @@ var mountRandom = (container, navigate2, session2, onNewChallenge) => {
   const onNew = () => {
     onNewChallenge();
     setGazeModeActive(false);
+    lemmaSession = null;
     rerender();
   };
   let pausePopupOpen = false;
@@ -6773,41 +6977,21 @@ var mountRandom = (container, navigate2, session2, onNewChallenge) => {
     pausePopupOpen = false;
     onNew();
   };
-  let formulaEditorOpen = false;
-  let closeFormulaEditor = null;
-  let tryUndoInEditor = null;
-  let editorOnAction = null;
+  let lemmaSession = null;
   const onApplyReverse1 = (_key, onFormula) => {
-    if (formulaEditorOpen) return;
-    formulaEditorOpen = true;
-    const cancel = () => {
-      formulaEditorOpen = false;
-      closeFormulaEditor = null;
-      tryUndoInEditor = null;
-      editorOnAction = null;
-      container.removeChild(modal);
-    };
-    const {
-      el: modal,
-      tryUndo,
-      onAction
-    } = createFormulaEditor(
-      t("lemmaTitle"),
-      t("lemmaConfirm"),
+    if (lemmaSession !== null) return;
+    setGazeModeActive(false);
+    lemmaSession = createLemmaEditorSession(
       (formula) => {
-        formulaEditorOpen = false;
-        closeFormulaEditor = null;
-        tryUndoInEditor = null;
-        editorOnAction = null;
-        container.removeChild(modal);
+        lemmaSession = null;
         onFormula(formula);
       },
-      cancel
+      () => {
+        lemmaSession = null;
+        rerender();
+      }
     );
-    closeFormulaEditor = cancel;
-    tryUndoInEditor = tryUndo;
-    editorOnAction = onAction;
-    container.appendChild(modal);
+    rerender();
   };
   const rerender = () => {
     const ws = getWorkspace();
@@ -6828,7 +7012,10 @@ var mountRandom = (container, navigate2, session2, onNewChallenge) => {
         onApplyReverse1,
         void 0,
         void 0,
-        freshFromPopup
+        freshFromPopup,
+        void 0,
+        void 0,
+        lemmaSession
       )
     );
     if (pausePopupOpen) {
@@ -6864,13 +7051,15 @@ var mountRandom = (container, navigate2, session2, onNewChallenge) => {
     onApplyReverse1
   );
   const dispatch = (action) => {
-    if (formulaEditorOpen) {
+    if (lemmaSession !== null) {
+      const session3 = lemmaSession;
       if (action === "undo") {
-        if (!(tryUndoInEditor?.() ?? false)) closeFormulaEditor?.();
+        if (session3.undo()) rerender();
+        else session3.cancel();
       } else if (action === "menu" || action === "exit") {
-        closeFormulaEditor?.();
-      } else {
-        editorOnAction?.(action);
+        session3.cancel();
+      } else if (session3.handleAction(action)) {
+        rerender();
       }
       return;
     }
@@ -6902,6 +7091,13 @@ var mountRandom = (container, navigate2, session2, onNewChallenge) => {
   const handleKey = (ev) => {
     if (ev.ctrlKey || ev.metaKey || ev.altKey) return;
     markKeyboardInput();
+    if (lemmaSession !== null) {
+      const piece = editorKeyPieces[ev.code];
+      if (piece !== void 0) {
+        if (lemmaSession.fill(piece())) rerender();
+        return;
+      }
+    }
     if (ev.code === "KeyN") {
       onNew();
       return;
@@ -9107,32 +9303,6 @@ var totalMoves = (ws) => {
   const counts = countRuleUsage(ws.currentConjecture().derivation);
   return Object.values(counts).reduce((a87, b) => a87 + b, 0);
 };
-var makeVersusFormulaEditor = (side, onFormula, onCancel) => {
-  let modalEl = null;
-  const close = () => {
-    modalEl?.remove();
-    modalEl = null;
-    onCancel();
-  };
-  const { el, tryUndo, onAction } = createFormulaEditor(
-    t("lemmaTitle"),
-    t("lemmaConfirm"),
-    (formula) => {
-      modalEl?.remove();
-      modalEl = null;
-      onFormula(formula);
-    },
-    close
-  );
-  modalEl = el;
-  if (side === "left") {
-    el.style.right = "calc(50% + 2.5em)";
-  } else {
-    el.style.left = "calc(50% + 2.5em)";
-  }
-  document.body.appendChild(el);
-  return { close, tryUndo, onAction };
-};
 var mountVersus = (container, navigate2, pool2, versusConfig) => {
   container.innerHTML = "";
   const root = document.createElement("div");
@@ -9233,12 +9403,8 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
   let pauseMenu = null;
   let resultScreen = null;
   let timerEl = null;
-  let closeEditor1 = null;
-  let tryUndoEditor1 = null;
-  let onActionEditor1 = null;
-  let closeEditor2 = null;
-  let tryUndoEditor2 = null;
-  let onActionEditor2 = null;
+  let lemmaSession1 = null;
+  let lemmaSession2 = null;
   const isNpc1 = !isTutorial2 && versusConfig.p1Input === "npc";
   const isNpc2 = !isTutorial2 && versusConfig.p2Input === "npc";
   const tutorOff = () => isTutorial2 && tutorInput === "off";
@@ -9314,7 +9480,8 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
         ctx1,
         isTutorial2 ? void 0 : skipPlayer1,
         isTutorial2 && beatAt(beatIdx).hideGaze,
-        isTutorial2
+        isTutorial2,
+        lemmaSession1
       )
     );
     return half2;
@@ -9425,7 +9592,8 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
         ctx2,
         isTutorial2 ? void 0 : skipPlayer2,
         isTutorial2 && beatAt(beatIdx).hideGaze,
-        isTutorial2
+        isTutorial2,
+        lemmaSession2
       )
     );
     if (isTutorial2) half2.appendChild(buildOwl());
@@ -10108,44 +10276,34 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     rerenderHalf2();
   };
   const onApplyReverse1 = (_key, onFormula) => {
-    if (closeEditor1 !== null) return;
-    const ed1 = makeVersusFormulaEditor(
-      "left",
+    if (lemmaSession1 !== null) return;
+    ctx1.setGazeModeActive(false);
+    lemmaSession1 = createLemmaEditorSession(
       (formula) => {
-        closeEditor1 = null;
-        tryUndoEditor1 = null;
-        onActionEditor1 = null;
+        lemmaSession1 = null;
         onFormula(formula);
       },
       () => {
-        closeEditor1 = null;
-        tryUndoEditor1 = null;
-        onActionEditor1 = null;
+        lemmaSession1 = null;
+        refreshP1();
       }
     );
-    closeEditor1 = ed1.close;
-    tryUndoEditor1 = ed1.tryUndo;
-    onActionEditor1 = ed1.onAction;
+    refreshP1();
   };
   const onApplyReverse2 = (_key, onFormula) => {
-    if (closeEditor2 !== null) return;
-    const ed2 = makeVersusFormulaEditor(
-      "right",
+    if (lemmaSession2 !== null) return;
+    ctx2.setGazeModeActive(false);
+    lemmaSession2 = createLemmaEditorSession(
       (formula) => {
-        closeEditor2 = null;
-        tryUndoEditor2 = null;
-        onActionEditor2 = null;
+        lemmaSession2 = null;
         onFormula(formula);
       },
       () => {
-        closeEditor2 = null;
-        tryUndoEditor2 = null;
-        onActionEditor2 = null;
+        lemmaSession2 = null;
+        refreshP2();
       }
     );
-    closeEditor2 = ed2.close;
-    tryUndoEditor2 = ed2.tryUndo;
-    onActionEditor2 = ed2.onAction;
+    refreshP2();
   };
   const gazeBlocked = () => isTutorial2 && beatAt(beatIdx).hideGaze;
   const makeCursorDispatch = (base, getWs, getCursor) => (action) => {
@@ -10259,8 +10417,8 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
       timeLeft = 0;
       gameOver = true;
       clearInterval(ticker);
-      closeEditor1?.();
-      closeEditor2?.();
+      lemmaSession1?.cancel();
+      lemmaSession2?.cancel();
       rerender();
       return;
     }
@@ -10276,24 +10434,24 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     return input === "gamepad2" ? indices[1] ?? 1 : indices[0] ?? 0;
   };
   const handleEditorInput1 = (action) => {
-    if (closeEditor1 === null) return false;
+    const session2 = lemmaSession1;
+    if (session2 === null) return false;
     if (action === "undo") {
-      if (!(tryUndoEditor1?.() ?? false)) closeEditor1();
-    } else if (action === "menu") {
-      closeEditor1();
-    } else {
-      onActionEditor1?.(action);
+      if (session2.undo()) refreshP1();
+      else session2.cancel();
+    } else if (session2.handleAction(action)) {
+      refreshP1();
     }
     return true;
   };
   const handleEditorInput2 = (action) => {
-    if (closeEditor2 === null) return false;
+    const session2 = lemmaSession2;
+    if (session2 === null) return false;
     if (action === "undo") {
-      if (!(tryUndoEditor2?.() ?? false)) closeEditor2();
-    } else if (action === "menu") {
-      closeEditor2();
-    } else {
-      onActionEditor2?.(action);
+      if (session2.undo()) refreshP2();
+      else session2.cancel();
+    } else if (session2.handleAction(action)) {
+      refreshP2();
     }
     return true;
   };
@@ -10315,15 +10473,23 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
       return;
     }
     if (action !== "menu") return;
-    if (closeEditor1 !== null || closeEditor2 !== null) {
-      closeEditor1?.();
-      closeEditor2?.();
+    if (lemmaSession1 !== null || lemmaSession2 !== null) {
+      lemmaSession1?.cancel();
+      lemmaSession2?.cancel();
     } else {
       setPaused(true);
     }
   };
   const handleKey = (ev) => {
     if (ev.ctrlKey || ev.metaKey || ev.altKey || gameOver || paused) return;
+    if (lemmaSession1 !== null) {
+      const piece = editorKeyPieces[ev.code];
+      if (piece !== void 0) {
+        markKeyboardInput();
+        if (lemmaSession1.fill(piece())) refreshP1();
+        return;
+      }
+    }
     const action = qwertyKeyMap[ev.code];
     if (action === void 0 || action === "menu") return;
     markKeyboardInput();
@@ -10336,6 +10502,14 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
   };
   const handleKey2 = (ev) => {
     if (ev.ctrlKey || ev.metaKey || ev.altKey || gameOver || paused) return;
+    if (lemmaSession2 !== null) {
+      const piece = editorKeyPieces[ev.code];
+      if (piece !== void 0) {
+        markKeyboardInput();
+        if (lemmaSession2.fill(piece())) refreshP2();
+        return;
+      }
+    }
     const action = qwertyKeyMap[ev.code];
     if (action === void 0 || action === "menu") return;
     markKeyboardInput();
@@ -10479,8 +10653,6 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
       document.removeEventListener("keydown", handleControlKey);
       cleanupControlPads.forEach((c) => c());
       unsubGamepad();
-      closeEditor1?.();
-      closeEditor2?.();
     },
     rerender
   };
