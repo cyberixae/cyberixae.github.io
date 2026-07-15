@@ -3499,7 +3499,7 @@ var en = {
   inputOff: "Off",
   tutorial: "Tutorial",
   tutorialBasics: "Basics",
-  tutorialLogic: "Destruct Rules",
+  tutorialLogic: "Consequences",
   tutorialPart: "Part",
   tutorialAdvance: "Next Topic",
   tutorialPrevious: "Previous Topic",
@@ -3507,13 +3507,18 @@ var en = {
   tutorialIdentity: "Identity",
   tutorialConstants: "Constants",
   tutorialExtras: "Extras",
-  tutorialShape1: "Splitting",
+  tutorialShape1: "Destruct",
   tutorialShape2: "Side flip",
   tutorialShape3: "Dividing",
   tutorialShape4: "Branching",
   tutorialShape5: "Shattering",
+  tutorialOptimization: "Optimization",
+  tutorialClaims: "Claims",
+  tutorialSolvability: "Solvability",
+  tutorialSkipping: "Skipping",
+  tutorialConjecture: "Sandbox",
   tutorialOwlBasics: "Welcome to LK! In its challenges you close derivation trees built out of sequents. This first chapter teaches the essentials you need to play.",
-  tutorialOwlLogic: "The second chapter is about dropping the extra connectives ( \u2192 \u2227 \u2228 \xAC ). If you would rather jump straight into the deep end, you can head for the real game as soon as you have found the {destruct} button. The subchapters walk through the consequences of dropping each connective in different situations, one at a time.",
+  tutorialOwlLogic: "The second chapter walks through the consequences of dropping each connective ( \u2192 \u2227 \u2228 \xAC ) in different situations, one at a time. If you would rather jump straight into the deep end, you already know every move \u2014 feel free to head for the real game.",
   tutorialOwlClose: "A branch of the tree can be closed when the same sentence sits on both sides of the gate ( \u22A2 ) \u2014 this situation is called an identity. You can switch branches with the {branch} buttons and close the chosen branch with the {close} button.",
   tutorialOwlCloseConstants: "Constant sentences can sometimes close a branch on their own \u2014 Falsum ( \u22A5 ) when it sits alone on the left side of the gate, and Verum ( \u22A4 ) when it sits alone on the right.",
   tutorialOwlDrop: "Any extra sentences on a branch must always be dropped before the branch can close. Remove them by picking the sentence to drop with the {pick} buttons, then pressing the {drop} button repeatedly until the picked sentence falls off the tree. If you drop a sentence the branch needs for closing, you can undo your move by pressing {undo}.",
@@ -3522,6 +3527,13 @@ var en = {
   tutorialOwlCrossing: "Dropping an Implication ( \u2192 ) on the right side of the gate divides its parts across the two sides of the gate.",
   tutorialOwlBranching: "Dropping a Conjunction ( \u2227 ) on the right side of the gate, or a Disjunction ( \u2228 ) on the left, makes the tree branch.",
   tutorialOwlBranchingCrossing: "Dropping an Implication ( \u2192 ) on the left side of the gate shatters the sentence: the most intricate of the rules combines both the parts dividing across the gate and the tree branching.",
+  tutorialOwlOptimization: "The third chapter is about optimizing solutions.",
+  tutorialOwlClaims: "You can add a claim to the selected branch by pressing the {lemma} button. Pick the parts of the sentence with the {pieces} buttons and finally press the {confirm} button. Claims never affect whether a challenge can be solved, but they can sometimes shorten the solution.",
+  tutorialOwlSolvability: "The fourth chapter is about telling which challenges can be solved. Recognizing solvability matters if you take on chaotic ( \u{1F480} ) challenges.",
+  tutorialOwlUnsolvable: "The challenges here are deliberately unsolvable, so that you learn to recognize one. You can skip an unsolvable challenge by pressing the {skip} button.",
+  tutorialOwlConjecture: "In this sandbox you can try to solve challenges of your own choosing. First pick the parts of the sentence with the {pieces} buttons, and finally press the {confirm} button. You can take back mispresses with the {undo} button.",
+  tutorialSkipped: "Challenge skipped! It had no solution.",
+  tutorialSkippedSolvable: "Challenge skipped! It did have a solution, though.",
   tutorialComplete: "Graduation",
   tutorialStart: "Start",
   tutorialOwlDone: "The tutorial is complete! You now know everything you need to play. Have fun!"
@@ -3603,7 +3615,7 @@ var fi = {
   inputOff: "Pois",
   tutorial: "Opastus",
   tutorialBasics: "Perusteet",
-  tutorialLogic: "Purkus\xE4\xE4nn\xF6t",
+  tutorialLogic: "Seuraamukset",
   tutorialPart: "Osa",
   tutorialAdvance: "Seuraava aihe",
   tutorialPrevious: "Edellinen aihe",
@@ -3611,13 +3623,18 @@ var fi = {
   tutorialIdentity: "Identiteetti",
   tutorialConstants: "Vakiot",
   tutorialExtras: "Ylim\xE4\xE4r\xE4iset",
-  tutorialShape1: "Halkeaminen",
+  tutorialShape1: "Purkaminen",
   tutorialShape2: "Puolenvaihto",
   tutorialShape3: "Jakautuminen",
   tutorialShape4: "Haarautuminen",
   tutorialShape5: "Sirpaloituminen",
+  tutorialOptimization: "Optimointi",
+  tutorialClaims: "V\xE4itt\xE4m\xE4t",
+  tutorialSolvability: "Ratkeavuus",
+  tutorialSkipping: "Ohittaminen",
+  tutorialConjecture: "Hiekkalaatikko",
   tutorialOwlBasics: "Tervetuloa pelaamaan LK:ta! Pelin haasteissa suljetaan sekventeist\xE4 koostuvia p\xE4\xE4ttelypuita. Ensimm\xE4isess\xE4 luvussa opimme pelaamisen kannalta v\xE4ltt\xE4m\xE4tt\xF6mi\xE4 perusasioita.",
-  tutorialOwlLogic: "Toisessa luvussa k\xE4sittelemme ylim\xE4\xE4r\xE4isten konnektiivien ( \u2192 \u2227 \u2228 \xAC ) pudottamista. Mik\xE4li haluat hyp\xE4t\xE4 suoraan syv\xE4\xE4n p\xE4\xE4tyyn, voit v\xE4litt\xF6m\xE4sti {destruct} painikkeen l\xF6ydetty\xE4si siirty\xE4 pelaamaan varsinaista peli\xE4. T\xE4m\xE4n luvun aliluvuissa k\xE4yd\xE4\xE4n yksitellen l\xE4pi eri konnektiivien pudottamisen seuraamuksia eri tilanteissa.",
+  tutorialOwlLogic: "Toisessa luvussa k\xE4yd\xE4\xE4n yksitellen l\xE4pi eri konnektiivien ( \u2192 \u2227 \u2228 \xAC ) pudottamisen seuraamuksia eri tilanteissa. Mik\xE4li haluat hyp\xE4t\xE4 suoraan syv\xE4\xE4n p\xE4\xE4tyyn, osaat jo kaikki siirrot \u2014 voit siirty\xE4 pelaamaan varsinaista peli\xE4 vaikka heti.",
   tutorialOwlClose: "P\xE4\xE4ttelypuun oksa on suljettavissa silloin, kun portin ( \u22A2 ) kummallakin puolella on sama lause \u2014 t\xE4llaista tilannetta kutsutaan identiteetiksi. Voit vaihtaa oksaa {branch} painikkeilla ja sulkea valitun oksan {close} painikkeella.",
   tutorialOwlCloseConstants: "Vakiolauseet mahdollistavat joskus oksan sulkemisen yksin\xE4\xE4n \u2014 Falsum ( \u22A5 ) ollessaan yksin portin vasemmalla puolella, ja Verum ( \u22A4 ) ollessaan yksin portin oikealla puolella.",
   tutorialOwlDrop: "Oksan sis\xE4lt\xE4m\xE4t ylim\xE4\xE4r\xE4iset lauseet on aina pudotettava ennen kuin oksan voi sulkea. Saat ylim\xE4\xE4r\xE4iset lauseet poistettua valitsemalla pudotettavan lauseen {pick} painikkeilla, ja painamalla sen j\xE4lkeen {drop} painiketta toistuvasti, kunnes valittu lause putoaa puusta. Mik\xE4li pudotat oksan sulkemiseen tarvittavan lauseen, voit perua siirtosi painamalla {undo} painiketta.",
@@ -3626,6 +3643,13 @@ var fi = {
   tutorialOwlCrossing: "Implikaation ( \u2192 ) pudottaminen portin oikealta puolelta aiheuttaa lauseen osien jakautumisen kahdelle puolelle porttia.",
   tutorialOwlBranching: "Konjunktion ( \u2227 ) pudottaminen portin oikealla puolella tai Disjunktion ( \u2228 ) pudottaminen portin vasemmalla puolella aiheuttaa puun haarautumisen.",
   tutorialOwlBranchingCrossing: "Implikaation ( \u2192 ) pudottaminen portin vasemmalta puolelta sirpaloittaa lauseen: s\xE4\xE4nn\xF6ist\xE4 monimutkaisin yhdist\xE4\xE4 sek\xE4 osien jakautumisen portin eri puolille ett\xE4 puun haarautumisen.",
+  tutorialOwlOptimization: "Kolmannessa luvussa tutustumme ratkaisujen optimointiin.",
+  tutorialOwlClaims: "Voit lis\xE4t\xE4 valittuun oksaan v\xE4itt\xE4m\xE4n painamalla {lemma} painiketta. Valitse lauseen osat {pieces} painikkeilla ja paina lopuksi {confirm} painiketta. V\xE4itt\xE4m\xE4t eiv\xE4t vaikuta haasteen ratkeavuuteen, mutta ne voivat joskus lyhent\xE4\xE4 ratkaisua.",
+  tutorialOwlSolvability: "Nelj\xE4nness\xE4 luvussa pohdimme, millaiset haasteet ovat ratkeavia. Ratkeavuuden tunnistaminen on oleellista, mik\xE4li koitat ratkaista kaoottisia ( \u{1F480} ) haasteita.",
+  tutorialOwlUnsolvable: "Loimme t\xE4h\xE4n tarkoituksella ratkeamattomia haasteita, jotta opit tunnistamaan sellaisen. Voit ohittaa ratkeamattoman haasteen painamalla {skip} painiketta.",
+  tutorialOwlConjecture: "Hiekkalaatikossa voit kokeilla ratkaista vapaavalintaisia haasteita. Valitse ensin lauseen osat {pieces} painikkeilla ja paina lopuksi {confirm} painiketta. Virhepainallukset saat peruttua {undo} painikkeella.",
+  tutorialSkipped: "Haaste ohitettu! Sill\xE4 ei ollut ratkaisua.",
+  tutorialSkippedSolvable: "Haaste ohitettu! Sill\xE4 olisi sittenkin ollut ratkaisu.",
   tutorialComplete: "Valmistujaiset",
   tutorialStart: "Aloita",
   tutorialOwlDone: "Opastus on suoritettu! Tied\xE4t nyt kaiken, mit\xE4 pelaamiseen tarvitaan. Pid\xE4 hauskaa!"
@@ -3707,7 +3731,7 @@ var es = {
   inputOff: "Desactivado",
   tutorial: "Tutorial",
   tutorialBasics: "Fundamentos",
-  tutorialLogic: "Reglas de destrucci\xF3n",
+  tutorialLogic: "Consecuencias",
   tutorialPart: "Parte",
   tutorialAdvance: "Siguiente tema",
   tutorialPrevious: "Tema anterior",
@@ -3715,13 +3739,18 @@ var es = {
   tutorialIdentity: "Identidad",
   tutorialConstants: "Constantes",
   tutorialExtras: "Sobrantes",
-  tutorialShape1: "Partici\xF3n",
+  tutorialShape1: "Destrucci\xF3n",
   tutorialShape2: "Cambio de lado",
   tutorialShape3: "Reparto",
   tutorialShape4: "Ramificaci\xF3n",
   tutorialShape5: "Fragmentaci\xF3n",
+  tutorialOptimization: "Optimizaci\xF3n",
+  tutorialClaims: "Afirmaciones",
+  tutorialSolvability: "Resolubilidad",
+  tutorialSkipping: "Salto",
+  tutorialConjecture: "Arenero",
   tutorialOwlBasics: "\xA1Bienvenido a LK! En los desaf\xEDos del juego se cierran \xE1rboles de deducci\xF3n compuestos de secuentes. En este primer cap\xEDtulo aprendemos lo b\xE1sico imprescindible para jugar.",
-  tutorialOwlLogic: "En el segundo cap\xEDtulo tratamos c\xF3mo soltar los conectivos sobrantes ( \u2192 \u2227 \u2228 \xAC ). Si prefieres lanzarte a lo hondo, en cuanto encuentres el bot\xF3n {destruct} puedes pasar directamente al juego de verdad. Los subcap\xEDtulos repasan una a una las consecuencias de soltar cada conectivo en distintas situaciones.",
+  tutorialOwlLogic: "El segundo cap\xEDtulo repasa una a una las consecuencias de soltar cada conectivo ( \u2192 \u2227 \u2228 \xAC ) en distintas situaciones. Si prefieres lanzarte a lo hondo, ya conoces todos los movimientos: puedes pasar directamente al juego de verdad.",
   tutorialOwlClose: "Una rama del \xE1rbol se puede cerrar cuando a ambos lados de la puerta ( \u22A2 ) est\xE1 la misma oraci\xF3n \u2014 esta situaci\xF3n se llama identidad. Puedes cambiar de rama con los botones {branch} y cerrar la rama elegida con el bot\xF3n {close}.",
   tutorialOwlCloseConstants: "Las oraciones constantes a veces permiten cerrar una rama por s\xED solas: Falsum ( \u22A5 ) cuando est\xE1 solo a la izquierda de la puerta, y Verum ( \u22A4 ) cuando est\xE1 solo a la derecha.",
   tutorialOwlDrop: "Las oraciones sobrantes de una rama deben soltarse siempre antes de poder cerrarla. Elim\xEDnalas eligiendo la oraci\xF3n a soltar con los botones {pick} y pulsando despu\xE9s el bot\xF3n {drop} repetidamente, hasta que la oraci\xF3n elegida caiga del \xE1rbol. Si sueltas una oraci\xF3n necesaria para cerrar la rama, puedes deshacer el movimiento pulsando {undo}.",
@@ -3730,6 +3759,13 @@ var es = {
   tutorialOwlCrossing: "Soltar una Implicaci\xF3n ( \u2192 ) en el lado derecho de la puerta reparte sus partes entre los dos lados de la puerta.",
   tutorialOwlBranching: "Soltar una Conjunci\xF3n ( \u2227 ) en el lado derecho de la puerta, o una Disyunci\xF3n ( \u2228 ) en el izquierdo, ramifica el \xE1rbol.",
   tutorialOwlBranchingCrossing: "Soltar una Implicaci\xF3n ( \u2192 ) en el lado izquierdo de la puerta fragmenta la oraci\xF3n: la regla m\xE1s compleja combina el reparto de las partes entre ambos lados y la ramificaci\xF3n del \xE1rbol.",
+  tutorialOwlOptimization: "El tercer cap\xEDtulo trata de optimizar las soluciones.",
+  tutorialOwlClaims: "Puedes a\xF1adir una afirmaci\xF3n a la rama elegida pulsando el bot\xF3n {lemma}. Elige las partes de la oraci\xF3n con los botones {pieces} y pulsa al final el bot\xF3n {confirm}. Las afirmaciones nunca afectan a la resolubilidad del desaf\xEDo, pero a veces pueden acortar la soluci\xF3n.",
+  tutorialOwlSolvability: "En el cuarto cap\xEDtulo consideramos qu\xE9 desaf\xEDos tienen soluci\xF3n. Reconocer la resolubilidad es esencial si intentas resolver desaf\xEDos ca\xF3ticos ( \u{1F480} ).",
+  tutorialOwlUnsolvable: "Aqu\xED hemos creado a prop\xF3sito desaf\xEDos irresolubles, para que aprendas a reconocerlos. Puedes saltar un desaf\xEDo irresoluble pulsando el bot\xF3n {skip}.",
+  tutorialOwlConjecture: "En este arenero puedes intentar resolver desaf\xEDos de tu propia elecci\xF3n. Elige primero las partes de la oraci\xF3n con los botones {pieces} y pulsa al final el bot\xF3n {confirm}. Puedes deshacer las pulsaciones err\xF3neas con el bot\xF3n {undo}.",
+  tutorialSkipped: "\xA1Desaf\xEDo saltado! No ten\xEDa soluci\xF3n.",
+  tutorialSkippedSolvable: "\xA1Desaf\xEDo saltado! Sin embargo, s\xED ten\xEDa soluci\xF3n.",
   tutorialComplete: "Graduaci\xF3n",
   tutorialStart: "Empezar",
   tutorialOwlDone: "\xA1Tutorial completado! Ya sabes todo lo que necesitas para jugar. \xA1Divi\xE9rtete!"
@@ -3811,7 +3847,7 @@ var cs = {
   inputOff: "Vypnuto",
   tutorial: "N\xE1vod",
   tutorialBasics: "Z\xE1klady",
-  tutorialLogic: "Pravidla ni\u010Den\xED",
+  tutorialLogic: "D\u016Fsledky",
   tutorialPart: "\u010C\xE1st",
   tutorialAdvance: "Dal\u0161\xED t\xE9ma",
   tutorialPrevious: "P\u0159edchoz\xED t\xE9ma",
@@ -3819,13 +3855,18 @@ var cs = {
   tutorialIdentity: "Identita",
   tutorialConstants: "Konstanty",
   tutorialExtras: "P\u0159ebytky",
-  tutorialShape1: "Roz\u0161t\u011Bpen\xED",
+  tutorialShape1: "Ni\u010Den\xED",
   tutorialShape2: "Zm\u011Bna strany",
   tutorialShape3: "Rozd\u011Blen\xED",
   tutorialShape4: "V\u011Btven\xED",
   tutorialShape5: "T\u0159\xED\u0161t\u011Bn\xED",
+  tutorialOptimization: "Optimalizace",
+  tutorialClaims: "Tvrzen\xED",
+  tutorialSolvability: "\u0158e\u0161itelnost",
+  tutorialSkipping: "P\u0159eskakov\xE1n\xED",
+  tutorialConjecture: "P\xEDskovi\u0161t\u011B",
   tutorialOwlBasics: "V\xEDtej ve h\u0159e LK! V jej\xEDch v\xFDzv\xE1ch se zav\xEDraj\xED odvozovac\xED stromy slo\u017Een\xE9 ze sekvent\u016F. V t\xE9to prvn\xED kapitole se nau\u010D\xEDme z\xE1klady, bez kter\xFDch se hr\xE1t ned\xE1.",
-  tutorialOwlLogic: "Ve druh\xE9 kapitole se v\u011Bnujeme pou\u0161t\u011Bn\xED p\u0159ebyte\u010Dn\xFDch spojek ( \u2192 \u2227 \u2228 \xAC ). Chce\u0161-li sko\u010Dit rovnou do hlubin, m\u016F\u017Ee\u0161 hned po nalezen\xED tla\u010D\xEDtka {destruct} p\u0159ej\xEDt ke skute\u010Dn\xE9 h\u0159e. Podkapitoly prob\xEDraj\xED jednu po druh\xE9 d\u016Fsledky pu\u0161t\u011Bn\xED jednotliv\xFDch spojek v r\u016Fzn\xFDch situac\xEDch.",
+  tutorialOwlLogic: "Druh\xE1 kapitola prob\xEDr\xE1 jeden po druh\xE9m d\u016Fsledky pu\u0161t\u011Bn\xED jednotliv\xFDch spojek ( \u2192 \u2227 \u2228 \xAC ) v r\u016Fzn\xFDch situac\xEDch. Chce\u0161-li sko\u010Dit rovnou do hlubin, v\u0161echny tahy u\u017E zn\xE1\u0161 \u2014 m\u016F\u017Ee\u0161 p\u0159ej\xEDt ke skute\u010Dn\xE9 h\u0159e hned.",
   tutorialOwlClose: "V\u011Btev stromu lze zav\u0159\xEDt, kdy\u017E na obou stran\xE1ch br\xE1ny ( \u22A2 ) stoj\xED stejn\xE1 v\u011Bta \u2014 takov\xE9 situaci se \u0159\xEDk\xE1 identita. V\u011Btev p\u0159epne\u0161 tla\u010D\xEDtky {branch} a vybranou v\u011Btev zav\u0159e\u0161 tla\u010D\xEDtkem {close}.",
   tutorialOwlCloseConstants: "Konstantn\xED v\u011Bty n\u011Bkdy dok\xE1\u017Eou zav\u0159\xEDt v\u011Btev samy \u2014 Falsum ( \u22A5 ), kdy\u017E stoj\xED samo vlevo od br\xE1ny, a Verum ( \u22A4 ), kdy\u017E stoj\xED samo vpravo.",
   tutorialOwlDrop: "P\u0159ebyte\u010Dn\xE9 v\u011Bty na v\u011Btvi je v\u017Edy nutn\xE9 pustit, ne\u017E ji lze zav\u0159\xEDt. Odstran\xED\u0161 je tak, \u017Ee tla\u010D\xEDtky {pick} vybere\u0161 v\u011Btu k pu\u0161t\u011Bn\xED a pak opakovan\u011B ma\u010Dk\xE1\u0161 tla\u010D\xEDtko {drop}, dokud vybran\xE1 v\u011Bta nespadne ze stromu. Pokud pust\xED\u0161 v\u011Btu pot\u0159ebnou k zav\u0159en\xED v\u011Btve, m\u016F\u017Ee\u0161 tah vr\xE1tit tla\u010D\xEDtkem {undo}.",
@@ -3834,6 +3875,13 @@ var cs = {
   tutorialOwlCrossing: "Pu\u0161t\u011Bn\xED Implikace ( \u2192 ) na prav\xE9 stran\u011B br\xE1ny rozd\u011Bl\xED jej\xED \u010D\xE1sti na ob\u011B strany br\xE1ny.",
   tutorialOwlBranching: "Pu\u0161t\u011Bn\xED Konjunkce ( \u2227 ) na prav\xE9 stran\u011B br\xE1ny nebo Disjunkce ( \u2228 ) na lev\xE9 rozv\u011Btv\xED strom.",
   tutorialOwlBranchingCrossing: "Pu\u0161t\u011Bn\xED Implikace ( \u2192 ) na lev\xE9 stran\u011B br\xE1ny v\u011Btu rozt\u0159\xED\u0161t\xED: nejslo\u017Eit\u011Bj\u0161\xED z pravidel spojuje jak rozd\u011Blen\xED \u010D\xE1st\xED na ob\u011B strany br\xE1ny, tak v\u011Btven\xED stromu.",
+  tutorialOwlOptimization: "T\u0159et\xED kapitola se v\u011Bnuje optimalizaci \u0159e\u0161en\xED.",
+  tutorialOwlClaims: "Na vybranou v\u011Btev m\u016F\u017Ee\u0161 p\u0159idat tvrzen\xED tla\u010D\xEDtkem {lemma}. Vyber \u010D\xE1sti v\u011Bty tla\u010D\xEDtky {pieces} a nakonec stiskni tla\u010D\xEDtko {confirm}. Tvrzen\xED nikdy neovlivn\xED \u0159e\u0161itelnost v\xFDzvy, ale n\u011Bkdy mohou \u0159e\u0161en\xED zkr\xE1tit.",
+  tutorialOwlSolvability: "Ve \u010Dtvrt\xE9 kapitole se zam\xFD\u0161l\xEDme nad t\xEDm, jak\xE9 v\xFDzvy jsou \u0159e\u0161iteln\xE9. Rozpoznat \u0159e\u0161itelnost je z\xE1sadn\xED, pokud se pust\xED\u0161 do chaotick\xFDch ( \u{1F480} ) v\xFDzev.",
+  tutorialOwlUnsolvable: "Zde jsme z\xE1m\u011Brn\u011B vytvo\u0159ili ne\u0159e\u0161iteln\xE9 v\xFDzvy, a\u0165 se nau\u010D\xED\u0161 takovou rozpoznat. Ne\u0159e\u0161itelnou v\xFDzvu m\u016F\u017Ee\u0161 p\u0159esko\u010Dit tla\u010D\xEDtkem {skip}.",
+  tutorialOwlConjecture: "Na tomto p\xEDskovi\u0161ti si m\u016F\u017Ee\u0161 zkusit vy\u0159e\u0161it v\xFDzvy podle vlastn\xED volby. Nejprve vyber \u010D\xE1sti v\u011Bty tla\u010D\xEDtky {pieces} a nakonec stiskni tla\u010D\xEDtko {confirm}. Chybn\xE1 stisknut\xED vr\xE1t\xED\u0161 tla\u010D\xEDtkem {undo}.",
+  tutorialSkipped: "V\xFDzva p\u0159esko\u010Dena! Nem\u011Bla \u0159e\u0161en\xED.",
+  tutorialSkippedSolvable: "V\xFDzva p\u0159esko\u010Dena! \u0158e\u0161en\xED ale m\u011Bla.",
   tutorialComplete: "Promoce",
   tutorialStart: "Za\u010D\xEDt",
   tutorialOwlDone: "N\xE1vod je u konce! Te\u010F v\xED\u0161 v\u0161e, co ke hran\xED pot\u0159ebuje\u0161. Bav se!"
@@ -3915,7 +3963,7 @@ var pl = {
   inputOff: "Wy\u0142\u0105czony",
   tutorial: "Samouczek",
   tutorialBasics: "Podstawy",
-  tutorialLogic: "Zasady niszczenia",
+  tutorialLogic: "Skutki",
   tutorialPart: "Cz\u0119\u015B\u0107",
   tutorialAdvance: "Nast\u0119pny temat",
   tutorialPrevious: "Poprzedni temat",
@@ -3923,13 +3971,18 @@ var pl = {
   tutorialIdentity: "To\u017Csamo\u015B\u0107",
   tutorialConstants: "Sta\u0142e",
   tutorialExtras: "Zb\u0119dne",
-  tutorialShape1: "Rozszczepienie",
+  tutorialShape1: "Niszczenie",
   tutorialShape2: "Zmiana strony",
   tutorialShape3: "Rozdzielenie",
   tutorialShape4: "Rozga\u0142\u0119zienie",
   tutorialShape5: "Rozbicie",
+  tutorialOptimization: "Optymalizacja",
+  tutorialClaims: "Twierdzenia",
+  tutorialSolvability: "Rozwi\u0105zywalno\u015B\u0107",
+  tutorialSkipping: "Pomijanie",
+  tutorialConjecture: "Piaskownica",
   tutorialOwlBasics: "Witaj w grze LK! W jej wyzwaniach zamyka si\u0119 drzewa wnioskowania zbudowane z sekwent\xF3w. W tym pierwszym rozdziale poznajemy podstawy niezb\u0119dne do gry.",
-  tutorialOwlLogic: "W drugim rozdziale zajmujemy si\u0119 upuszczaniem zb\u0119dnych sp\xF3jnik\xF3w ( \u2192 \u2227 \u2228 \xAC ). Je\u015Bli wolisz skoczy\u0107 na g\u0142\u0119bok\u0105 wod\u0119, zaraz po znalezieniu przycisku {destruct} mo\u017Cesz przej\u015B\u0107 do w\u0142a\u015Bciwej gry. Podrozdzia\u0142y omawiaj\u0105 po kolei skutki upuszczania poszczeg\xF3lnych sp\xF3jnik\xF3w w r\xF3\u017Cnych sytuacjach.",
+  tutorialOwlLogic: "Drugi rozdzia\u0142 omawia po kolei skutki upuszczania poszczeg\xF3lnych sp\xF3jnik\xF3w ( \u2192 \u2227 \u2228 \xAC ) w r\xF3\u017Cnych sytuacjach. Je\u015Bli wolisz skoczy\u0107 na g\u0142\u0119bok\u0105 wod\u0119, znasz ju\u017C wszystkie ruchy \u2014 mo\u017Cesz przej\u015B\u0107 do w\u0142a\u015Bciwej gry od razu.",
   tutorialOwlClose: "Ga\u0142\u0105\u017A drzewa mo\u017Cna zamkn\u0105\u0107, gdy po obu stronach bramy ( \u22A2 ) stoi to samo zdanie \u2014 tak\u0105 sytuacj\u0119 nazywamy to\u017Csamo\u015Bci\u0105. Ga\u0142\u0105\u017A zmieniasz przyciskami {branch}, a wybran\u0105 ga\u0142\u0105\u017A zamykasz przyciskiem {close}.",
   tutorialOwlCloseConstants: "Zdania sta\u0142e czasem pozwalaj\u0105 zamkn\u0105\u0107 ga\u0142\u0105\u017A samodzielnie \u2014 Falsum ( \u22A5 ), gdy stoi samo po lewej stronie bramy, i Verum ( \u22A4 ), gdy stoi samo po prawej.",
   tutorialOwlDrop: "Zb\u0119dne zdania na ga\u0142\u0119zi trzeba zawsze upu\u015Bci\u0107, zanim da si\u0119 j\u0105 zamkn\u0105\u0107. Usuniesz je, wybieraj\u0105c zdanie do upuszczenia przyciskami {pick}, a nast\u0119pnie naciskaj\u0105c przycisk {drop} wielokrotnie, a\u017C wybrane zdanie spadnie z drzewa. Je\u015Bli upu\u015Bcisz zdanie potrzebne do zamkni\u0119cia ga\u0142\u0119zi, mo\u017Cesz cofn\u0105\u0107 ruch przyciskiem {undo}.",
@@ -3938,6 +3991,13 @@ var pl = {
   tutorialOwlCrossing: "Upuszczenie Implikacji ( \u2192 ) po prawej stronie bramy rozdziela jej cz\u0119\u015Bci na obie strony bramy.",
   tutorialOwlBranching: "Upuszczenie Koniunkcji ( \u2227 ) po prawej stronie bramy lub Alternatywy ( \u2228 ) po lewej rozga\u0142\u0119zia drzewo.",
   tutorialOwlBranchingCrossing: "Upuszczenie Implikacji ( \u2192 ) po lewej stronie bramy rozbija zdanie: najbardziej z\u0142o\u017Cona z regu\u0142 \u0142\u0105czy rozdzielenie cz\u0119\u015Bci na obie strony bramy i rozga\u0142\u0119zienie drzewa.",
+  tutorialOwlOptimization: "Trzeci rozdzia\u0142 dotyczy optymalizacji rozwi\u0105za\u0144.",
+  tutorialOwlClaims: "Do wybranej ga\u0142\u0119zi mo\u017Cesz doda\u0107 twierdzenie przyciskiem {lemma}. Wybierz cz\u0119\u015Bci zdania przyciskami {pieces}, a na ko\u0144cu naci\u015Bnij przycisk {confirm}. Twierdzenia nigdy nie wp\u0142ywaj\u0105 na rozwi\u0105zywalno\u015B\u0107 wyzwania, ale czasem mog\u0105 skr\xF3ci\u0107 rozwi\u0105zanie.",
+  tutorialOwlSolvability: "W czwartym rozdziale zastanawiamy si\u0119, jakie wyzwania da si\u0119 rozwi\u0105za\u0107. Rozpoznawanie rozwi\u0105zywalno\u015Bci jest istotne, je\u015Bli mierzysz si\u0119 z chaotycznymi ( \u{1F480} ) wyzwaniami.",
+  tutorialOwlUnsolvable: "Umie\u015Bcili\u015Bmy tu celowo nierozwi\u0105zywalne wyzwania, dzi\u0119ki czemu nauczysz si\u0119 je rozpoznawa\u0107. Nierozwi\u0105zywalne wyzwanie mo\u017Cesz pomin\u0105\u0107 przyciskiem {skip}.",
+  tutorialOwlConjecture: "W tej piaskownicy mo\u017Cesz spr\xF3bowa\u0107 rozwi\u0105za\u0107 wyzwania w\u0142asnego wyboru. Najpierw wybierz cz\u0119\u015Bci zdania przyciskami {pieces}, a na ko\u0144cu naci\u015Bnij przycisk {confirm}. B\u0142\u0119dne naci\u015Bni\u0119cia cofniesz przyciskiem {undo}.",
+  tutorialSkipped: "Wyzwanie pomini\u0119te! Nie mia\u0142o rozwi\u0105zania.",
+  tutorialSkippedSolvable: "Wyzwanie pomini\u0119te! Mia\u0142o jednak rozwi\u0105zanie.",
   tutorialComplete: "Zako\u0144czenie",
   tutorialStart: "Rozpocznij",
   tutorialOwlDone: "Samouczek uko\u0144czony! Wiesz ju\u017C wszystko, czego potrzeba do gry. Mi\u0142ej zabawy!"
@@ -4689,6 +4749,7 @@ var spliceSequent = (ant, suc) => {
   );
   return (theme) => trim(p(theme));
 };
+var conjectureGhost = (d) => spliceSequent([], [fromDraft(d)]);
 var lemmaGhostPremises = (goal87, d) => {
   const ant = goal87.antecedent.map((f2) => fromProp(f2));
   const suc = goal87.succedent.map((f2) => fromProp(f2));
@@ -5014,7 +5075,7 @@ var editorKeyPieces = {
   KeyJ: () => draftDisjunction(hole2, hole2),
   KeyL: () => draftImplication(hole2, hole2)
 };
-var createLemmaEditorSession = (onConfirm, onCancel) => {
+var createLemmaEditorSession = (onConfirm, onCancel, hideCancel = false) => {
   let current2 = hole2;
   let history2 = [];
   let cursorIndex = null;
@@ -5043,17 +5104,19 @@ var createLemmaEditorSession = (onConfirm, onCancel) => {
     cursorIndex = REVEAL_INDEX;
     return true;
   };
+  const minIndex = hideCancel ? firstIndexOfGroup(1) : 0;
+  const minGroup = hideCancel ? 1 : 0;
   const moveCursor = (delta) => {
     if (reveal()) return true;
     if (cursorIndex === null) return false;
-    cursorIndex = clamp2(cursorIndex + delta, 0, cellSpecs.length - 1);
+    cursorIndex = clamp2(cursorIndex + delta, minIndex, cellSpecs.length - 1);
     return true;
   };
   const groupJump = (dir) => {
     if (reveal()) return true;
     if (cursorIndex === null) return false;
     const g = cellSpecs[cursorIndex]?.group ?? 0;
-    cursorIndex = firstIndexOfGroup(clamp2(g + dir, 0, lastGroup));
+    cursorIndex = firstIndexOfGroup(clamp2(g + dir, minGroup, lastGroup));
     return true;
   };
   const activate = () => {
@@ -5100,7 +5163,8 @@ var createLemmaEditorSession = (onConfirm, onCancel) => {
     confirm,
     cancel: onCancel,
     cursor: () => cursorIndex,
-    handleAction
+    handleAction,
+    hideCancel
   };
 };
 var makeButton = (label, disabled, onClick) => {
@@ -5118,6 +5182,7 @@ var createLemmaEditorBar = (session2, rerender) => {
   let groupEl = null;
   let groupNo = -1;
   cellSpecs.forEach((spec, i88) => {
+    if (spec.kind === "cancel" && session2.hideCancel) return;
     if (spec.group !== groupNo) {
       groupNo = spec.group;
       groupEl = document.createElement("div");
@@ -8945,7 +9010,9 @@ function* randomConfiguredStep(config, getTimeout = () => 5e3) {
 }
 
 // src/random/tutorial.ts
-var tutorialRules = rules2.filter((r) => r !== "cut");
+var tutorialRules = rules2.filter(
+  (r) => r !== "cut"
+);
 var ATOMS = {
   p: 3,
   q: 2,
@@ -9223,8 +9290,87 @@ var generateBasicsChallenge = (kind) => {
   if (solution87 === void 0) return res;
   return { ...res, challenge: { ...res.challenge, start: prune(solution87) } };
 };
+var claimNotch = {
+  glyphs: "",
+  featured: ["nl", "nr", "cl", "cr", "dl", "dr", "il", "ir"],
+  taught: ["nl", "nr", "cl", "cr", "dl", "dr", "il", "ir", "f", "v"],
+  anteConnectives: {
+    conjunction: 1,
+    disjunction: 1,
+    negation: 1,
+    implication: 1
+  },
+  succConnectives: {
+    conjunction: 1,
+    disjunction: 1,
+    negation: 1,
+    implication: 1
+  },
+  symbols: ATOMS,
+  maxFormulaSize: 2,
+  minAnte: 0,
+  // Hypothetical syllogism — the classic goal a mid-proof claim helps.
+  fallback: sequent(
+    [implication(P, Q), implication(Q, atom("r"))],
+    [implication(P, atom("r"))]
+  )
+};
+var generateClaimChallenge = () => {
+  const res = generateSequentChallenge(claimNotch);
+  return { ...res, challenge: { ...res.challenge, rules: rules2 } };
+};
+var solvabilityTaught = [
+  ...logicNotches[4].taught,
+  "f",
+  "v"
+];
+var connectiveRules = [
+  "nl",
+  "nr",
+  "cl",
+  "cr",
+  "dl",
+  "dr",
+  "il",
+  "ir"
+];
+var UNSOLVABLE_WEIGHTS = {
+  negation: 1,
+  implication: 1,
+  conjunction: 1,
+  disjunction: 1
+};
+var UNSOLVABLE_FALLBACK = sequent(
+  [disjunction(P, Q)],
+  [conjunction(P, Q)]
+);
+var asUnsolvableResult = (goal87, formulasTried) => ({
+  challenge: { rules: rules2, goal: goal87 },
+  nonStructuralCount: 0,
+  bypassed: true,
+  formulasTried
+});
+var generateUnsolvableChallenge = () => {
+  for (let tries = 0; tries < MAX_TRIES; tries += 1) {
+    const nAnte = randomCount();
+    const nSucc = randomCount();
+    if (nAnte + nSucc === 0 || nAnte + nSucc > MAX_FORMULAS) continue;
+    const draw = () => {
+      const size = Math.floor(Math.random() * 3);
+      return randomWeighted(size, UNSOLVABLE_WEIGHTS, ATOMS)();
+    };
+    const antecedent = Array.from({ length: nAnte }, draw);
+    const succedent = Array.from({ length: nSucc }, draw);
+    const goal87 = sequent(antecedent, succedent);
+    if (isTautology2(goal87)) continue;
+    const closure = reachableRules(goal87);
+    if (!closure.every((r) => solvabilityTaught.includes(r))) continue;
+    if (!closure.some((r) => connectiveRules.includes(r))) continue;
+    return asUnsolvableResult(goal87, tries + 1);
+  }
+  return asUnsolvableResult(UNSOLVABLE_FALLBACK, MAX_TRIES);
+};
 var LOGIC_NAME_IDS = [
-  "split",
   "sideFlip",
   "crossing",
   "branching",
@@ -9236,6 +9382,9 @@ var tutorialCurriculum = [
     nameId: "identity",
     glyphs: "",
     hideGaze: true,
+    hideSkip: true,
+    hideLemma: true,
+    conjecture: false,
     generate: () => generateBasicsChallenge("identity")
   },
   {
@@ -9245,6 +9394,9 @@ var tutorialCurriculum = [
     nameId: "constants",
     glyphs: "",
     hideGaze: true,
+    hideSkip: true,
+    hideLemma: true,
+    conjecture: false,
     generate: () => generateBasicsChallenge("constants")
   },
   {
@@ -9252,18 +9404,84 @@ var tutorialCurriculum = [
     nameId: "drop",
     glyphs: "",
     hideGaze: false,
+    hideSkip: true,
+    hideLemma: true,
+    conjecture: false,
     generate: () => generateBasicsChallenge("drop")
   },
-  // No glyphs on the Logic rows: the behavior names are unique there, and
-  // ladder rows should carry symbols only where the name alone is ambiguous
-  // (the two Close beats).
-  ...logicNotches.map((notch, i88) => ({
-    chapter: "logic",
-    nameId: LOGIC_NAME_IDS[i88] ?? "split",
+  {
+    // The Destruct beat closes Basics: it introduces the third verb on the
+    // gentlest rules (∧ left / ∨ right — the pieces stay put), so the verb
+    // and its binding are learned before any of its consequences. The
+    // Consequences chapter then covers what destructing does everywhere
+    // else. Not presolved like the other Basics beats — a full challenge is
+    // the point (Close and Drop are already fluent).
+    chapter: "basics",
+    nameId: "split",
     glyphs: "",
     hideGaze: false,
+    hideSkip: true,
+    hideLemma: true,
+    conjecture: false,
+    generate: () => generateSequentChallenge(logicNotches[0])
+  },
+  // No glyphs on the Consequences rows: the behavior names are unique
+  // there, and ladder rows should carry symbols only where the name alone
+  // is ambiguous (the two Close beats).
+  ...logicNotches.slice(1).map((notch, i88) => ({
+    chapter: "logic",
+    nameId: LOGIC_NAME_IDS[i88] ?? "sideFlip",
+    glyphs: "",
+    hideGaze: false,
+    hideSkip: true,
+    hideLemma: true,
+    conjecture: false,
     generate: () => generateSequentChallenge(notch)
-  }))
+  })),
+  {
+    // The Optimization chapter's Claims beat: ordinary challenges with the
+    // Claim button making its first appearance. Claims are optional by
+    // nature (cut is admissible), so this is the one beat whose featured
+    // verb the goals cannot force.
+    chapter: "optimization",
+    nameId: "claims",
+    glyphs: "",
+    hideGaze: false,
+    hideSkip: true,
+    hideLemma: false,
+    conjecture: false,
+    generate: generateClaimChallenge
+  },
+  {
+    // The Solvability chapter's Skip beat: deliberately unsolvable goals,
+    // announced as such upfront (the honest framing) — the player takes one
+    // apart, finds the dead end, and Skip makes its first appearance as the
+    // correct exit.
+    chapter: "solvability",
+    nameId: "unsolvable",
+    glyphs: "",
+    hideGaze: false,
+    hideSkip: false,
+    hideLemma: false,
+    conjecture: false,
+    generate: generateUnsolvableChallenge
+  },
+  {
+    // The Solvability chapter's Conjecture beat: the player composes an
+    // arbitrary formula and plays the goal they authored — the first
+    // challenge whose solvability nobody has checked. Skip (taught in the
+    // previous beat) is the exit when the conjecture turns out false.
+    chapter: "solvability",
+    nameId: "conjecture",
+    glyphs: "",
+    hideGaze: false,
+    hideSkip: false,
+    hideLemma: false,
+    conjecture: true,
+    // Never shown: the web layer swaps this beat's boards for the entry
+    // flow; a fixed cheap result keeps the challenge buffer machinery fed.
+    generate: () => asUnsolvableResult(UNSOLVABLE_FALLBACK, 0)
+  }
 ];
 var beatAt = (i88) => {
   const clamped = Math.max(0, Math.min(i88, tutorialCurriculum.length - 1));
@@ -9319,6 +9537,7 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
   };
   let beatIdx = isTutorial2 ? beatForStop(stopIdx) : 0;
   const onIntro = () => isTutorial2 && stopAt(stopIdx).kind === "intro";
+  const onConjecture = () => isTutorial2 && beatAt(beatIdx).conjecture;
   let tutorInput = versusConfig.tutorial?.tutorInput ?? "off";
   const takeChallenge = () => isTutorial2 ? beatAt(beatIdx).generate() : pool2.take();
   const sharedChallenges = [];
@@ -9354,6 +9573,7 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
   };
   const advancePlayer1 = () => {
     scoreCommitted1 = false;
+    skipped1 = false;
     const [next1, ...rest1] = pending1;
     if (next1 !== void 0) {
       wsIdx1 = next1;
@@ -9366,6 +9586,7 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
   };
   const advancePlayer2 = () => {
     scoreCommitted2 = false;
+    skipped2 = false;
     const [next2, ...rest2] = pending2;
     if (next2 !== void 0) {
       wsIdx2 = next2;
@@ -9405,6 +9626,12 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
   let timerEl = null;
   let lemmaSession1 = null;
   let lemmaSession2 = null;
+  let skipped1 = false;
+  let skipped2 = false;
+  let skipHadSolution1 = false;
+  let skipHadSolution2 = false;
+  let conjectureEntry1 = false;
+  let conjectureEntry2 = false;
   const isNpc1 = !isTutorial2 && versusConfig.p1Input === "npc";
   const isNpc2 = !isTutorial2 && versusConfig.p2Input === "npc";
   const tutorOff = () => isTutorial2 && tutorInput === "off";
@@ -9459,8 +9686,127 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     half2.appendChild(page);
     return half2;
   };
+  const buildSkippedPage = (hadSolution, onContinue, setCursor, setDefault) => {
+    const half2 = document.createElement("div");
+    half2.setAttribute("class", "versus-half");
+    const page = document.createElement("div");
+    page.setAttribute("class", "tutorial-intro tutorial-skipped");
+    const note = document.createElement("div");
+    note.setAttribute("class", "tutorial-skipped-note");
+    note.textContent = t(
+      hadSolution ? "tutorialSkippedSolvable" : "tutorialSkipped"
+    );
+    page.appendChild(note);
+    const cells = [];
+    const add = (label, disabled, activate) => {
+      const el = createButton(label, disabled, activate);
+      page.appendChild(el);
+      cells.push({ btn: el, activate, isEnabled: () => !disabled });
+    };
+    add(t("tutorialPrevious"), stopIdx <= 0, () => jumpToStop(stopIdx - 1));
+    add(t("tutorialOneMore"), false, onContinue);
+    add(
+      t("tutorialAdvance"),
+      stopIdx >= tutorialStops.length - 1,
+      () => jumpToStop(stopIdx + 1)
+    );
+    const cursor = createButtonCursor([cells], {
+      startCol: 1,
+      moveOnReveal: true
+    });
+    setCursor({ onAction: cursor.onAction, isEngaged: cursor.isEngaged });
+    setDefault(() => cells[1]?.activate());
+    half2.appendChild(page);
+    return half2;
+  };
+  const openConjecture1 = () => {
+    conjectureEntry1 = true;
+    lemmaSession1 = createLemmaEditorSession(
+      (formula) => {
+        conjectureEntry1 = false;
+        lemmaSession1 = null;
+        ws1 = new Workspace({
+          challenge: { rules: rules2, goal: sequent([], [formula]) }
+        });
+        refreshP1();
+      },
+      () => {
+        openConjecture1();
+        refreshP1();
+      },
+      // No board behind the entry to back out to — hide the Back cell.
+      true
+    );
+  };
+  const openConjecture2 = () => {
+    conjectureEntry2 = true;
+    lemmaSession2 = createLemmaEditorSession(
+      (formula) => {
+        conjectureEntry2 = false;
+        lemmaSession2 = null;
+        ws2 = new Workspace({
+          challenge: { rules: rules2, goal: sequent([], [formula]) }
+        });
+        refreshP2();
+      },
+      () => {
+        openConjecture2();
+        refreshP2();
+      },
+      true
+    );
+  };
+  const nextChallenge1 = () => {
+    if (onConjecture()) {
+      skipped1 = false;
+      openConjecture1();
+    } else {
+      advancePlayer1();
+    }
+    rerenderHalf1();
+    rebuildThermo();
+  };
+  const nextChallenge2 = () => {
+    if (onConjecture()) {
+      skipped2 = false;
+      openConjecture2();
+    } else {
+      advancePlayer2();
+    }
+    rerenderHalf2();
+    rebuildThermo();
+  };
+  const buildConjecturePage = (session2, refresh) => {
+    const half2 = document.createElement("div");
+    half2.setAttribute("class", "versus-half");
+    const page = document.createElement("div");
+    page.setAttribute("class", "conjecture-entry");
+    const previewArea = document.createElement("div");
+    previewArea.setAttribute("class", "conjecture-preview-area");
+    const preview = document.createElement("div");
+    preview.setAttribute("class", "tree-sequent ghost conjecture-preview");
+    preview.innerHTML = html(conjectureGhost(session2.draft())(basic));
+    previewArea.appendChild(preview);
+    page.appendChild(previewArea);
+    page.appendChild(createLemmaEditorBar(session2, refresh));
+    half2.appendChild(page);
+    return half2;
+  };
   const buildHalf1 = () => {
     if (onIntro()) return buildIntroPage();
+    if (isTutorial2 && skipped1)
+      return buildSkippedPage(
+        skipHadSolution1,
+        nextChallenge1,
+        (c) => {
+          skipCursor1 = c;
+        },
+        (d) => {
+          skipDefault1 = d;
+        }
+      );
+    if (conjectureEntry1 && lemmaSession1 !== null)
+      return buildConjecturePage(lemmaSession1, refreshP1);
     const half2 = document.createElement("div");
     half2.setAttribute(
       "class",
@@ -9474,11 +9820,12 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
         refreshP1,
         void 0,
         onApplyReverse1,
-        // The tutorial hides Lemma outright (Cut belongs to the Input chapter);
-        // a permanently-disabled button would only draw the learner's eye.
-        isTutorial2,
+        // Claim and Skip are per-beat: each stays hidden (not shown-disabled,
+        // which would only draw the learner's eye) until its teaching beat —
+        // Claim from the Optimization chapter on, Skip from the Skip beat on.
+        isTutorial2 && beatAt(beatIdx).hideLemma,
         ctx1,
-        isTutorial2 ? void 0 : skipPlayer1,
+        isTutorial2 && beatAt(beatIdx).hideSkip ? void 0 : skipPlayer1,
         isTutorial2 && beatAt(beatIdx).hideGaze,
         isTutorial2,
         lemmaSession1
@@ -9489,6 +9836,8 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
   const owlChapterKey = {
     basics: "tutorialOwlBasics",
     logic: "tutorialOwlLogic",
+    optimization: "tutorialOwlOptimization",
+    solvability: "tutorialOwlSolvability",
     done: "tutorialOwlDone"
   };
   const owlBeatKey = [
@@ -9499,7 +9848,10 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     "tutorialOwlSideFlip",
     "tutorialOwlCrossing",
     "tutorialOwlBranching",
-    "tutorialOwlBranchingCrossing"
+    "tutorialOwlBranchingCrossing",
+    "tutorialOwlClaims",
+    "tutorialOwlUnsolvable",
+    "tutorialOwlConjecture"
   ];
   const owlDevices = [
     "pointer",
@@ -9514,7 +9866,13 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
         ["close", t("axiom")],
         ["undo", t("undo")],
         ["destruct", t("destruct")],
-        ["branch", `${t("prevBranch")} / ${t("nextBranch")}`]
+        ["branch", `${t("prevBranch")} / ${t("nextBranch")}`],
+        ["skip", t("skip")],
+        // The formula editor's palette has no single button word; a glyph
+        // sample stands in for the row of piece buttons.
+        ["pieces", "\u{1F427} \xAC \u2227 \u2026"],
+        ["confirm", t("lemmaConfirm")],
+        ["lemma", t("lemma")]
       ]);
     }
     const hint = device === "keyboard" ? gazeKeyHint : gazePadHint;
@@ -9525,7 +9883,16 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
       ["close", label("axiom")],
       ["undo", label("undo")],
       ["destruct", label("gazeConnective")],
-      ["branch", `${label("prevBranch")} / ${label("nextBranch")}`]
+      ["branch", `${label("prevBranch")} / ${label("nextBranch")}`],
+      ["skip", label("skip")],
+      // In the editor the gaze keys drive the bar cursor: aim with the
+      // arrows / D-pad, take the aimed piece with the confirm press.
+      [
+        "pieces",
+        `${label("gazeLeft")} ${label("gazeRight")} ${label("axiom")}`
+      ],
+      ["confirm", label("axiom")],
+      ["lemma", label("lemma")]
     ]);
   };
   const appendOwlTemplate = (into, template) => {
@@ -9575,6 +9942,29 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
       half3.appendChild(buildOwl());
       return half3;
     }
+    if (isTutorial2 && skipped2) {
+      const half3 = buildSkippedPage(
+        skipHadSolution2,
+        nextChallenge2,
+        (c) => {
+          skipCursor2 = c;
+        },
+        (d) => {
+          skipDefault2 = d;
+        }
+      );
+      half3.appendChild(buildOwl());
+      return half3;
+    }
+    if (conjectureEntry2 && lemmaSession2 !== null) {
+      const half3 = buildConjecturePage(lemmaSession2, refreshP2);
+      half3.setAttribute(
+        "class",
+        "versus-half" + (tutorOff() ? " versus-half-npc versus-half-off" : "") + (hideControls2() ? " versus-half-keys" : "")
+      );
+      half3.appendChild(buildOwl());
+      return half3;
+    }
     const half2 = document.createElement("div");
     half2.setAttribute(
       "class",
@@ -9588,9 +9978,9 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
         refreshP2,
         void 0,
         onApplyReverse2,
-        isTutorial2,
+        isTutorial2 && beatAt(beatIdx).hideLemma,
         ctx2,
-        isTutorial2 ? void 0 : skipPlayer2,
+        isTutorial2 && beatAt(beatIdx).hideSkip ? void 0 : skipPlayer2,
         isTutorial2 && beatAt(beatIdx).hideGaze,
         isTutorial2,
         lemmaSession2
@@ -10011,9 +10401,7 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
   };
   const solvePlayer1 = () => {
     commitScore1();
-    advancePlayer1();
-    rerenderHalf1();
-    rebuildThermo();
+    nextChallenge1();
   };
   const commitScore2 = () => {
     if (isTutorial2) return;
@@ -10064,13 +10452,23 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
   };
   const solvePlayer2 = () => {
     commitScore2();
-    advancePlayer2();
-    rerenderHalf2();
-    rebuildThermo();
+    nextChallenge2();
   };
   const skipPlayer1 = () => {
     if (gameOver) return;
-    if (isTutorial2) return;
+    if (isTutorial2) {
+      if (onIntro() || beatAt(beatIdx).hideSkip || ws1.isSolved()) return;
+      if (lemmaSession1 !== null) return;
+      if (skipped1) {
+        nextChallenge1();
+        return;
+      }
+      ctx1.setGazeModeActive(false);
+      skipHadSolution1 = isTautology2(ws1.currentConjecture().derivation.result);
+      skipped1 = true;
+      rerenderHalf1();
+      return;
+    }
     const challengeIdx = wsIdx1;
     resolved1.set(challengeIdx, "skip");
     const p2Entry = resolved2.get(challengeIdx);
@@ -10090,7 +10488,19 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
   };
   const skipPlayer2 = () => {
     if (gameOver) return;
-    if (isTutorial2) return;
+    if (isTutorial2) {
+      if (onIntro() || beatAt(beatIdx).hideSkip || ws2.isSolved()) return;
+      if (lemmaSession2 !== null) return;
+      if (skipped2) {
+        nextChallenge2();
+        return;
+      }
+      ctx2.setGazeModeActive(false);
+      skipHadSolution2 = isTautology2(ws2.currentConjecture().derivation.result);
+      skipped2 = true;
+      rerenderHalf2();
+      return;
+    }
     const challengeIdx = wsIdx2;
     resolved2.set(challengeIdx, "skip");
     const p1Entry = resolved1.get(challengeIdx);
@@ -10132,6 +10542,8 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     beatIdx = clamped;
     ctx1.setGazeModeActive(false);
     ctx2.setGazeModeActive(false);
+    skipped1 = false;
+    skipped2 = false;
     const fresh = Math.max(index1, index2, wsIdx1 + 1, wsIdx2 + 1);
     sharedChallenges.splice(fresh);
     pending1 = [];
@@ -10144,6 +10556,14 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     index2 = fresh + 1;
     ws1 = makeWorkspace(fresh);
     ws2 = makeWorkspace(fresh);
+    lemmaSession1 = null;
+    lemmaSession2 = null;
+    conjectureEntry1 = false;
+    conjectureEntry2 = false;
+    if (beatAt(beatIdx).conjecture) {
+      openConjecture1();
+      openConjecture2();
+    }
   };
   const jumpToStop = (target) => {
     const clamped = Math.max(0, Math.min(target, tutorialStops.length - 1));
@@ -10169,11 +10589,16 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     sideFlip: "tutorialShape2",
     crossing: "tutorialShape3",
     branching: "tutorialShape4",
-    branchingCrossing: "tutorialShape5"
+    branchingCrossing: "tutorialShape5",
+    claims: "tutorialClaims",
+    unsolvable: "tutorialSkipping",
+    conjecture: "tutorialConjecture"
   };
   const chapterKey = {
     basics: "tutorialBasics",
-    logic: "tutorialLogic"
+    logic: "tutorialLogic",
+    optimization: "tutorialOptimization",
+    solvability: "tutorialSolvability"
   };
   const buildTutorialThermo = () => {
     const thermo = document.createElement("div");
@@ -10251,6 +10676,10 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
   let congrats2 = null;
   let introCursor = null;
   let introDefault = null;
+  let skipCursor1 = null;
+  let skipDefault1 = null;
+  let skipCursor2 = null;
+  let skipDefault2 = null;
   const onSolved1 = (action) => {
     if (gameOver) return;
     if (action === "menu") {
@@ -10306,7 +10735,7 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     refreshP2();
   };
   const gazeBlocked = () => isTutorial2 && beatAt(beatIdx).hideGaze;
-  const makeCursorDispatch = (base, getWs, getCursor) => (action) => {
+  const makeCursorDispatch = (base, getWs, getCursor, getSkipScreen) => (action) => {
     if (onIntro()) {
       const cursor2 = introCursor;
       if (cursor2 !== null) {
@@ -10319,6 +10748,25 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
             cursor2.onAction("axiom");
           } else {
             introDefault?.();
+          }
+          return;
+        }
+      }
+      return;
+    }
+    const skipScreen = getSkipScreen();
+    if (skipScreen !== null) {
+      const { cursor: cursor2, dflt } = skipScreen;
+      if (cursor2 !== null) {
+        if (cursorNavActions.has(action)) {
+          cursor2.onAction(action);
+          return;
+        }
+        if (action === "axiom") {
+          if (cursor2.isEngaged()) {
+            cursor2.onAction("axiom");
+          } else {
+            dflt?.();
           }
           return;
         }
@@ -10352,7 +10800,8 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
       gazeBlocked
     ),
     () => ws1,
-    () => congrats1
+    () => congrats1,
+    () => isTutorial2 && skipped1 ? { cursor: skipCursor1, dflt: skipDefault1 } : null
   );
   const dispatch2 = makeCursorDispatch(
     createDispatch(
@@ -10368,7 +10817,8 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
       gazeBlocked
     ),
     () => ws2,
-    () => congrats2
+    () => congrats2,
+    () => isTutorial2 && skipped2 ? { cursor: skipCursor2, dflt: skipDefault2 } : null
   );
   const makeCongrats = (onContinue, setCursor) => () => {
     const hurray = document.createElement("div");
@@ -10473,9 +10923,11 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
       return;
     }
     if (action !== "menu") return;
-    if (lemmaSession1 !== null || lemmaSession2 !== null) {
-      lemmaSession1?.cancel();
-      lemmaSession2?.cancel();
+    const cancellable1 = lemmaSession1 !== null && !conjectureEntry1;
+    const cancellable2 = lemmaSession2 !== null && !conjectureEntry2;
+    if (cancellable1 || cancellable2) {
+      if (cancellable1) lemmaSession1?.cancel();
+      if (cancellable2) lemmaSession2?.cancel();
     } else {
       setPaused(true);
     }
@@ -10644,6 +11096,10 @@ var mountVersus = (container, navigate2, pool2, versusConfig) => {
     (idx) => setupGamepad((action) => handleControlAction(action), idx)
   );
   const unsubGamepad = subscribeGamepad(rerender);
+  if (onConjecture()) {
+    openConjecture1();
+    openConjecture2();
+  }
   rerender();
   return {
     cleanup: () => {
