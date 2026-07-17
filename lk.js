@@ -3479,6 +3479,7 @@ var en = {
   lemmaConfirm: "Confirm",
   lemma: "Claim",
   secret: "Secret",
+  gallery: "Gallery",
   prevBranch: "Prev",
   nextBranch: "Next",
   versus: "Versus",
@@ -3514,23 +3515,29 @@ var en = {
   tutorialSkipping: "Skip",
   tutorialConjecture: "Sandbox",
   tutorialOwlBasics: "Welcome to LK! In its challenges you close derivation trees built out of sequents. This first chapter teaches the essentials you need to play.",
-  tutorialOwlLogic: "The second chapter walks through the consequences of dropping each connective ( \u2192 \u2227 \u2228 \xAC ) in different situations, one at a time. If you would rather jump straight into the deep end, you already know every move \u2014 feel free to head for the real game.",
-  tutorialOwlClose: "A branch of the tree can be closed when the same sentence sits on both sides of the gate ( \u22A2 ) \u2014 this situation is called an identity. You can switch branches with the {branch} buttons and close the chosen branch with the {close} button.",
-  tutorialOwlCloseConstants: "Constant sentences can sometimes close a branch on their own \u2014 Falsum ( \u22A5 ) when it sits alone on the left side of the gate, and Verum ( \u22A4 ) when it sits alone on the right.",
-  tutorialOwlDrop: "Any extra sentences on a branch must always be dropped before the branch can close. Remove them by picking the sentence to drop with the {pick} buttons, then pressing the {drop} button repeatedly until the picked sentence falls off the tree. If you drop a sentence the branch needs for closing, you can undo your move by pressing {undo}.",
-  tutorialOwlSplit: "You can drop a connective by picking a sentence with the {pick} buttons, then pressing {destruct} repeatedly until the outermost connective of the picked sentence falls off the tree. Dropping a Conjunction ( \u2227 ) on the left side of the gate, or a Disjunction ( \u2228 ) on the right, causes no further consequences \u2014 the pieces stay where they were.",
-  tutorialOwlSideFlip: "Dropping a Negation ( \xAC ) makes the remaining sentence move to the other side of the gate.",
-  tutorialOwlCrossing: "Dropping an Implication ( \u2192 ) on the right side of the gate divides its parts across the two sides of the gate.",
-  tutorialOwlBranching: "Dropping a Conjunction ( \u2227 ) on the right side of the gate, or a Disjunction ( \u2228 ) on the left, makes the tree branch.",
-  tutorialOwlBranchingCrossing: "Dropping an Implication ( \u2192 ) on the left side of the gate shatters the sentence: the most intricate of the rules combines both the parts dividing across the gate and the tree branching.",
+  tutorialOwlLogic: "You now know how to play the game. The second chapter digs into the consequences of destructing in various situations. Knowing the consequences by heart should help you hone your tactics.",
+  tutorialOwlClose: "A branch of the tree can be closed when the same sentence sits on both sides of the gate ( \u22A2 ).",
+  tutorialOwlCloseConstants: "Falsum ( \u22A5 ) closes a branch when it sits alone on the left side of the gate, and Verum ( \u22A4 ) when it sits alone on the right.",
+  tutorialOwlDrop: "Any extra sentences on a branch must be dropped before the branch can be closed.",
+  tutorialOwlSplit: "Destructing a sentence removes its outermost connective ( \u2192 \u2227 \u2228 \xAC ) from the tree. Where the remaining parts end up depends on the situation. More about that in the next chapter.",
+  tutorialOwlSideFlip: "Destructing a Negation ( \xAC ) makes the remaining sentence move to the other side of the gate.",
+  tutorialOwlCrossing: "Destructing an Implication ( \u2192 ) on the right side of the gate divides its parts across the two sides of the gate.",
+  tutorialOwlBranching: "Destructing a Conjunction ( \u2227 ) on the right side of the gate, or a Disjunction ( \u2228 ) on the left, makes the tree branch.",
+  tutorialOwlBranchingCrossing: "Destructing an Implication ( \u2192 ) on the left side of the gate shatters the sentence: the most intricate of the rules combines both the parts dividing across the gate and the tree branching.",
   tutorialOwlOptimization: "The third chapter is about optimizing solutions.",
-  tutorialOwlClaims: "You can add a claim to the selected branch by pressing the {lemma} button. Pick the parts of the sentence with the {pieces} buttons and finally press the {confirm} button. Claims never affect whether a challenge can be solved, but they can sometimes shorten the solution.",
+  tutorialOwlClaims: "You can add a claim of your own choosing to the selected branch. Claims never affect whether a challenge can be solved, but they can sometimes shorten the solution.",
   tutorialOwlSolvability: "The fourth chapter is about telling which challenges can be solved. Recognizing solvability matters if you take on chaotic ( \u{1F480} ) challenges.",
-  tutorialOwlUnsolvable: "The challenges here are deliberately unsolvable, so that you learn to recognize one. You can skip an unsolvable challenge by pressing the {skip} button.",
-  tutorialOwlConjecture: "In this sandbox you can try to solve challenges of your own choosing. First pick the parts of the sentence with the {pieces} buttons, and finally press the {confirm} button. You can take back mispresses with the {undo} button.",
+  tutorialOwlUnsolvable: "The challenges here are deliberately unsolvable, so that you learn to recognize one. A challenge you deem unsolvable can be skipped.",
+  tutorialOwlConjecture: "In this sandbox you can try to solve challenges of your own choosing.",
   tutorialSkipped: "Challenge skipped! It had no solution.",
   tutorialSkippedSolvable: "Challenge skipped! It did have a solution, though.",
   tutorialComplete: "Graduation",
+  tutorialDemoSequent: "This is a sequent.",
+  tutorialDemoGrow: "Each move grows the tree.",
+  tutorialDemoClosed: "This branch is closed \u2014 it cannot grow.",
+  tutorialDemoOther: "Let's close the other branch.",
+  tutorialDemoDone: "The tree is done. Let's solve the next one together!",
+  tutorialOwlPresolve: "Let me help you get started\u2026",
   tutorialStart: "Start",
   tutorialOwlDone: "The tutorial is complete! You now know everything you need to play. Have fun!"
 };
@@ -3591,6 +3598,7 @@ var fi = {
   lemmaConfirm: "Vahvista",
   lemma: "V\xE4it\xE4",
   secret: "Salainen",
+  gallery: "Galleria",
   prevBranch: "Edellinen",
   nextBranch: "Seuraava",
   versus: "Vastakkain",
@@ -3626,23 +3634,29 @@ var fi = {
   tutorialSkipping: "Ohittaminen",
   tutorialConjecture: "Hiekkalaatikko",
   tutorialOwlBasics: "Tervetuloa pelaamaan LK:ta! Pelin haasteissa suljetaan sekventeist\xE4 koostuvia p\xE4\xE4ttelypuita. Ensimm\xE4isess\xE4 luvussa opimme pelaamisen kannalta v\xE4ltt\xE4m\xE4tt\xF6mi\xE4 perusasioita.",
-  tutorialOwlLogic: "Toisessa luvussa k\xE4yd\xE4\xE4n yksitellen l\xE4pi eri konnektiivien ( \u2192 \u2227 \u2228 \xAC ) pudottamisen seuraamuksia eri tilanteissa. Mik\xE4li haluat hyp\xE4t\xE4 suoraan syv\xE4\xE4n p\xE4\xE4tyyn, osaat jo kaikki siirrot \u2014 voit siirty\xE4 pelaamaan varsinaista peli\xE4 vaikka heti.",
-  tutorialOwlClose: "P\xE4\xE4ttelypuun oksa on suljettavissa silloin, kun portin ( \u22A2 ) kummallakin puolella on sama lause \u2014 t\xE4llaista tilannetta kutsutaan identiteetiksi. Voit vaihtaa oksaa {branch} painikkeilla ja sulkea valitun oksan {close} painikkeella.",
-  tutorialOwlCloseConstants: "Vakiolauseet mahdollistavat joskus oksan sulkemisen yksin\xE4\xE4n \u2014 Falsum ( \u22A5 ) ollessaan yksin portin vasemmalla puolella, ja Verum ( \u22A4 ) ollessaan yksin portin oikealla puolella.",
-  tutorialOwlDrop: "Oksan sis\xE4lt\xE4m\xE4t ylim\xE4\xE4r\xE4iset lauseet on aina pudotettava ennen kuin oksan voi sulkea. Saat ylim\xE4\xE4r\xE4iset lauseet poistettua valitsemalla pudotettavan lauseen {pick} painikkeilla, ja painamalla sen j\xE4lkeen {drop} painiketta toistuvasti, kunnes valittu lause putoaa puusta. Mik\xE4li pudotat oksan sulkemiseen tarvittavan lauseen, voit perua siirtosi painamalla {undo} painiketta.",
-  tutorialOwlSplit: "Voit pudottaa konnektiivin valitsemalla lauseen {pick} painikkeilla, ja painamalla sen j\xE4lkeen {destruct} toistuvasti, kunnes valitun lauseen uloin konnektiivi putoaa puusta. Konjunktion ( \u2227 ) pudottaminen portin vasemmalla puolella tai Disjunktion ( \u2228 ) pudottaminen portin oikealla puolella ei aiheuta sen kummempia seuraamuksia \u2014 osat j\xE4\xE4v\xE4t paikoilleen.",
-  tutorialOwlSideFlip: "Negaation ( \xAC ) pudottaminen aiheuttaa j\xE4ljelle j\xE4\xE4v\xE4n lauseen siirtymisen portin toiselle puolelle.",
-  tutorialOwlCrossing: "Implikaation ( \u2192 ) pudottaminen portin oikealta puolelta aiheuttaa lauseen osien jakautumisen kahdelle puolelle porttia.",
-  tutorialOwlBranching: "Konjunktion ( \u2227 ) pudottaminen portin oikealla puolella tai Disjunktion ( \u2228 ) pudottaminen portin vasemmalla puolella aiheuttaa puun haarautumisen.",
-  tutorialOwlBranchingCrossing: "Implikaation ( \u2192 ) pudottaminen portin vasemmalta puolelta sirpaloittaa lauseen: s\xE4\xE4nn\xF6ist\xE4 monimutkaisin yhdist\xE4\xE4 sek\xE4 osien jakautumisen portin eri puolille ett\xE4 puun haarautumisen.",
+  tutorialOwlLogic: "Osaat nyt pelata peli\xE4. Toinen luku syventyy purkamisen seuraamuksiin erilaisissa tilanteissa. Seuraamusten osaaminen ulkoa auttaa hiomaan taktiikkaasi.",
+  tutorialOwlClose: "P\xE4\xE4ttelypuun oksa on suljettavissa silloin, kun portin ( \u22A2 ) kummallakin puolella on sama lause.",
+  tutorialOwlCloseConstants: "Falsum ( \u22A5 ) sulkee oksan ollessaan yksin portin vasemmalla puolella, ja Verum ( \u22A4 ) ollessaan yksin portin oikealla puolella.",
+  tutorialOwlDrop: "Oksan sis\xE4lt\xE4m\xE4t ylim\xE4\xE4r\xE4iset lauseet on pudotettava ennen kuin oksan voi sulkea.",
+  tutorialOwlSplit: "Lauseen purkaminen irrottaa sen uloimman konnektiivin ( \u2192 \u2227 \u2228 \xAC ) puusta. J\xE4ljelle j\xE4\xE4vien osien sijoittuminen riippuu tilanteesta. Lis\xE4\xE4 siit\xE4 seuraavassa luvussa.",
+  tutorialOwlSideFlip: "Negaation ( \xAC ) purkaminen aiheuttaa j\xE4ljelle j\xE4\xE4v\xE4n lauseen siirtymisen portin toiselle puolelle.",
+  tutorialOwlCrossing: "Implikaation ( \u2192 ) purkaminen portin oikealta puolelta aiheuttaa lauseen osien jakautumisen kahdelle puolelle porttia.",
+  tutorialOwlBranching: "Konjunktion ( \u2227 ) purkaminen portin oikealla puolella tai Disjunktion ( \u2228 ) purkaminen portin vasemmalla puolella aiheuttaa puun haarautumisen.",
+  tutorialOwlBranchingCrossing: "Implikaation ( \u2192 ) purkaminen portin vasemmalta puolelta sirpaloittaa lauseen: s\xE4\xE4nn\xF6ist\xE4 monimutkaisin yhdist\xE4\xE4 sek\xE4 osien jakautumisen portin eri puolille ett\xE4 puun haarautumisen.",
   tutorialOwlOptimization: "Kolmannessa luvussa tutustumme ratkaisujen optimointiin.",
-  tutorialOwlClaims: "Voit lis\xE4t\xE4 valittuun oksaan v\xE4itt\xE4m\xE4n painamalla {lemma} painiketta. Valitse lauseen osat {pieces} painikkeilla ja paina lopuksi {confirm} painiketta. V\xE4itt\xE4m\xE4t eiv\xE4t vaikuta haasteen ratkeavuuteen, mutta ne voivat joskus lyhent\xE4\xE4 ratkaisua.",
+  tutorialOwlClaims: "Voit lis\xE4t\xE4 valittuun oksaan vapaavalintaisen v\xE4itt\xE4m\xE4n. V\xE4itt\xE4m\xE4t eiv\xE4t vaikuta haasteen ratkeavuuteen, mutta ne voivat joskus lyhent\xE4\xE4 ratkaisua.",
   tutorialOwlSolvability: "Nelj\xE4nness\xE4 luvussa pohdimme, millaiset haasteet ovat ratkeavia. Ratkeavuuden tunnistaminen on oleellista, mik\xE4li koitat ratkaista kaoottisia ( \u{1F480} ) haasteita.",
-  tutorialOwlUnsolvable: "Loimme t\xE4h\xE4n tarkoituksella ratkeamattomia haasteita, jotta opit tunnistamaan sellaisen. Voit ohittaa ratkeamattoman haasteen painamalla {skip} painiketta.",
-  tutorialOwlConjecture: "Hiekkalaatikossa voit kokeilla ratkaista vapaavalintaisia haasteita. Valitse ensin lauseen osat {pieces} painikkeilla ja paina lopuksi {confirm} painiketta. Virhepainallukset saat peruttua {undo} painikkeella.",
+  tutorialOwlUnsolvable: "Loimme t\xE4h\xE4n tarkoituksella ratkeamattomia haasteita, jotta opit tunnistamaan sellaisen. Ratkeamattomaksi toteamasi haasteen voi ohittaa.",
+  tutorialOwlConjecture: "Hiekkalaatikossa voit kokeilla ratkaista vapaavalintaisia haasteita.",
   tutorialSkipped: "Haaste ohitettu! Sill\xE4 ei ollut ratkaisua.",
   tutorialSkippedSolvable: "Haaste ohitettu! Sill\xE4 olisi sittenkin ollut ratkaisu.",
   tutorialComplete: "Valmistujaiset",
+  tutorialDemoSequent: "T\xE4m\xE4 on sekventti.",
+  tutorialDemoGrow: "Jokainen siirto kasvattaa puuta.",
+  tutorialDemoClosed: "T\xE4m\xE4 oksa on suljettu \u2014 se ei voi en\xE4\xE4 kasvaa.",
+  tutorialDemoOther: "Suljetaan toinenkin oksa.",
+  tutorialDemoDone: "Puu on valmis. Ratkaistaan seuraava yhdess\xE4!",
+  tutorialOwlPresolve: "Autan sinut alkuun\u2026",
   tutorialStart: "Aloita",
   tutorialOwlDone: "Opastus on suoritettu! Tied\xE4t nyt kaiken, mit\xE4 pelaamiseen tarvitaan. Pid\xE4 hauskaa!"
 };
@@ -3703,6 +3717,7 @@ var es = {
   lemmaConfirm: "Confirmar",
   lemma: "Afirmar",
   secret: "Secreto",
+  gallery: "Galer\xEDa",
   prevBranch: "Anterior",
   nextBranch: "Siguiente",
   versus: "Versus",
@@ -3738,23 +3753,29 @@ var es = {
   tutorialSkipping: "Saltar",
   tutorialConjecture: "Arenero",
   tutorialOwlBasics: "\xA1Bienvenido a LK! En los desaf\xEDos del juego se cierran \xE1rboles de deducci\xF3n compuestos de secuentes. En este primer cap\xEDtulo aprendemos lo b\xE1sico imprescindible para jugar.",
-  tutorialOwlLogic: "El segundo cap\xEDtulo repasa una a una las consecuencias de soltar cada conectivo ( \u2192 \u2227 \u2228 \xAC ) en distintas situaciones. Si prefieres lanzarte a lo hondo, ya conoces todos los movimientos: puedes pasar directamente al juego de verdad.",
-  tutorialOwlClose: "Una rama del \xE1rbol se puede cerrar cuando a ambos lados de la puerta ( \u22A2 ) est\xE1 la misma oraci\xF3n \u2014 esta situaci\xF3n se llama identidad. Puedes cambiar de rama con los botones {branch} y cerrar la rama elegida con el bot\xF3n {close}.",
-  tutorialOwlCloseConstants: "Las oraciones constantes a veces permiten cerrar una rama por s\xED solas: Falsum ( \u22A5 ) cuando est\xE1 solo a la izquierda de la puerta, y Verum ( \u22A4 ) cuando est\xE1 solo a la derecha.",
-  tutorialOwlDrop: "Las oraciones sobrantes de una rama deben soltarse siempre antes de poder cerrarla. Elim\xEDnalas eligiendo la oraci\xF3n a soltar con los botones {pick} y pulsando despu\xE9s el bot\xF3n {drop} repetidamente, hasta que la oraci\xF3n elegida caiga del \xE1rbol. Si sueltas una oraci\xF3n necesaria para cerrar la rama, puedes deshacer el movimiento pulsando {undo}.",
-  tutorialOwlSplit: "Puedes soltar un conectivo eligiendo una oraci\xF3n con los botones {pick} y pulsando despu\xE9s {destruct} repetidamente, hasta que el conectivo m\xE1s externo de la oraci\xF3n elegida caiga del \xE1rbol. Soltar una Conjunci\xF3n ( \u2227 ) en el lado izquierdo de la puerta, o una Disyunci\xF3n ( \u2228 ) en el derecho, no tiene mayores consecuencias: las piezas se quedan donde estaban.",
-  tutorialOwlSideFlip: "Soltar una Negaci\xF3n ( \xAC ) hace que la oraci\xF3n restante pase al otro lado de la puerta.",
-  tutorialOwlCrossing: "Soltar una Implicaci\xF3n ( \u2192 ) en el lado derecho de la puerta reparte sus partes entre los dos lados de la puerta.",
-  tutorialOwlBranching: "Soltar una Conjunci\xF3n ( \u2227 ) en el lado derecho de la puerta, o una Disyunci\xF3n ( \u2228 ) en el izquierdo, ramifica el \xE1rbol.",
-  tutorialOwlBranchingCrossing: "Soltar una Implicaci\xF3n ( \u2192 ) en el lado izquierdo de la puerta fragmenta la oraci\xF3n: la regla m\xE1s compleja combina el reparto de las partes entre ambos lados y la ramificaci\xF3n del \xE1rbol.",
+  tutorialOwlLogic: "Ahora ya sabes jugar. El segundo cap\xEDtulo profundiza en las consecuencias de destruir en distintas situaciones. Conocer de memoria las consecuencias te ayudar\xE1 a afinar tu t\xE1ctica.",
+  tutorialOwlClose: "Una rama del \xE1rbol se puede cerrar cuando a ambos lados de la puerta ( \u22A2 ) est\xE1 la misma oraci\xF3n.",
+  tutorialOwlCloseConstants: "Falsum ( \u22A5 ) cierra una rama cuando est\xE1 solo a la izquierda de la puerta, y Verum ( \u22A4 ) cuando est\xE1 solo a la derecha.",
+  tutorialOwlDrop: "Las oraciones sobrantes de una rama deben soltarse antes de poder cerrarla.",
+  tutorialOwlSplit: "Destruir una oraci\xF3n desprende del \xE1rbol su conectivo m\xE1s externo ( \u2192 \u2227 \u2228 \xAC ). D\xF3nde acaban las partes restantes depende de la situaci\xF3n. M\xE1s sobre eso en el siguiente cap\xEDtulo.",
+  tutorialOwlSideFlip: "Destruir una Negaci\xF3n ( \xAC ) hace que la oraci\xF3n restante pase al otro lado de la puerta.",
+  tutorialOwlCrossing: "Destruir una Implicaci\xF3n ( \u2192 ) en el lado derecho de la puerta reparte sus partes entre los dos lados de la puerta.",
+  tutorialOwlBranching: "Destruir una Conjunci\xF3n ( \u2227 ) en el lado derecho de la puerta, o una Disyunci\xF3n ( \u2228 ) en el izquierdo, ramifica el \xE1rbol.",
+  tutorialOwlBranchingCrossing: "Destruir una Implicaci\xF3n ( \u2192 ) en el lado izquierdo de la puerta fragmenta la oraci\xF3n: la regla m\xE1s compleja combina el reparto de las partes entre ambos lados y la ramificaci\xF3n del \xE1rbol.",
   tutorialOwlOptimization: "El tercer cap\xEDtulo trata de optimizar las soluciones.",
-  tutorialOwlClaims: "Puedes a\xF1adir una afirmaci\xF3n a la rama elegida pulsando el bot\xF3n {lemma}. Elige las partes de la oraci\xF3n con los botones {pieces} y pulsa al final el bot\xF3n {confirm}. Las afirmaciones nunca afectan a la resolubilidad del desaf\xEDo, pero a veces pueden acortar la soluci\xF3n.",
+  tutorialOwlClaims: "Puedes a\xF1adir una afirmaci\xF3n de tu elecci\xF3n a la rama elegida. Las afirmaciones nunca afectan a la resolubilidad del desaf\xEDo, pero a veces pueden acortar la soluci\xF3n.",
   tutorialOwlSolvability: "En el cuarto cap\xEDtulo consideramos qu\xE9 desaf\xEDos tienen soluci\xF3n. Reconocer la resolubilidad es esencial si intentas resolver desaf\xEDos ca\xF3ticos ( \u{1F480} ).",
-  tutorialOwlUnsolvable: "Aqu\xED hemos creado a prop\xF3sito desaf\xEDos irresolubles, para que aprendas a reconocerlos. Puedes saltar un desaf\xEDo irresoluble pulsando el bot\xF3n {skip}.",
-  tutorialOwlConjecture: "En este arenero puedes intentar resolver desaf\xEDos de tu propia elecci\xF3n. Elige primero las partes de la oraci\xF3n con los botones {pieces} y pulsa al final el bot\xF3n {confirm}. Puedes deshacer las pulsaciones err\xF3neas con el bot\xF3n {undo}.",
+  tutorialOwlUnsolvable: "Aqu\xED hemos creado a prop\xF3sito desaf\xEDos irresolubles, para que aprendas a reconocerlos. Un desaf\xEDo que consideres irresoluble se puede saltar.",
+  tutorialOwlConjecture: "En este arenero puedes intentar resolver desaf\xEDos de tu propia elecci\xF3n.",
   tutorialSkipped: "\xA1Desaf\xEDo saltado! No ten\xEDa soluci\xF3n.",
   tutorialSkippedSolvable: "\xA1Desaf\xEDo saltado! Sin embargo, s\xED ten\xEDa soluci\xF3n.",
   tutorialComplete: "Graduaci\xF3n",
+  tutorialDemoSequent: "Esto es un secuente.",
+  tutorialDemoGrow: "Cada movimiento hace crecer el \xE1rbol.",
+  tutorialDemoClosed: "Esta rama est\xE1 cerrada: ya no puede crecer.",
+  tutorialDemoOther: "Cerremos la otra rama.",
+  tutorialDemoDone: "El \xE1rbol est\xE1 listo. \xA1Resolvamos el siguiente juntos!",
+  tutorialOwlPresolve: "Deja que te ayude a empezar\u2026",
   tutorialStart: "Empezar",
   tutorialOwlDone: "\xA1Tutorial completado! Ya sabes todo lo que necesitas para jugar. \xA1Divi\xE9rtete!"
 };
@@ -3815,6 +3836,7 @@ var cs = {
   lemmaConfirm: "Potvrdit",
   lemma: "Tvrdit",
   secret: "Tajn\xE9",
+  gallery: "Galerie",
   prevBranch: "P\u0159edchoz\xED",
   nextBranch: "Dal\u0161\xED",
   versus: "Versus",
@@ -3850,23 +3872,29 @@ var cs = {
   tutorialSkipping: "P\u0159eskakov\xE1n\xED",
   tutorialConjecture: "P\xEDskovi\u0161t\u011B",
   tutorialOwlBasics: "V\xEDtej ve h\u0159e LK! V jej\xEDch v\xFDzv\xE1ch se zav\xEDraj\xED odvozovac\xED stromy slo\u017Een\xE9 ze sekvent\u016F. V t\xE9to prvn\xED kapitole se nau\u010D\xEDme z\xE1klady, bez kter\xFDch se hr\xE1t ned\xE1.",
-  tutorialOwlLogic: "Druh\xE1 kapitola prob\xEDr\xE1 jeden po druh\xE9m d\u016Fsledky pu\u0161t\u011Bn\xED jednotliv\xFDch spojek ( \u2192 \u2227 \u2228 \xAC ) v r\u016Fzn\xFDch situac\xEDch. Chce\u0161-li sko\u010Dit rovnou do hlubin, v\u0161echny tahy u\u017E zn\xE1\u0161 \u2014 m\u016F\u017Ee\u0161 p\u0159ej\xEDt ke skute\u010Dn\xE9 h\u0159e hned.",
-  tutorialOwlClose: "V\u011Btev stromu lze zav\u0159\xEDt, kdy\u017E na obou stran\xE1ch br\xE1ny ( \u22A2 ) stoj\xED stejn\xE1 v\u011Bta \u2014 takov\xE9 situaci se \u0159\xEDk\xE1 identita. V\u011Btev p\u0159epne\u0161 tla\u010D\xEDtky {branch} a vybranou v\u011Btev zav\u0159e\u0161 tla\u010D\xEDtkem {close}.",
-  tutorialOwlCloseConstants: "Konstantn\xED v\u011Bty n\u011Bkdy dok\xE1\u017Eou zav\u0159\xEDt v\u011Btev samy \u2014 Falsum ( \u22A5 ), kdy\u017E stoj\xED samo vlevo od br\xE1ny, a Verum ( \u22A4 ), kdy\u017E stoj\xED samo vpravo.",
-  tutorialOwlDrop: "P\u0159ebyte\u010Dn\xE9 v\u011Bty na v\u011Btvi je v\u017Edy nutn\xE9 pustit, ne\u017E ji lze zav\u0159\xEDt. Odstran\xED\u0161 je tak, \u017Ee tla\u010D\xEDtky {pick} vybere\u0161 v\u011Btu k pu\u0161t\u011Bn\xED a pak opakovan\u011B ma\u010Dk\xE1\u0161 tla\u010D\xEDtko {drop}, dokud vybran\xE1 v\u011Bta nespadne ze stromu. Pokud pust\xED\u0161 v\u011Btu pot\u0159ebnou k zav\u0159en\xED v\u011Btve, m\u016F\u017Ee\u0161 tah vr\xE1tit tla\u010D\xEDtkem {undo}.",
-  tutorialOwlSplit: "Spojku pust\xED\u0161 tak, \u017Ee tla\u010D\xEDtky {pick} vybere\u0161 v\u011Btu a pak opakovan\u011B ma\u010Dk\xE1\u0161 {destruct}, dokud vn\u011Bj\u0161\xED spojka vybran\xE9 v\u011Bty nespadne ze stromu. Pu\u0161t\u011Bn\xED Konjunkce ( \u2227 ) na lev\xE9 stran\u011B br\xE1ny nebo Disjunkce ( \u2228 ) na prav\xE9 nem\xE1 \u017E\xE1dn\xE9 zvl\xE1\u0161tn\xED n\xE1sledky \u2014 \u010D\xE1sti z\u016Fst\xE1vaj\xED na m\xEDst\u011B.",
-  tutorialOwlSideFlip: "Pu\u0161t\u011Bn\xED Negace ( \xAC ) p\u0159esune zb\xFDvaj\xEDc\xED v\u011Btu na druhou stranu br\xE1ny.",
-  tutorialOwlCrossing: "Pu\u0161t\u011Bn\xED Implikace ( \u2192 ) na prav\xE9 stran\u011B br\xE1ny rozd\u011Bl\xED jej\xED \u010D\xE1sti na ob\u011B strany br\xE1ny.",
-  tutorialOwlBranching: "Pu\u0161t\u011Bn\xED Konjunkce ( \u2227 ) na prav\xE9 stran\u011B br\xE1ny nebo Disjunkce ( \u2228 ) na lev\xE9 rozv\u011Btv\xED strom.",
-  tutorialOwlBranchingCrossing: "Pu\u0161t\u011Bn\xED Implikace ( \u2192 ) na lev\xE9 stran\u011B br\xE1ny v\u011Btu rozt\u0159\xED\u0161t\xED: nejslo\u017Eit\u011Bj\u0161\xED z pravidel spojuje jak rozd\u011Blen\xED \u010D\xE1st\xED na ob\u011B strany br\xE1ny, tak v\u011Btven\xED stromu.",
+  tutorialOwlLogic: "Te\u010F u\u017E um\xED\u0161 hr\xE1t. Druh\xE1 kapitola se no\u0159\xED do d\u016Fsledk\u016F ni\u010Den\xED v r\u016Fzn\xFDch situac\xEDch. Zn\xE1t d\u016Fsledky nazpam\u011B\u0165 ti pom\u016F\u017Ee vypilovat taktiku.",
+  tutorialOwlClose: "V\u011Btev stromu lze zav\u0159\xEDt, kdy\u017E na obou stran\xE1ch br\xE1ny ( \u22A2 ) stoj\xED stejn\xE1 v\u011Bta.",
+  tutorialOwlCloseConstants: "Falsum ( \u22A5 ) zav\u0159e v\u011Btev, kdy\u017E stoj\xED samo vlevo od br\xE1ny, a Verum ( \u22A4 ), kdy\u017E stoj\xED samo vpravo.",
+  tutorialOwlDrop: "P\u0159ebyte\u010Dn\xE9 v\u011Bty na v\u011Btvi je nutn\xE9 pustit, ne\u017E ji lze zav\u0159\xEDt.",
+  tutorialOwlSplit: "Zni\u010Den\xED v\u011Bty odlom\xED ze stromu jej\xED vn\u011Bj\u0161\xED spojku ( \u2192 \u2227 \u2228 \xAC ). Kam se zb\xFDvaj\xEDc\xED \u010D\xE1sti um\xEDst\xED, z\xE1vis\xED na situaci. V\xEDce o tom v dal\u0161\xED kapitole.",
+  tutorialOwlSideFlip: "Zni\u010Den\xED Negace ( \xAC ) p\u0159esune zb\xFDvaj\xEDc\xED v\u011Btu na druhou stranu br\xE1ny.",
+  tutorialOwlCrossing: "Zni\u010Den\xED Implikace ( \u2192 ) na prav\xE9 stran\u011B br\xE1ny rozd\u011Bl\xED jej\xED \u010D\xE1sti na ob\u011B strany br\xE1ny.",
+  tutorialOwlBranching: "Zni\u010Den\xED Konjunkce ( \u2227 ) na prav\xE9 stran\u011B br\xE1ny nebo Disjunkce ( \u2228 ) na lev\xE9 rozv\u011Btv\xED strom.",
+  tutorialOwlBranchingCrossing: "Zni\u010Den\xED Implikace ( \u2192 ) na lev\xE9 stran\u011B br\xE1ny v\u011Btu rozt\u0159\xED\u0161t\xED: nejslo\u017Eit\u011Bj\u0161\xED z pravidel spojuje jak rozd\u011Blen\xED \u010D\xE1st\xED na ob\u011B strany br\xE1ny, tak v\u011Btven\xED stromu.",
   tutorialOwlOptimization: "T\u0159et\xED kapitola se v\u011Bnuje optimalizaci \u0159e\u0161en\xED.",
-  tutorialOwlClaims: "Na vybranou v\u011Btev m\u016F\u017Ee\u0161 p\u0159idat tvrzen\xED tla\u010D\xEDtkem {lemma}. Vyber \u010D\xE1sti v\u011Bty tla\u010D\xEDtky {pieces} a nakonec stiskni tla\u010D\xEDtko {confirm}. Tvrzen\xED nikdy neovlivn\xED \u0159e\u0161itelnost v\xFDzvy, ale n\u011Bkdy mohou \u0159e\u0161en\xED zkr\xE1tit.",
+  tutorialOwlClaims: "Na vybranou v\u011Btev m\u016F\u017Ee\u0161 p\u0159idat tvrzen\xED podle vlastn\xED volby. Tvrzen\xED nikdy neovlivn\xED \u0159e\u0161itelnost v\xFDzvy, ale n\u011Bkdy mohou \u0159e\u0161en\xED zkr\xE1tit.",
   tutorialOwlSolvability: "Ve \u010Dtvrt\xE9 kapitole se zam\xFD\u0161l\xEDme nad t\xEDm, jak\xE9 v\xFDzvy jsou \u0159e\u0161iteln\xE9. Rozpoznat \u0159e\u0161itelnost je z\xE1sadn\xED, pokud se pust\xED\u0161 do chaotick\xFDch ( \u{1F480} ) v\xFDzev.",
-  tutorialOwlUnsolvable: "Zde jsme z\xE1m\u011Brn\u011B vytvo\u0159ili ne\u0159e\u0161iteln\xE9 v\xFDzvy, a\u0165 se nau\u010D\xED\u0161 takovou rozpoznat. Ne\u0159e\u0161itelnou v\xFDzvu m\u016F\u017Ee\u0161 p\u0159esko\u010Dit tla\u010D\xEDtkem {skip}.",
-  tutorialOwlConjecture: "Na tomto p\xEDskovi\u0161ti si m\u016F\u017Ee\u0161 zkusit vy\u0159e\u0161it v\xFDzvy podle vlastn\xED volby. Nejprve vyber \u010D\xE1sti v\u011Bty tla\u010D\xEDtky {pieces} a nakonec stiskni tla\u010D\xEDtko {confirm}. Chybn\xE1 stisknut\xED vr\xE1t\xED\u0161 tla\u010D\xEDtkem {undo}.",
+  tutorialOwlUnsolvable: "Zde jsme z\xE1m\u011Brn\u011B vytvo\u0159ili ne\u0159e\u0161iteln\xE9 v\xFDzvy, a\u0165 se nau\u010D\xED\u0161 takovou rozpoznat. V\xFDzvu, kterou uzn\xE1\u0161 za ne\u0159e\u0161itelnou, lze p\u0159esko\u010Dit.",
+  tutorialOwlConjecture: "Na tomto p\xEDskovi\u0161ti si m\u016F\u017Ee\u0161 zkusit vy\u0159e\u0161it v\xFDzvy podle vlastn\xED volby.",
   tutorialSkipped: "V\xFDzva p\u0159esko\u010Dena! Nem\u011Bla \u0159e\u0161en\xED.",
   tutorialSkippedSolvable: "V\xFDzva p\u0159esko\u010Dena! \u0158e\u0161en\xED ale m\u011Bla.",
   tutorialComplete: "Promoce",
+  tutorialDemoSequent: "Tohle je sekvent.",
+  tutorialDemoGrow: "Ka\u017Ed\xFDm tahem strom roste.",
+  tutorialDemoClosed: "Tato v\u011Btev je uzav\u0159en\xE1 \u2014 u\u017E nem\u016F\u017Ee r\u016Fst.",
+  tutorialDemoOther: "Zav\u0159eme i druhou v\u011Btev.",
+  tutorialDemoDone: "Strom je hotov\xFD. Dal\u0161\xED vy\u0159e\u0161\xEDme spolu!",
+  tutorialOwlPresolve: "Pom\u016F\u017Eu ti za\u010D\xEDt\u2026",
   tutorialStart: "Za\u010D\xEDt",
   tutorialOwlDone: "N\xE1vod je u konce! Te\u010F v\xED\u0161 v\u0161e, co ke hran\xED pot\u0159ebuje\u0161. Bav se!"
 };
@@ -3927,6 +3955,7 @@ var pl = {
   lemmaConfirm: "Zatwierd\u017A",
   lemma: "Twierd\u017A",
   secret: "Tajne",
+  gallery: "Galeria",
   prevBranch: "Poprzedni",
   nextBranch: "Nast\u0119pny",
   versus: "Versus",
@@ -3962,23 +3991,29 @@ var pl = {
   tutorialSkipping: "Pomijanie",
   tutorialConjecture: "Piaskownica",
   tutorialOwlBasics: "Witaj w grze LK! W jej wyzwaniach zamyka si\u0119 drzewa wnioskowania zbudowane z sekwent\xF3w. W tym pierwszym rozdziale poznajemy podstawy niezb\u0119dne do gry.",
-  tutorialOwlLogic: "Drugi rozdzia\u0142 omawia po kolei skutki upuszczania poszczeg\xF3lnych sp\xF3jnik\xF3w ( \u2192 \u2227 \u2228 \xAC ) w r\xF3\u017Cnych sytuacjach. Je\u015Bli wolisz skoczy\u0107 na g\u0142\u0119bok\u0105 wod\u0119, znasz ju\u017C wszystkie ruchy \u2014 mo\u017Cesz przej\u015B\u0107 do w\u0142a\u015Bciwej gry od razu.",
-  tutorialOwlClose: "Ga\u0142\u0105\u017A drzewa mo\u017Cna zamkn\u0105\u0107, gdy po obu stronach bramy ( \u22A2 ) stoi to samo zdanie \u2014 tak\u0105 sytuacj\u0119 nazywamy to\u017Csamo\u015Bci\u0105. Ga\u0142\u0105\u017A zmieniasz przyciskami {branch}, a wybran\u0105 ga\u0142\u0105\u017A zamykasz przyciskiem {close}.",
-  tutorialOwlCloseConstants: "Zdania sta\u0142e czasem pozwalaj\u0105 zamkn\u0105\u0107 ga\u0142\u0105\u017A samodzielnie \u2014 Falsum ( \u22A5 ), gdy stoi samo po lewej stronie bramy, i Verum ( \u22A4 ), gdy stoi samo po prawej.",
-  tutorialOwlDrop: "Zb\u0119dne zdania na ga\u0142\u0119zi trzeba zawsze upu\u015Bci\u0107, zanim da si\u0119 j\u0105 zamkn\u0105\u0107. Usuniesz je, wybieraj\u0105c zdanie do upuszczenia przyciskami {pick}, a nast\u0119pnie naciskaj\u0105c przycisk {drop} wielokrotnie, a\u017C wybrane zdanie spadnie z drzewa. Je\u015Bli upu\u015Bcisz zdanie potrzebne do zamkni\u0119cia ga\u0142\u0119zi, mo\u017Cesz cofn\u0105\u0107 ruch przyciskiem {undo}.",
-  tutorialOwlSplit: "Sp\xF3jnik upuszczasz, wybieraj\u0105c zdanie przyciskami {pick}, a nast\u0119pnie naciskaj\u0105c {destruct} wielokrotnie, a\u017C zewn\u0119trzny sp\xF3jnik wybranego zdania spadnie z drzewa. Upuszczenie Koniunkcji ( \u2227 ) po lewej stronie bramy lub Alternatywy ( \u2228 ) po prawej nie ma szczeg\xF3lnych nast\u0119pstw \u2014 cz\u0119\u015Bci zostaj\u0105 na miejscu.",
-  tutorialOwlSideFlip: "Upuszczenie Negacji ( \xAC ) przenosi pozosta\u0142e zdanie na drug\u0105 stron\u0119 bramy.",
-  tutorialOwlCrossing: "Upuszczenie Implikacji ( \u2192 ) po prawej stronie bramy rozdziela jej cz\u0119\u015Bci na obie strony bramy.",
-  tutorialOwlBranching: "Upuszczenie Koniunkcji ( \u2227 ) po prawej stronie bramy lub Alternatywy ( \u2228 ) po lewej rozga\u0142\u0119zia drzewo.",
-  tutorialOwlBranchingCrossing: "Upuszczenie Implikacji ( \u2192 ) po lewej stronie bramy rozbija zdanie: najbardziej z\u0142o\u017Cona z regu\u0142 \u0142\u0105czy rozdzielenie cz\u0119\u015Bci na obie strony bramy i rozga\u0142\u0119zienie drzewa.",
+  tutorialOwlLogic: "Teraz ju\u017C umiesz gra\u0107. Drugi rozdzia\u0142 zag\u0142\u0119bia si\u0119 w skutki niszczenia w r\xF3\u017Cnych sytuacjach. Znajomo\u015B\u0107 skutk\xF3w na pami\u0119\u0107 pomo\u017Ce ci wyostrzy\u0107 taktyk\u0119.",
+  tutorialOwlClose: "Ga\u0142\u0105\u017A drzewa mo\u017Cna zamkn\u0105\u0107, gdy po obu stronach bramy ( \u22A2 ) stoi to samo zdanie.",
+  tutorialOwlCloseConstants: "Falsum ( \u22A5 ) zamyka ga\u0142\u0105\u017A, gdy stoi samo po lewej stronie bramy, i Verum ( \u22A4 ), gdy stoi samo po prawej.",
+  tutorialOwlDrop: "Zb\u0119dne zdania na ga\u0142\u0119zi trzeba upu\u015Bci\u0107, zanim da si\u0119 j\u0105 zamkn\u0105\u0107.",
+  tutorialOwlSplit: "Zniszczenie zdania odrywa od drzewa jego zewn\u0119trzny sp\xF3jnik ( \u2192 \u2227 \u2228 \xAC ). Gdzie trafiaj\u0105 pozosta\u0142e cz\u0119\u015Bci, zale\u017Cy od sytuacji. Wi\u0119cej o tym w nast\u0119pnym rozdziale.",
+  tutorialOwlSideFlip: "Zniszczenie Negacji ( \xAC ) przenosi pozosta\u0142e zdanie na drug\u0105 stron\u0119 bramy.",
+  tutorialOwlCrossing: "Zniszczenie Implikacji ( \u2192 ) po prawej stronie bramy rozdziela jej cz\u0119\u015Bci na obie strony bramy.",
+  tutorialOwlBranching: "Zniszczenie Koniunkcji ( \u2227 ) po prawej stronie bramy lub Alternatywy ( \u2228 ) po lewej rozga\u0142\u0119zia drzewo.",
+  tutorialOwlBranchingCrossing: "Zniszczenie Implikacji ( \u2192 ) po lewej stronie bramy rozbija zdanie: najbardziej z\u0142o\u017Cona z regu\u0142 \u0142\u0105czy rozdzielenie cz\u0119\u015Bci na obie strony bramy i rozga\u0142\u0119zienie drzewa.",
   tutorialOwlOptimization: "Trzeci rozdzia\u0142 dotyczy optymalizacji rozwi\u0105za\u0144.",
-  tutorialOwlClaims: "Do wybranej ga\u0142\u0119zi mo\u017Cesz doda\u0107 twierdzenie przyciskiem {lemma}. Wybierz cz\u0119\u015Bci zdania przyciskami {pieces}, a na ko\u0144cu naci\u015Bnij przycisk {confirm}. Twierdzenia nigdy nie wp\u0142ywaj\u0105 na rozwi\u0105zywalno\u015B\u0107 wyzwania, ale czasem mog\u0105 skr\xF3ci\u0107 rozwi\u0105zanie.",
+  tutorialOwlClaims: "Do wybranej ga\u0142\u0119zi mo\u017Cesz doda\u0107 twierdzenie w\u0142asnego wyboru. Twierdzenia nigdy nie wp\u0142ywaj\u0105 na rozwi\u0105zywalno\u015B\u0107 wyzwania, ale czasem mog\u0105 skr\xF3ci\u0107 rozwi\u0105zanie.",
   tutorialOwlSolvability: "W czwartym rozdziale zastanawiamy si\u0119, jakie wyzwania da si\u0119 rozwi\u0105za\u0107. Rozpoznawanie rozwi\u0105zywalno\u015Bci jest istotne, je\u015Bli mierzysz si\u0119 z chaotycznymi ( \u{1F480} ) wyzwaniami.",
-  tutorialOwlUnsolvable: "Umie\u015Bcili\u015Bmy tu celowo nierozwi\u0105zywalne wyzwania, dzi\u0119ki czemu nauczysz si\u0119 je rozpoznawa\u0107. Nierozwi\u0105zywalne wyzwanie mo\u017Cesz pomin\u0105\u0107 przyciskiem {skip}.",
-  tutorialOwlConjecture: "W tej piaskownicy mo\u017Cesz spr\xF3bowa\u0107 rozwi\u0105za\u0107 wyzwania w\u0142asnego wyboru. Najpierw wybierz cz\u0119\u015Bci zdania przyciskami {pieces}, a na ko\u0144cu naci\u015Bnij przycisk {confirm}. B\u0142\u0119dne naci\u015Bni\u0119cia cofniesz przyciskiem {undo}.",
+  tutorialOwlUnsolvable: "Umie\u015Bcili\u015Bmy tu celowo nierozwi\u0105zywalne wyzwania, dzi\u0119ki czemu nauczysz si\u0119 je rozpoznawa\u0107. Wyzwanie, kt\xF3re uznasz za nierozwi\u0105zywalne, mo\u017Cna pomin\u0105\u0107.",
+  tutorialOwlConjecture: "W tej piaskownicy mo\u017Cesz spr\xF3bowa\u0107 rozwi\u0105za\u0107 wyzwania w\u0142asnego wyboru.",
   tutorialSkipped: "Wyzwanie pomini\u0119te! Nie mia\u0142o rozwi\u0105zania.",
   tutorialSkippedSolvable: "Wyzwanie pomini\u0119te! Mia\u0142o jednak rozwi\u0105zanie.",
   tutorialComplete: "Zako\u0144czenie",
+  tutorialDemoSequent: "To jest sekwent.",
+  tutorialDemoGrow: "Z ka\u017Cdym ruchem drzewo ro\u015Bnie.",
+  tutorialDemoClosed: "Ta ga\u0142\u0105\u017A jest zamkni\u0119ta \u2014 ju\u017C nie uro\u015Bnie.",
+  tutorialDemoOther: "Zamknijmy drug\u0105 ga\u0142\u0105\u017A.",
+  tutorialDemoDone: "Drzewo jest gotowe. Rozwi\u0105\u017Cmy nast\u0119pne razem!",
+  tutorialOwlPresolve: "Pomog\u0119 ci zacz\u0105\u0107\u2026",
   tutorialStart: "Rozpocznij",
   tutorialOwlDone: "Samouczek uko\u0144czony! Wiesz ju\u017C wszystko, czego potrzeba do gry. Mi\u0142ej zabawy!"
 };
@@ -5536,6 +5571,19 @@ var createButton = (label, disabled, onClick) => {
   }
   return el;
 };
+var addLegendBind = (btn, action) => {
+  const binds = [
+    ["keyboard", gazeKeyHint(action)],
+    ["gamepad", gazePadHint(action)]
+  ];
+  for (const [device, label] of binds) {
+    if (label === void 0) continue;
+    const chip = document.createElement("span");
+    chip.setAttribute("class", `legend-bind for-${device}`);
+    chip.textContent = label;
+    btn.appendChild(chip);
+  }
+};
 var rulesVisible = false;
 var setDefaultRulesVisible = (visible) => {
   rulesVisible = visible;
@@ -5859,6 +5907,16 @@ var createRuleCard = (key, rule, disabled, pinned, hideRules, gazeHints, panelCl
   }
   return pre;
 };
+var createBareRuleCard = (key, rule, disabled) => createRuleCard(
+  key,
+  rule,
+  disabled,
+  [],
+  true,
+  { connective: null, weakening: null },
+  "main",
+  () => void 0
+);
 var createPanel = (className, ruleRecord, ls, rules3, pinned, hideRules, solved, gazeHints, getHint) => {
   const panel = document.createElement("div");
   panel.setAttribute("class", className);
@@ -6179,6 +6237,7 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
   if (onSkip !== void 0) {
     const skipBtn = createButton(t("skip"), false, onSkip);
     skipBtn.classList.add("mutating");
+    addLegendBind(skipBtn, "skip");
     miscGroup.appendChild(skipBtn);
   }
   const gazeGroup = makeGroup(ctx.isGazeModeActive() ? "gaze" : "hot");
@@ -6213,6 +6272,14 @@ var createBench = (workspace, makeCongrats, controlsEl, rerender, onMenu, onAppl
   gazeWeakeningBtn.classList.add("mutating");
   gazeConnectiveBtn.classList.add("mutating");
   axiomBtn.classList.add("mutating");
+  addLegendBind(gazeLeftBtn, "gazeLeft");
+  addLegendBind(gazeRightBtn, "gazeRight");
+  addLegendBind(gazeWeakeningBtn, "gazeWeakening");
+  addLegendBind(gazeConnectiveBtn, "gazeConnective");
+  addLegendBind(axiomBtn, "axiom");
+  addLegendBind(lemmaBtn, "lemma");
+  addLegendBind(prevBranchBtn, "prevBranch");
+  addLegendBind(nextBranchBtn, "nextBranch");
   const navGroup = makeGroup("controls-nav");
   navGroup.appendChild(prevBranchBtn);
   if (hideLemma !== true) navGroup.appendChild(lemmaBtn);
@@ -6689,6 +6756,7 @@ var createControls = (ws, _listingEl, rerender, showLevelButton, onLevel) => {
     rerender();
   });
   undoBtn.classList.add("mutating");
+  addLegendBind(undoBtn, "undo");
   panel.appendChild(undoBtn);
   return panel;
 };
@@ -6959,6 +7027,7 @@ var createControls2 = (getWorkspace, rerender) => {
     rerender();
   });
   undoBtn.classList.add("mutating");
+  addLegendBind(undoBtn, "undo");
   panel.appendChild(undoBtn);
   return panel;
 };
@@ -7345,6 +7414,11 @@ var mountSecret = (container, navigate2) => {
     systemsBtn.innerHTML = t("systems");
     systemsBtn.onclick = () => navigate2("system");
     modes.appendChild(systemsBtn);
+    const galleryBtn = document.createElement("div");
+    galleryBtn.setAttribute("class", "button menu-mode");
+    galleryBtn.innerHTML = t("gallery");
+    galleryBtn.onclick = () => navigate2("gallery");
+    modes.appendChild(galleryBtn);
     const campaignBtn = document.createElement("div");
     campaignBtn.setAttribute("class", "button menu-mode");
     campaignBtn.innerHTML = t("campaign");
@@ -7357,6 +7431,381 @@ var mountSecret = (container, navigate2) => {
     backBtn.onclick = () => navigate2("menu");
     panel.appendChild(backBtn);
     container.appendChild(panel);
+  };
+  render();
+  return { cleanup: () => {
+  }, rerender: render };
+};
+
+// src/web/gallery.ts
+var specimen = (el, caption) => {
+  const box = document.createElement("div");
+  box.setAttribute("class", "gallery-specimen");
+  box.appendChild(el);
+  const label = document.createElement("div");
+  label.setAttribute("class", "gallery-caption");
+  label.textContent = caption;
+  box.appendChild(label);
+  return box;
+};
+var section = (title, prose, strip) => {
+  const sec = document.createElement("section");
+  sec.setAttribute("class", "gallery-section");
+  const heading = document.createElement("div");
+  heading.setAttribute("class", "gallery-section-title");
+  heading.textContent = title;
+  sec.appendChild(heading);
+  const body = document.createElement("p");
+  body.setAttribute("class", "gallery-prose");
+  body.textContent = prose;
+  sec.appendChild(body);
+  sec.appendChild(strip);
+  return sec;
+};
+var metaSection = () => {
+  const strip = document.createElement("div");
+  strip.setAttribute("class", "gallery-strip bench-topbar");
+  const menuBtn = document.createElement("div");
+  menuBtn.setAttribute("class", "button quiz-menu-btn");
+  menuBtn.textContent = "\u22EE";
+  strip.appendChild(specimen(menuBtn, t("menu")));
+  const rulesOff = document.createElement("div");
+  rulesOff.setAttribute("class", "button toggle bench-rules-btn");
+  rulesOff.textContent = "?";
+  const ledOff = document.createElement("span");
+  ledOff.setAttribute("class", "led");
+  rulesOff.appendChild(ledOff);
+  strip.appendChild(specimen(rulesOff, t("rules") + " \xB7 LED off"));
+  const rulesOn = document.createElement("div");
+  rulesOn.setAttribute("class", "button toggle bench-rules-btn");
+  rulesOn.textContent = "?";
+  const ledOn = document.createElement("span");
+  ledOn.setAttribute("class", "led on");
+  rulesOn.appendChild(ledOn);
+  strip.appendChild(specimen(rulesOn, t("rules") + " \xB7 LED on"));
+  const zoomGroup = document.createElement("div");
+  zoomGroup.setAttribute("class", "bench-zoom");
+  const zoomOut = createButton("\u2212", false);
+  zoomOut.classList.add("zoom-step");
+  const zoomReset = createButton(":", false);
+  zoomReset.classList.add("zoom-reset");
+  const zoomIn = createButton("+", false);
+  zoomIn.classList.add("zoom-step");
+  zoomGroup.appendChild(zoomOut);
+  zoomGroup.appendChild(zoomReset);
+  zoomGroup.appendChild(zoomIn);
+  strip.appendChild(specimen(zoomGroup, "zoom"));
+  return section(
+    "Meta buttons",
+    "Frameless icon buttons in the topbar for actions outside the game itself: opening the menu, toggling the rules sheet, zooming the proof tree. The transparent border makes them read as chrome rather than moves, and they hide entirely while a keyboard or gamepad is driving the game. The rules toggle carries an LED showing whether the sheet is open.",
+    strip
+  );
+};
+var inertSection = () => {
+  const strip = document.createElement("div");
+  strip.setAttribute("class", "gallery-strip");
+  const make = (label, disabled) => {
+    const btn = createButton(label, disabled);
+    btn.classList.add("inert");
+    return btn;
+  };
+  strip.appendChild(specimen(make(t("left"), false), "default"));
+  strip.appendChild(specimen(make(t("right"), false), "default"));
+  strip.appendChild(specimen(make(t("lemma"), false), "default"));
+  strip.appendChild(specimen(make(t("prevBranch"), true), "disabled"));
+  return section(
+    "Inert buttons",
+    "Bordered buttons navigate or select: they move the gaze cursor, switch branches, or open an editor. Pressing one never changes the proof, so the player can explore them without consequence.",
+    strip
+  );
+};
+var mutatingSection = () => {
+  const strip = document.createElement("div");
+  strip.setAttribute("class", "gallery-strip");
+  const make = (label, disabled) => {
+    const btn = createButton(label, disabled);
+    btn.classList.add("mutating");
+    return btn;
+  };
+  strip.appendChild(specimen(make(t("drop"), false), "default"));
+  strip.appendChild(specimen(make(t("destruct"), false), "default"));
+  strip.appendChild(specimen(make(t("axiom"), false), "default"));
+  strip.appendChild(specimen(make(t("undo"), true), "disabled"));
+  return section(
+    "Mutating buttons",
+    "Solid buttons commit a move: applying a rule, undoing one, skipping the challenge. The filled body signals that game state changes when the button is pressed.",
+    strip
+  );
+};
+var ruleCardSection = () => {
+  const strip = document.createElement("div");
+  strip.setAttribute("class", "gallery-strip");
+  strip.appendChild(specimen(createBareRuleCard("i", center.i, false), "axiom"));
+  strip.appendChild(
+    specimen(createBareRuleCard("swl", left.swl, false), "structural")
+  );
+  strip.appendChild(
+    specimen(createBareRuleCard("ir", right.ir, false), "logical")
+  );
+  strip.appendChild(
+    specimen(createBareRuleCard("cut", center.cut, false), "meta")
+  );
+  strip.appendChild(
+    specimen(createBareRuleCard("nl", left.nl, true), "disabled")
+  );
+  return section(
+    "Rule cards",
+    "Rule cards are not buttons: they are a non-interactive display of each rule schema, addressed to specialists who already read the notation. Together the cards give a concise description of the proof system. A dimmed card means the rule is not available in the current challenge. In play the cards may carry key and gaze badges; those are documented with the input hints, not here.",
+    strip
+  );
+};
+var treeSpecimen = (el, caption) => {
+  const wrap = document.createElement("div");
+  wrap.setAttribute("class", "gallery-tree");
+  wrap.appendChild(el);
+  return specimen(wrap, caption);
+};
+var treeSection = () => {
+  const strip = document.createElement("div");
+  strip.setAttribute("class", "gallery-strip");
+  const { a: a87, z: z78, i: i88 } = rk;
+  const proof = z78.cr(
+    z78.swl(a87("q"), i88.i(a87("p"))),
+    z78.sRotLB(z78.swl(a87("p"), i88.i(a87("q"))))
+  );
+  const partial = editDerivation(proof, [1], (d) => premise(d.result));
+  if (partial !== null) {
+    strip.appendChild(
+      treeSpecimen(renderDerivation(partial, [1]), "in progress")
+    );
+  }
+  strip.appendChild(treeSpecimen(renderDerivation(proof, [-1]), "solved"));
+  return section(
+    "Proof tree",
+    "The proof tree is the play surface. The goal sequent sits at the bottom; each backward rule application draws an inference line above its conclusion, labelled with the rule on the right, and stacks the new premises on top. The highlighted sequent is the active goal that the next move applies to; a solved tree has no open goals left. The solve animation states (verify sweep, fading) are not documented here.",
+    strip
+  );
+};
+var gazeGhostSection = () => {
+  const strip = document.createElement("div");
+  strip.setAttribute("class", "gallery-strip");
+  const { a: a87, o: o76 } = rk;
+  const goal87 = sequent(
+    [o76.p2.conjunction(a87("p"), a87("q"))],
+    [o76.p2.conjunction(a87("q"), a87("p"))]
+  );
+  const gaze = { side: "left", index: 0 };
+  strip.appendChild(
+    treeSpecimen(renderDerivation(premise(goal87), [], gaze), "gaze cursor")
+  );
+  const ghostSpecimen = (kind, caption, seq = goal87, mark = gaze) => {
+    const chain = computeGhostChain(seq, mark, kind, rules2);
+    if (chain === null) return null;
+    const tree2 = renderDerivation(
+      ghostToDerivation(chain, seq),
+      [],
+      mark,
+      [],
+      []
+    );
+    return treeSpecimen(tree2, caption);
+  };
+  const destruct = ghostSpecimen("connective", t("destruct") + " ghost");
+  if (destruct !== null) strip.appendChild(destruct);
+  const drop = ghostSpecimen("weakening", t("drop") + " ghost");
+  if (drop !== null) strip.appendChild(drop);
+  const rotated = ghostSpecimen(
+    "connective",
+    "ghost with rotation",
+    sequent([o76.p2.conjunction(a87("p"), a87("q")), a87("r")], [a87("s")]),
+    { side: "left", index: 0 }
+  );
+  if (rotated !== null) strip.appendChild(rotated);
+  return section(
+    "Gaze ghost",
+    "With the gaze cursor on a formula (underlined), the tree previews what the pending verb would do: the premises that Destruct or Drop would create appear as a dimmed blue ghost above the active sequent, inference line included. When the gazed formula is not in the active position, the ghost also shows the rotations needed to bring it there. Nothing is applied until the verb is pressed. The Claim (cut) ghost and the presolve display are still in flux and intentionally undocumented.",
+    strip
+  );
+};
+var swatches = [
+  {
+    label: "paper",
+    css: "#ffeedd",
+    value: "#ffeedd",
+    note: "page background, overlays; text on mutating buttons (#fed)"
+  },
+  {
+    label: "ink",
+    css: "#000",
+    value: "#000",
+    note: "text, borders, mutating button fill"
+  },
+  {
+    label: "button fill",
+    css: "#fff8",
+    value: "#fff8",
+    note: "inert/meta button body; opaque #fff on hover"
+  },
+  {
+    label: "gaze",
+    css: "var(--gaze-color)",
+    value: "--gaze-color \xB7 #48f",
+    note: "gaze cursor underline; gaze controls group"
+  },
+  {
+    label: "branch",
+    css: "var(--branch-color)",
+    value: "--branch-color \xB7 #fca",
+    note: "branch controls group; rule-card key badges"
+  },
+  {
+    label: "goal highlight",
+    css: "#fcaa",
+    value: "#fcaa",
+    note: "active sequent in the tree \u2014 the branch color at \u2154 alpha"
+  },
+  {
+    label: "selection",
+    css: "#f80",
+    value: "#f80",
+    note: "button cursor outline; active toggle border (fill #ffeedd)"
+  },
+  {
+    label: "hot",
+    css: "#c33",
+    value: "#c33",
+    note: "gaze controls group while the cursor is parked"
+  },
+  {
+    label: "LED on",
+    css: "#f22",
+    value: "#f22",
+    note: "toggle LED lit (plus glow)"
+  },
+  {
+    label: "LED off",
+    css: "#400",
+    value: "#400",
+    note: "toggle LED dark"
+  },
+  {
+    label: "keycap",
+    css: "#36c",
+    value: "#36c",
+    note: "cold key-hint badges (input hints get their own chapter later)"
+  },
+  {
+    label: "card",
+    css: "#d4b896",
+    value: "#d4b896",
+    note: "rule card body"
+  },
+  {
+    label: "card border",
+    css: "#8a6f4a",
+    value: "#8a6f4a",
+    note: "rule card border"
+  },
+  {
+    label: "card text",
+    css: "#3a2a14",
+    value: "#3a2a14",
+    note: "rule card schema text"
+  }
+];
+var fontsSection = () => {
+  const strip = document.createElement("div");
+  strip.setAttribute("class", "gallery-strip gallery-strip-top");
+  const sans = document.createElement("div");
+  sans.setAttribute("class", "gallery-type-sample");
+  for (const weight of [300, 400, 700]) {
+    const line2 = document.createElement("div");
+    line2.style.fontWeight = String(weight);
+    line2.textContent = `Drop \xB7 Destruct \xB7 Close \xB7 Claim (${String(weight)})`;
+    sans.appendChild(line2);
+  }
+  strip.appendChild(specimen(sans, "Noto Sans \xB7 variable 100\u2013900"));
+  const math = document.createElement("div");
+  math.setAttribute("class", "gallery-type-sample");
+  math.textContent = "\u0393, \u0394 \u22A2 \xAC(p \u2192 q) \u2227 \u22A5 \u2228 \u22A4";
+  strip.appendChild(specimen(math, "Noto Sans Math \xB7 logic glyphs"));
+  const mono = document.createElement("pre");
+  mono.setAttribute("class", "gallery-mono-sample");
+  mono.textContent = fromDerivation(
+    right.ir.example,
+    t("sideLeft"),
+    t("sideRight"),
+    true
+  );
+  strip.appendChild(specimen(mono, "system monospace \xB7 schema grid"));
+  return section(
+    "Fonts",
+    "Two typefaces load from Google Fonts. Noto Sans, a variable font (weights 100\u2013900, with italics), sets all UI text. Noto Sans Math sits behind it in the font stack: wherever Noto Sans lacks a glyph \u2014 the turnstile and the connectives \u2014 the character falls through to the math font, so logic notation in the proof tree is a fallback effect, not a separate style. Button labels, rule cards and the system docs are pre elements and render in the platform default monospace; the schema pretty-printer aligns its layouts on the character grid, so monospace is a functional requirement there, not a taste. The bird emoji standing in for atoms come from the platform color-emoji font \u2014 placeholders until the game gets real graphics, deliberately unspecified.",
+    strip
+  );
+};
+var colorsSection = () => {
+  const strip = document.createElement("div");
+  strip.setAttribute("class", "gallery-strip gallery-strip-top");
+  for (const s of swatches) {
+    const box = document.createElement("div");
+    box.setAttribute("class", "gallery-specimen");
+    const block = document.createElement("div");
+    block.setAttribute("class", "gallery-swatch");
+    block.style.backgroundColor = s.css;
+    box.appendChild(block);
+    const label = document.createElement("div");
+    label.setAttribute("class", "gallery-caption");
+    label.textContent = s.label;
+    box.appendChild(label);
+    const value = document.createElement("div");
+    value.setAttribute("class", "gallery-caption");
+    value.textContent = s.value;
+    box.appendChild(value);
+    const note = document.createElement("div");
+    note.setAttribute("class", "gallery-swatch-note");
+    note.textContent = s.note;
+    box.appendChild(note);
+    strip.appendChild(box);
+  }
+  return section(
+    "Colors",
+    "The game is drawn in ink on parchment; interactive chrome adds translucent whites, and a small set of accents carries meaning: blue for the gaze, peach for branches, orange for selection, red for hot and lit states. Ghost and solved trees are not separate pigments \u2014 they are CSS filters over these same colors. Only the gaze and branch accents are named custom properties; the other values are transcribed literals, so treat lk.css as the source of truth.",
+    strip
+  );
+};
+var mountGallery = (container, navigate2) => {
+  const render = () => {
+    container.innerHTML = "";
+    const panel = document.createElement("div");
+    panel.setAttribute("class", "gallery");
+    const back = document.createElement("div");
+    back.setAttribute("class", "button system-back");
+    back.innerHTML = t("back");
+    back.onclick = () => navigate2("secret");
+    panel.appendChild(back);
+    const title = document.createElement("div");
+    title.setAttribute("class", "system-title");
+    title.innerHTML = t("gallery");
+    panel.appendChild(title);
+    const doc = document.createElement("div");
+    doc.setAttribute("class", "gallery-doc");
+    doc.appendChild(metaSection());
+    doc.appendChild(inertSection());
+    doc.appendChild(mutatingSection());
+    doc.appendChild(ruleCardSection());
+    doc.appendChild(treeSection());
+    doc.appendChild(gazeGhostSection());
+    doc.appendChild(colorsSection());
+    doc.appendChild(fontsSection());
+    panel.appendChild(doc);
+    container.appendChild(panel);
+    requestAnimationFrame(() => {
+      const trees = panel.querySelectorAll(
+        ".gallery-tree > .tree-node"
+      );
+      trees.forEach((tree2) => layoutTree(tree2, { skipActiveScroll: true }));
+    });
   };
   render();
   return { cleanup: () => {
@@ -7401,6 +7850,20 @@ var linearize = (proof, opts = {}) => {
   const events = [];
   const shuffle = opts.shuffle ?? true;
   walk(proof, events, shuffle);
+  return events;
+};
+var linearizeStart = (start) => {
+  const events = [];
+  const walkStart = (node) => {
+    if (node.kind === "premise") {
+      events.push(nextBranch());
+      return;
+    }
+    if (isReverseId0(node.rule)) events.push(reverse02(node.rule));
+    node.deps.forEach(walkStart);
+  };
+  walkStart(start);
+  while (events[events.length - 1]?.kind === "nextBranch") events.pop();
   return events;
 };
 
@@ -9356,6 +9819,14 @@ var generateSequentChallenge = (notch) => {
   }
   return fallbackChallenge(notch);
 };
+var DEMO_GOAL = sequent(
+  [conjunction(P, Q)],
+  [conjunction(Q, P)]
+);
+var generateDemoChallenge = () => {
+  const [solution87] = brute({ goal: DEMO_GOAL, rules: tutorialRules });
+  return asResult(solution87, 0);
+};
 var frontierLeaves = (start) => openBranches(start).flatMap((path) => {
   const node = subDerivation(start, path);
   return node === null ? [] : [node.result];
@@ -9681,62 +10152,19 @@ var owlBeatKey = [
   "tutorialOwlUnsolvable",
   "tutorialOwlConjecture"
 ];
-var owlDevices = ["pointer", "keyboard", "gamepad"];
-var owlBindLabels = (device) => {
-  if (device === "pointer") {
-    return /* @__PURE__ */ new Map([
-      ["pick", `${t("left")} / ${t("right")}`],
-      ["drop", t("drop")],
-      ["close", t("axiom")],
-      ["undo", t("undo")],
-      ["destruct", t("destruct")],
-      ["branch", `${t("prevBranch")} / ${t("nextBranch")}`],
-      ["skip", t("skip")],
-      // The formula editor's palette has no single button word; a glyph
-      // sample stands in for the row of piece buttons.
-      ["pieces", "\u{1F427} \xAC \u2227 \u2026"],
-      ["confirm", t("lemmaConfirm")],
-      ["lemma", t("lemma")]
-    ]);
-  }
-  const hint = device === "keyboard" ? gazeKeyHint : gazePadHint;
-  const label = (action) => hint(action) ?? "?";
-  return /* @__PURE__ */ new Map([
-    ["pick", `${label("gazeLeft")} ${label("gazeRight")}`],
-    ["drop", label("gazeWeakening")],
-    ["close", label("axiom")],
-    ["undo", label("undo")],
-    ["destruct", label("gazeConnective")],
-    ["branch", `${label("prevBranch")} / ${label("nextBranch")}`],
-    ["skip", label("skip")],
-    // In the editor the gaze keys drive the bar cursor: aim with the
-    // arrows / D-pad, take the aimed piece with the confirm press.
-    ["pieces", `${label("gazeLeft")} ${label("gazeRight")} ${label("axiom")}`],
-    ["confirm", label("axiom")],
-    ["lemma", label("lemma")]
-  ]);
+var demoPhaseKey = {
+  sequent: "tutorialDemoSequent",
+  grow: "tutorialDemoGrow",
+  closed: "tutorialDemoClosed",
+  other: "tutorialDemoOther",
+  done: "tutorialDemoDone"
 };
-var appendOwlTemplate = (into, template) => {
-  const binds = owlDevices.map(
-    (device) => [device, owlBindLabels(device)]
-  );
-  for (const part of template.split(/(\{\w+\})/)) {
-    if (part === "") continue;
-    const token = part.startsWith("{") && part.endsWith("}") ? part.slice(1, -1) : null;
-    if (token === null || !(binds[0]?.[1].has(token) ?? false)) {
-      into.appendChild(document.createTextNode(part));
-      continue;
-    }
-    for (const [device, labels] of binds) {
-      const label = labels.get(token);
-      if (label === void 0) continue;
-      const chip = document.createElement("span");
-      chip.setAttribute("class", `owl-bind for-${device}`);
-      chip.textContent = label;
-      into.appendChild(chip);
-    }
-  }
-};
+var DEMO_MOVE_MS = 1300;
+var DEMO_PHASE_MS = 3600;
+var DEMO_DONE_MS = 8e3;
+var isClosingEvent = (ev) => ev.kind === "reverse0" && (ev.rev === "i" || ev.rev === "f" || ev.rev === "v");
+var PRESOLVE_DWELL_MS = 1800;
+var PRESOLVE_MOVE_MS = 550;
 var mountTutorial = (container, navigate2, startStop) => {
   let stopIdx = Math.max(0, Math.min(startStop, tutorialStops.length - 1));
   const beatForStop = (s) => {
@@ -9756,6 +10184,131 @@ var mountTutorial = (container, navigate2, startStop) => {
     getActionHint,
     toggleRulesVisible: () => {
     }
+  };
+  const onWelcome = () => stopIdx === 0;
+  let demoWs = null;
+  let demoQueue = [];
+  let demoPhase = "sequent";
+  let demoTimer = null;
+  let demoReturn = false;
+  const demoCtx = {
+    ...createBenchCtx(false, true, false, false),
+    getActionHint,
+    toggleRulesVisible: () => {
+    }
+  };
+  const scheduleDemo = (ms) => {
+    if (demoTimer !== null) window.clearTimeout(demoTimer);
+    demoTimer = window.setTimeout(() => demoStep(), ms);
+  };
+  const startDemo = () => {
+    const challenge2 = generateDemoChallenge().challenge;
+    const solution87 = challenge2.solution;
+    demoWs = new Workspace({ challenge: challenge2 });
+    demoQueue = solution87 === void 0 ? [] : linearize(solution87, { shuffle: false });
+    demoPhase = "sequent";
+    demoReturn = false;
+  };
+  const stopDemo = () => {
+    if (demoTimer !== null) window.clearTimeout(demoTimer);
+    demoTimer = null;
+    demoWs = null;
+  };
+  const demoStep = () => {
+    demoTimer = null;
+    if (!onWelcome() || demoWs === null) return;
+    if (paused) {
+      scheduleDemo(DEMO_MOVE_MS);
+      return;
+    }
+    if (demoReturn) {
+      demoReturn = false;
+      demoWs.applyEvent(nextBranch());
+      demoPhase = "other";
+      rerender();
+      scheduleDemo(DEMO_PHASE_MS);
+      return;
+    }
+    const ev = demoQueue[0];
+    if (demoWs.isSolved() || ev === void 0) {
+      startDemo();
+      rerender();
+      scheduleDemo(DEMO_PHASE_MS);
+      return;
+    }
+    demoQueue = demoQueue.slice(1);
+    demoWs.applyEvent(ev);
+    let dwell = DEMO_MOVE_MS;
+    if (demoPhase === "sequent") {
+      demoPhase = "grow";
+      dwell = DEMO_PHASE_MS;
+    }
+    if (isClosingEvent(ev)) {
+      if (demoWs.isSolved()) {
+        demoPhase = "done";
+        dwell = DEMO_DONE_MS;
+      } else {
+        demoWs.applyEvent(prevBranch());
+        demoReturn = true;
+        demoPhase = "closed";
+        dwell = DEMO_PHASE_MS;
+      }
+    }
+    rerender();
+    scheduleDemo(dwell);
+  };
+  let presolving = false;
+  let presolvePending;
+  let presolveQueue = [];
+  let presolveTimer = null;
+  const presolveDone = /* @__PURE__ */ new WeakSet();
+  const schedulePresolve = (ms) => {
+    if (presolveTimer !== null) window.clearTimeout(presolveTimer);
+    presolveTimer = window.setTimeout(() => presolveStep(), ms);
+  };
+  const cancelPresolve = () => {
+    if (presolveTimer !== null) window.clearTimeout(presolveTimer);
+    presolveTimer = null;
+    if (presolving && presolvePending !== void 0) {
+      ws = new Workspace({ challenge: presolvePending });
+    }
+    presolving = false;
+    presolvePending = void 0;
+    presolveQueue = [];
+  };
+  const startPresolveIfAny = () => {
+    if (onIntro()) return;
+    const conf = ws.listConjectures()[0]?.[1];
+    const start = conf?.start;
+    if (conf === void 0 || start === void 0) return;
+    if (presolveDone.has(start)) return;
+    presolveDone.add(start);
+    presolvePending = conf;
+    presolveQueue = linearizeStart(start);
+    ws = new Workspace({ challenge: { rules: conf.rules, goal: conf.goal } });
+    presolving = true;
+    schedulePresolve(PRESOLVE_DWELL_MS);
+  };
+  const presolveStep = () => {
+    presolveTimer = null;
+    if (!presolving) return;
+    if (paused) {
+      schedulePresolve(PRESOLVE_MOVE_MS);
+      return;
+    }
+    const ev = presolveQueue[0];
+    if (ev === void 0) {
+      const pending = presolvePending;
+      presolving = false;
+      presolvePending = void 0;
+      if (pending !== void 0) ws = new Workspace({ challenge: pending });
+      rerender();
+      return;
+    }
+    presolveQueue = presolveQueue.slice(1);
+    ws.applyEvent(ev);
+    rerender();
+    schedulePresolve(PRESOLVE_MOVE_MS);
   };
   let paused = false;
   let pausePopup = null;
@@ -9803,9 +10356,13 @@ var mountTutorial = (container, navigate2, startStop) => {
     );
   };
   const nextChallenge = () => {
+    cancelPresolve();
     skipped = false;
     if (onConjecture()) openConjecture();
-    else ws = freshWorkspace();
+    else {
+      ws = freshWorkspace();
+      startPresolveIfAny();
+    }
     rerender();
   };
   const rerootAtBeat = (target) => {
@@ -9822,10 +10379,13 @@ var mountTutorial = (container, navigate2, startStop) => {
   const jumpToStop = (target) => {
     const clamped = Math.max(0, Math.min(target, tutorialStops.length - 1));
     if (clamped === stopIdx) return;
+    cancelPresolve();
     stopIdx = clamped;
+    if (!onWelcome()) stopDemo();
     const stop = stopAt(stopIdx);
     rerootAtBeat(stop.kind === "beat" ? stop.beatIdx : beatForStop(stopIdx));
     syncUrl();
+    if (stop.kind === "beat") startPresolveIfAny();
     rerender();
   };
   const stopIndexOfBeat = (beat) => tutorialStops.findIndex((s) => s.kind === "beat" && s.beatIdx === beat);
@@ -9846,7 +10406,7 @@ var mountTutorial = (container, navigate2, startStop) => {
     const el = document.createElement("div");
     el.setAttribute("class", "controls");
     const canUndo2 = ws.canUndo();
-    const enabled = canUndo2 || ctx.isGazeModeActive();
+    const enabled = !presolving && (canUndo2 || ctx.isGazeModeActive());
     const undoBtn = createButton(t("undo"), !enabled, () => {
       if (canUndo2) {
         ws.applyEvent(undo2());
@@ -9856,12 +10416,26 @@ var mountTutorial = (container, navigate2, startStop) => {
       rerender();
     });
     undoBtn.classList.add("mutating");
+    addLegendBind(undoBtn, "undo");
     el.appendChild(undoBtn);
     return el;
   };
   const buildIntroPage = () => {
     const page = document.createElement("div");
     page.setAttribute("class", "tutorial-intro");
+    if (onWelcome()) {
+      page.classList.add("tutorial-welcome");
+      if (demoWs === null) {
+        startDemo();
+        scheduleDemo(DEMO_PHASE_MS);
+      }
+      if (demoWs !== null) {
+        const demo = document.createElement("div");
+        demo.setAttribute("class", "tutorial-demo");
+        demo.appendChild(createPlayArea(demoWs, demoCtx));
+        page.appendChild(demo);
+      }
+    }
     const cells = [];
     const add = (label, activate) => {
       const el = createButton(label, false, activate);
@@ -9935,11 +10509,11 @@ var mountTutorial = (container, navigate2, startStop) => {
     bubble.setAttribute("class", "tutor-owl-bubble");
     const stop = stopAt(stopIdx);
     const beatKey = stop.kind === "beat" ? owlBeatKey[stop.beatIdx] : void 0;
-    const paragraphs = stop.kind === "intro" ? [t(owlChapterKey[stop.chapter])] : beatKey === void 0 ? [] : [t(beatKey)];
+    const paragraphs = onWelcome() ? [t(demoPhaseKey[demoPhase])] : presolving ? [t("tutorialOwlPresolve")] : stop.kind === "intro" ? [t(owlChapterKey[stop.chapter])] : beatKey === void 0 ? [] : [t(beatKey)];
     for (const text of paragraphs) {
       const para = document.createElement("div");
       para.setAttribute("class", "tutor-owl-para");
-      appendOwlTemplate(para, text);
+      para.textContent = text;
       bubble.appendChild(para);
     }
     const face = document.createElement("div");
@@ -10086,6 +10660,7 @@ var mountTutorial = (container, navigate2, startStop) => {
     container.innerHTML = "";
     const screen = document.createElement("div");
     screen.setAttribute("class", "tutorial-screen");
+    if (presolving) screen.classList.add("tutorial-presolving");
     if (onIntro()) {
       screen.appendChild(buildIntroPage());
     } else if (skipped) {
@@ -10112,6 +10687,11 @@ var mountTutorial = (container, navigate2, startStop) => {
           lemmaSession
         )
       );
+      if (presolving) {
+        screen.querySelectorAll(".controls .button").forEach((el) => {
+          el.classList.add("disabled");
+        });
+      }
     }
     screen.appendChild(buildCrumb());
     screen.appendChild(buildOwl());
@@ -10201,6 +10781,7 @@ var mountTutorial = (container, navigate2, startStop) => {
       setPaused(true);
       return;
     }
+    if (presolving) return;
     if (onIntro()) {
       const cursor = introCursor;
       if (cursor !== null) {
@@ -10266,9 +10847,12 @@ var mountTutorial = (container, navigate2, startStop) => {
   const cleanupPads = [0, 1, 2, 3].map((idx) => setupGamepad(dispatch, idx));
   const unsubscribeGamepad = subscribeGamepad(rerender);
   if (onConjecture()) openConjecture();
+  if (!onIntro()) startPresolveIfAny();
   rerender();
   return {
     cleanup: () => {
+      stopDemo();
+      cancelPresolve();
       document.documentElement.classList.remove("mode-single");
       document.removeEventListener("keydown", handleKey);
       document.removeEventListener("pointerdown", markPointerInput);
@@ -10485,13 +11069,13 @@ var createRow = (label, input) => {
   return row;
 };
 var createSection = (title) => {
-  const section = document.createElement("div");
-  section.className = "config-section";
+  const section2 = document.createElement("div");
+  section2.className = "config-section";
   const heading = document.createElement("div");
   heading.className = "config-section-title";
   heading.textContent = title;
-  section.appendChild(heading);
-  return section;
+  section2.appendChild(heading);
+  return section2;
 };
 var buildFormulaSettingsSection = (config, onChange, prependFilterRows = []) => {
   const createToggle = (content, useHtml, title, isActive, onToggle) => {
@@ -11328,6 +11912,9 @@ var mount = (screen) => {
     case "system":
       current = mountSystem(body, navigate);
       break;
+    case "gallery":
+      current = mountGallery(body, navigate);
+      break;
     case "versus": {
       const vConfig = parseVersusConfigFromParams(
         new URLSearchParams(window.location.search)
@@ -11389,6 +11976,8 @@ var init3 = () => {
     mount("secret");
   } else if (mode === "system") {
     mount("system");
+  } else if (mode === "gallery") {
+    mount("gallery");
   } else if (mode === "versus") {
     mount("versus");
   } else if (mode === "tutorial") {

@@ -312,20 +312,21 @@ html.loading body {
   left: 20px;
 }
 
-/* Single-player (Random/Campaign): the on-screen control bar and topbar */
-/* buttons are the pointer/touch UI. Show them only while pointer/touch is the */
-/* active device; a keyboard or gamepad player uses physical keys/buttons and */
-/* gets a cleaner view. Scoped to .mode-single so Versus is unaffected. */
-/* visibility (not display) so the buttons reserve their space and the layout */
-/* stays put when the active device changes. */
-html.mode-single:not(.input-pointer) .controls:not(:has(.congrabuttons)) {
-  visibility: hidden;
-}
-/* The inline lemma editor bar stays visible on every input device: it is the
-   editor, not an on-screen mirror of physical keys. Revisit for keyboard
-   once the editor grows its own key layer (digit atoms + operator keys). */
-html.mode-single:not(.input-pointer) .controls.lemma-editor {
-  visibility: visible;
+/* Single-player: the control bar doubles as the controls legend. With
+   pointer/touch active it is the clickable button row; when a keyboard or
+   gamepad is the active device the same bar drops its pressable chrome and
+   reveals each verb's gaze-family binding via .legend-bind chips — same
+   slot, same verbs, same disabled-state dimming, so the layout never shifts
+   on a device flip. The lemma editor bar is exempt: it is the editor
+   itself, interactive on every device. Congrats buttons likewise stay
+   interactive. Scoped to .mode-single so Versus is unaffected. */
+html.mode-single:not(.input-pointer)
+  .controls:not(:has(.congrabuttons)):not(.lemma-editor)
+  .button {
+  pointer-events: none;
+  background-color: transparent;
+  border-color: transparent;
+  color: inherit;
 }
 html.mode-single:not(.input-pointer) .bench-topbar .quiz-menu-btn,
 html.mode-single:not(.input-pointer) .bench-topbar .bench-rules-btn,
@@ -336,6 +337,7 @@ html.mode-single:not(.input-pointer) .bench-topbar .bench-zoom {
 .button {
   user-select: none;
   cursor: pointer;
+  position: relative;
   background-color: #fff8;
   border: 3px solid #000;
   border-radius: 10px;
@@ -366,6 +368,31 @@ html.mode-single:not(.input-pointer) .bench-topbar .bench-zoom {
 .button.disabled {
   cursor: default;
   opacity: 0.5;
+}
+/* Key-legend chips inside control-bar buttons: latent while pointer/touch is
+   active (the buttons are self-evident), revealed per device otherwise —
+   keyboard shows key labels, gamepad shows pad glyphs. Absolutely positioned
+   above the verb so the chips never participate in layout: a device flip
+   swaps chrome for chips without reflowing the bar. Keycap look. */
+.legend-bind {
+  display: none;
+  position: absolute;
+  top: -1.1em;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1em;
+  line-height: 1.4;
+  min-width: 1em;
+  border: 1px solid #964;
+  border-radius: 5px;
+  padding: 0 0.3em;
+  background-color: #ffeedd;
+  color: #000;
+  white-space: nowrap;
+}
+html.mode-single.input-keyboard .controls .legend-bind.for-keyboard,
+html.mode-single.input-gamepad .controls .legend-bind.for-gamepad {
+  display: inline-block;
 }
 .rule.hint {
   user-select: text;
@@ -794,6 +821,94 @@ html.mode-single:not(.input-pointer) .bench-topbar .bench-zoom {
   line-height: 1.4;
   padding: 0.5em 1em 8em 1em;
   user-select: text;
+}
+/* Design-system gallery (secret menu). Specimens reuse the production button
+   classes so they track the real styles; a strip may also carry bench-topbar
+   so the topbar descendant selectors apply — the flex declarations below win
+   over .bench-topbar's grid by appearing later in the file. */
+.gallery {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  box-sizing: border-box;
+  padding: 1em;
+  gap: 1em;
+  overflow: hidden;
+}
+.gallery-doc {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: 0.5em 1em 8em;
+}
+.gallery-section {
+  margin-bottom: 2.5em;
+}
+.gallery-section-title {
+  font-size: 1.6em;
+  font-weight: bold;
+  margin-bottom: 0.3em;
+}
+.gallery-prose {
+  max-width: 40em;
+  line-height: 1.4;
+  margin: 0 0 1em;
+  user-select: text;
+}
+.gallery-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1.5em;
+  padding: 0;
+}
+.gallery-strip-top {
+  align-items: flex-start;
+}
+.gallery-specimen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5em;
+}
+.gallery-caption {
+  font-size: 0.9em;
+  opacity: 0.7;
+}
+/* Tree specimens: same markup as the playarea, at a smaller documentation
+   scale (the playarea sizes its tree via .playarea > .tree-node). The right
+   padding reserves room for the rule labels, which hang off the inference
+   lines (absolutely positioned) and don't contribute layout width. */
+.gallery-tree {
+  padding-right: 3.5em;
+}
+.gallery-tree > .tree-node {
+  font-size: 1.4em;
+}
+/* Color swatches: translucent values render straight on the page background,
+   as they do in play. The border is gallery chrome, not a documented color. */
+.gallery-swatch {
+  width: 5em;
+  height: 3.5em;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+.gallery-swatch-note {
+  font-size: 0.8em;
+  opacity: 0.7;
+  max-width: 11em;
+  text-align: center;
+}
+.gallery-type-sample {
+  font-size: 1.4em;
+  line-height: 1.5;
+}
+.gallery-mono-sample {
+  margin: 0;
+  font-size: 1.1em;
+  line-height: 1.3;
 }
 .menu-title {
   font-size: 5em;
@@ -1359,6 +1474,11 @@ html.mode-single:not(.input-pointer) .bench-topbar .bench-zoom {
   /* Shift the bubble left of the portrait so its sharp corner points at
      the owl's mouth — reads more like the owl is talking. */
   margin-right: 5em;
+  /* The owl overlay is pointer-transparent (.tutor-owl) so clicks fall
+     through to the board; re-enable events on just the bubble rectangle so
+     its text can be selected without the face or margins capturing input. */
+  pointer-events: auto;
+  user-select: text;
 }
 .tutor-owl-para + .tutor-owl-para {
   margin-top: 0.5em;
@@ -1371,6 +1491,48 @@ html.mode-single:not(.input-pointer) .bench-topbar .bench-zoom {
   align-items: center;
   justify-content: center;
   gap: 1em;
+}
+/* Welcome page: the owl solves a fixed exemplar before anything is asked
+   of the player. The board is watch-only — pointer events off — and fills
+   the space above the Start button. */
+.tutorial-welcome {
+  flex-direction: column;
+  padding-bottom: 2em;
+  /* The intro page is height: 100% inside the overflow-hidden screen; the
+     padding must stay inside that height or the page overflows and every
+     active-node scrollIntoView bobs the whole layout. */
+  box-sizing: border-box;
+}
+.tutorial-demo {
+  pointer-events: none;
+  align-self: stretch;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.tutorial-demo .playarea {
+  flex: 1;
+  padding: 2em 4em;
+  scroll-padding: 2em 4em;
+}
+/* On small screens the demo tree must stay whole in view — the player
+   cannot pan a watch-only board, and the narration points at branches. */
+@media (max-width: 600px) {
+  .tutorial-demo .playarea {
+    --base-tree-zoom: 0.4;
+    padding: 1em 0.5em 8em 0.5em;
+    scroll-padding: 1em 0.5em 8em 0.5em;
+  }
+}
+/* While the owl plays a presolved foundation, the board ignores the
+   pointer; keyboard and gamepad actions are swallowed in the dispatch.
+   The topbar chrome (menu, zoom) is not gameplay — it stays live. */
+.tutorial-presolving .bench {
+  pointer-events: none;
+}
+.tutorial-presolving .bench .bench-topbar {
+  pointer-events: auto;
 }
 /* Skip completion screen: the solved screen's counterpart for skipped
    (unsolvable) challenges — a confirmation line above the same topic
@@ -1398,29 +1560,6 @@ html.mode-single:not(.input-pointer) .bench-topbar .bench-zoom {
 }
 .conjecture-preview {
   font-size: 1.6em;
-}
-/* Injected bind labels render as chips. Each chip exists once per device
-   as a latent variant; the html input-* class shows the one matching the
-   device the learner last touched, so switching device swaps the labels
-   without a re-render. Key / pad glyphs get a keycap look, button words a
-   button look. */
-.owl-bind {
-  display: none;
-  border: 1px solid #964;
-  border-radius: 5px;
-  padding: 0 0.3em;
-  background-color: #ffeedd;
-  white-space: nowrap;
-}
-html.input-pointer .owl-bind.for-pointer,
-html.input-keyboard .owl-bind.for-keyboard,
-html.input-gamepad .owl-bind.for-gamepad {
-  display: inline-block;
-}
-.owl-bind.for-pointer {
-  border-radius: 999px;
-  background-color: #fff;
-  box-shadow: 0 1px 0 #964;
 }
 .tutor-owl-face {
   font-size: 3.5em;
